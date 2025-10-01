@@ -1,0 +1,161 @@
+# Multi-level REACT mode configuration
+# Nested REACT loops with different state machine modes
+
+app_mode: "multi_level_react"
+
+primary_orchestrator:
+  orchestrator_id: "primary_orchestrator"
+  agent_role: "orchestrator_agent"
+  model_name: "anthropic:claude-sonnet-4-0"
+  max_nested_loops: 3
+  coordination_strategy: "collaborative"
+  can_spawn_subgraphs: true
+  can_spawn_agents: true
+  break_conditions:
+    - condition_type: "iteration_limit"
+      threshold: 15
+      operator: ">="
+      enabled: true
+    - condition_type: "confidence_threshold"
+      threshold: 0.85
+      operator: ">="
+      enabled: true
+
+nested_react_configs:
+  - loop_id: "research_loop"
+    parent_loop_id: null
+    max_iterations: 8
+    state_machine_mode: "group_chat"
+    subgraphs:
+      - "rag_subgraph"
+      - "search_subgraph"
+    agent_roles:
+      - "search_agent"
+      - "rag_agent"
+      - "reasoning_agent"
+    tools:
+      - "web_search"
+      - "rag_query"
+      - "reasoning_engine"
+    priority: 10
+    break_conditions:
+      - condition_type: "consensus_level"
+        threshold: 0.8
+        operator: ">="
+        enabled: true
+
+  - loop_id: "analysis_loop"
+    parent_loop_id: "research_loop"
+    max_iterations: 5
+    state_machine_mode: "sequential"
+    subgraphs:
+      - "code_subgraph"
+      - "evaluation_subgraph"
+    agent_roles:
+      - "code_executor"
+      - "evaluator"
+      - "reviewer"
+    tools:
+      - "code_sandbox"
+      - "evaluation_tool"
+      - "review_tool"
+    priority: 8
+    break_conditions:
+      - condition_type: "quality_score"
+        threshold: 0.9
+        operator: ">="
+        enabled: true
+
+  - loop_id: "synthesis_loop"
+    parent_loop_id: "analysis_loop"
+    max_iterations: 3
+    state_machine_mode: "hierarchical"
+    subgraphs:
+      - "reasoning_subgraph"
+    agent_roles:
+      - "coordinator"
+      - "synthesizer"
+    tools:
+      - "synthesis_tool"
+      - "finalization_tool"
+    priority: 5
+    break_conditions:
+      - condition_type: "confidence_threshold"
+        threshold: 0.95
+        operator: ">="
+        enabled: true
+
+subgraph_configs:
+  - subgraph_id: "rag_subgraph"
+    subgraph_type: "rag_subgraph"
+    state_machine_path: "DeepResearch.src.statemachines.rag_workflow"
+    entry_node: "InitializeRAG"
+    exit_node: "GenerateResponse"
+    parameters:
+      chunk_size: 1000
+      chunk_overlap: 200
+      top_k: 5
+    tools:
+      - "rag_query"
+      - "document_loader"
+    max_execution_time: 120.0
+    enabled: true
+
+  - subgraph_id: "search_subgraph"
+    subgraph_type: "search_subgraph"
+    state_machine_path: "DeepResearch.src.statemachines.search_workflow"
+    entry_node: "InitializeSearch"
+    exit_node: "GenerateFinalResponse"
+    parameters:
+      num_results: 10
+      chunk_size: 1000
+    tools:
+      - "web_search"
+      - "url_visit"
+    max_execution_time: 90.0
+    enabled: true
+
+  - subgraph_id: "code_subgraph"
+    subgraph_type: "code_subgraph"
+    state_machine_path: "DeepResearch.src.statemachines.code_execution_workflow"
+    entry_node: "InitializeCode"
+    exit_node: "FinalizeCode"
+    parameters:
+      max_attempts: 3
+      timeout: 30
+    tools:
+      - "code_sandbox"
+      - "linter"
+    max_execution_time: 60.0
+    enabled: true
+
+loss_functions:
+  - condition_type: "confidence_threshold"
+    threshold: 0.85
+    operator: ">="
+    enabled: true
+  - condition_type: "quality_score"
+    threshold: 0.9
+    operator: ">="
+    enabled: true
+  - condition_type: "consensus_level"
+    threshold: 0.8
+    operator: ">="
+    enabled: true
+
+global_break_conditions:
+  - condition_type: "time_limit"
+    threshold: 600.0
+    operator: ">="
+    enabled: true
+  - condition_type: "iteration_limit"
+    threshold: 20
+    operator: ">="
+    enabled: true
+
+execution_strategy: "adaptive"
+max_total_iterations: 20
+max_total_time: 600.0
+
+
+

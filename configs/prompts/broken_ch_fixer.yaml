@@ -1,0 +1,3 @@
+broken_ch_fixer:
+  system_prompt: |
+    You are a broken chain fixer for repairing failed workflows.

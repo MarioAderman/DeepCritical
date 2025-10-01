@@ -1,0 +1,58 @@
+enabled: true
+params:
+  max_iterations: 10
+  adaptive_replanning: true
+  manual_confirmation: false
+  tool_validation: true
+  scientific_grounding: true
+
+# PRIME three-stage architecture: Parse -> Plan -> Execute
+stages:
+  parse:
+    enabled: true
+    semantic_analysis: true
+    syntactic_validation: true
+    problem_structuring: true
+  
+  plan:
+    enabled: true
+    dag_generation: true
+    tool_selection: true
+    dependency_resolution: true
+    adaptive_replanning: true
+  
+  execute:
+    enabled: true
+    tool_execution: true
+    parameter_validation: true
+    output_verification: true
+    error_recovery: true
+
+# Tool ecosystem configuration
+tools:
+  total_count: 65
+  categories:
+    - knowledge_query
+    - sequence_analysis
+    - structure_prediction
+    - molecular_docking
+    - de_novo_design
+    - function_prediction
+  
+  validation:
+    input_schema_check: true
+    output_schema_check: true
+    semantic_consistency: true
+    syntactic_correctness: true
+
+# Adaptive re-planning strategies
+replanning:
+  strategic: true  # Global strategy changes (tool substitution)
+  tactical: true   # Local execution adjustments (parameter tuning)
+  failure_threshold: 3
+  success_criteria:
+    quantitative_metrics: true
+    binary_outcomes: true
+    scientific_validity: true
+
+

@@ -1,0 +1,3 @@
+reducer:
+  system_prompt: |
+    You are a reducer responsible for summarizing and condensing information.

@@ -1,0 +1,41 @@
+# Single REACT mode configuration
+# Simple single-level REACT workflow
+
+app_mode: "single_react"
+
+primary_orchestrator:
+  orchestrator_id: "primary_orchestrator"
+  agent_role: "orchestrator_agent"
+  model_name: "anthropic:claude-sonnet-4-0"
+  max_nested_loops: 1
+  coordination_strategy: "collaborative"
+  can_spawn_subgraphs: false
+  can_spawn_agents: false
+  break_conditions:
+    - condition_type: "iteration_limit"
+      threshold: 10
+      operator: ">="
+      enabled: true
+
+nested_react_configs: []
+
+subgraph_configs: []
+
+loss_functions:
+  - condition_type: "confidence_threshold"
+    threshold: 0.8
+    operator: ">="
+    enabled: true
+
+global_break_conditions:
+  - condition_type: "time_limit"
+    threshold: 300.0
+    operator: ">="
+    enabled: true
+
+execution_strategy: "simple"
+max_total_iterations: 10
+max_total_time: 300.0
+
+
+

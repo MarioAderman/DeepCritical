@@ -1,0 +1,136 @@
+# @package _global_
+
+# Default bioinformatics configuration
+# This file contains all configurable parameters extracted from hardcoded values
+
+# Model configuration
+model:
+  default: "anthropic:claude-sonnet-4-0"
+  alternatives:
+    anthropic: "anthropic:claude-sonnet-4-0"
+    openai: "openai:gpt-4o"
+    google: "google:gemini-pro"
+
+# Quality thresholds
+quality:
+  default_threshold: 0.8
+  high_quality_threshold: 0.9
+  gold_standard_threshold: 0.95
+  minimum_threshold: 0.7
+
+# Evidence codes
+evidence_codes:
+  gold_standard: ["IDA"]
+  high_quality: ["IDA", "EXP"]
+  experimental: ["IDA", "EXP", "IPI"]
+  computational: ["ISS", "ISO", "ISA", "ISM", "IGC", "IBA", "IBD", "IKR", "IRD", "RCA"]
+  all: ["IDA", "EXP", "IPI", "IMP", "IGI", "IEP", "ISS", "ISO", "ISA", "ISM", "IGC", "IBA", "IBD", "IKR", "IRD", "RCA", "TAS", "NAS", "IC", "ND", "IEA"]
+
+# Temporal filters
+temporal:
+  recent_year: 2022
+  current_year: 2023
+  ncRNA_min_year: 2022
+  protein_min_year: 2020
+  default_min_year: 2020
+
+# Entity limits
+limits:
+  default_max_entities: 1000
+  high_quality_max_entities: 100
+  comprehensive_max_entities: 2000
+  fast_max_entities: 50
+  minimum_entities_for_reasoning: 10
+
+# PubMed configuration
+pubmed:
+  default_max_results: 100
+  high_quality_max_results: 20
+  comprehensive_max_results: 100
+  fast_max_results: 10
+  include_full_text: true
+  default_year_min: 2020
+
+# GEO configuration
+geo:
+  default_max_series: 50
+  include_expression: true
+  max_samples_per_series: 100
+
+# DrugBank configuration
+drugbank:
+  include_targets: true
+  include_mechanisms: true
+  include_indications: true
+
+# PDB configuration
+pdb:
+  include_interactions: true
+  resolution_max: 3.0
+  include_sequences: true
+  include_secondary_structure: true
+
+# IntAct configuration
+intact:
+  default_confidence_min: 0.6
+  high_confidence_min: 0.7
+  low_confidence_min: 0.5
+
+# Fusion configuration
+fusion:
+  default_quality_threshold: 0.8
+  cross_reference_enabled: true
+  temporal_consistency: true
+  validate_evidence_codes: true
+
+# Reasoning configuration
+reasoning:
+  default_confidence_threshold: 0.7
+  high_confidence_threshold: 0.8
+  integrative_approach: true
+  max_reasoning_steps: 10
+  default_difficulty_level: "medium"
+
+# Agent configuration
+agents:
+  max_retries: 3
+  timeout: 300
+  parallel_processing: true
+  max_concurrent_requests: 5
+
+# Performance configuration
+performance:
+  cache_enabled: true
+  cache_ttl: 3600
+  parallel_processing: true
+  max_concurrent_requests: 5
+  batch_size: 100
+
+# Validation configuration
+validation:
+  strict_mode: false
+  validate_cross_references: true
+  require_curation_notes: false
+  validate_temporal_consistency: true
+
+# Output configuration
+output:
+  include_quality_metrics: true
+  include_reasoning_chain: true
+  include_supporting_evidence: true
+  include_processing_notes: true
+  format: "structured"
+
+# Error handling
+error_handling:
+  graceful_degradation: true
+  fallback_enabled: true
+  max_retries: 3
+  retry_delay: 2
+  exponential_backoff: true
+
+
+
+
+
+

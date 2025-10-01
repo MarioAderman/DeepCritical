@@ -1,0 +1,52 @@
+# @package _global_
+
+# Fast bioinformatics configuration
+# Limited sources, optimized for speed
+
+defaults:
+  - /bioinformatics/defaults
+  - /bioinformatics/data_sources
+  - /bioinformatics/agents
+  - /bioinformatics/tools
+  - /bioinformatics/workflow
+
+# Override for fast settings
+data_sources:
+  go:
+    enabled: true
+    evidence_codes: ${bioinformatics.evidence_codes.high_quality}  # IDA, EXP
+  
+  pubmed:
+    enabled: true
+    max_results: ${bioinformatics.pubmed.fast_max_results}  # 10
+  
+  geo:
+    enabled: false
+  
+  drugbank:
+    enabled: false
+  
+  pdb:
+    enabled: false
+  
+  intact:
+    enabled: false
+
+fusion:
+  quality_threshold: ${bioinformatics.quality.default_threshold}  # 0.8
+  max_entities: ${bioinformatics.limits.fast_max_entities}  # 50
+
+reasoning:
+  confidence_threshold: ${bioinformatics.reasoning.default_confidence_threshold}  # 0.7
+
+performance:
+  parallel_processing: true
+  max_concurrent_requests: 2
+  cache_enabled: true
+  cache_ttl: 1800  # Reduced cache TTL for faster updates
+
+
+
+
+
+

@@ -1,0 +1,35 @@
+# RAG (Retrieval-Augmented Generation) Configuration
+# This configuration defines the RAG system components and their settings
+
+defaults:
+  - _self_
+  - embeddings: openai
+  - llm: vllm_local
+  - vector_store: chroma
+
+# RAG system settings
+chunk_size: 1000
+chunk_overlap: 200
+max_context_length: 4000
+enable_reranking: false
+reranker_model: null
+
+# Document sources
+file_sources: []
+database_sources: []
+web_sources: []
+
+# Processing settings
+batch_size: 32
+max_retries: 3
+timeout: 30.0
+
+# Output settings
+output_format: "detailed"  # detailed, summary, minimal
+include_sources: true
+include_scores: true
+
+
+
+
+

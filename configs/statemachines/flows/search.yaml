@@ -1,0 +1,184 @@
+# Search Workflow Configuration
+# This configuration defines the search workflow parameters and settings
+
+# Workflow settings
+enabled: true
+name: "search_workflow"
+description: "Web search workflow with analytics and RAG integration"
+
+# Search parameters
+search:
+  default_search_type: "search"  # "search" or "news"
+  default_num_results: 4
+  max_num_results: 20
+  min_num_results: 1
+  
+  # Chunking parameters
+  chunking:
+    default_chunk_size: 1000
+    default_chunk_overlap: 0
+    min_chunk_size: 50
+    max_chunk_size: 4000
+    heading_level: 3
+    clean_text: true
+  
+  # Search types
+  types:
+    search:
+      description: "General web search for diverse, relevant content"
+      use_case: "General information and research"
+    news:
+      description: "Fresh news articles and breaking stories"
+      use_case: "Time-sensitive information and current affairs"
+
+# Analytics settings
+analytics:
+  enabled: true
+  record_requests: true
+  record_timing: true
+  data_retention_days: 30
+  
+  # Analytics data retrieval
+  default_days: 30
+  max_days: 365
+
+# RAG integration settings
+rag:
+  enabled: true
+  convert_to_rag_format: true
+  create_documents: true
+  create_chunks: true
+  
+  # Document metadata
+  metadata:
+    include_source_title: true
+    include_url: true
+    include_source: true
+    include_date: true
+    include_domain: true
+    include_search_query: true
+    include_search_type: true
+    include_chunk_count: true
+
+# Performance settings
+performance:
+  timeout_seconds: 30
+  max_retries: 3
+  retry_delay_seconds: 1
+  
+  # Concurrent processing
+  max_concurrent_searches: 5
+  max_concurrent_chunks: 10
+
+# Error handling
+error_handling:
+  continue_on_error: false
+  log_errors: true
+  return_partial_results: true
+  
+  # Error types
+  handle_network_errors: true
+  handle_parsing_errors: true
+  handle_analytics_errors: true
+
+# Output settings
+output:
+  format: "json"  # "json" or "text"
+  include_metadata: true
+  include_analytics: true
+  include_processing_time: true
+  
+  # Content limits
+  max_content_length: 10000
+  max_summary_length: 2000
+
+# Integration settings
+integration:
+  # Tool registry integration
+  register_tools: true
+  auto_register: true
+  
+  # Pydantic AI integration
+  pydantic_ai:
+    enabled: true
+    model: "gpt-4"
+    system_prompt: "You are an intelligent search agent that helps users find information on the web."
+    
+  # State machine integration
+  state_machine:
+    enabled: true
+    use_pydantic_graph: true
+    track_execution_history: true
+
+# Validation settings
+validation:
+  validate_query: true
+  validate_parameters: true
+  validate_results: true
+  
+  # Query validation
+  query:
+    min_length: 1
+    max_length: 500
+    allowed_characters: "alphanumeric, spaces, punctuation"
+  
+  # Parameter validation
+  parameters:
+    num_results:
+      min: 1
+      max: 20
+    chunk_size:
+      min: 50
+      max: 4000
+    chunk_overlap:
+      min: 0
+      max: 1000
+
+# Logging settings
+logging:
+  enabled: true
+  level: "INFO"  # "DEBUG", "INFO", "WARNING", "ERROR"
+  log_requests: true
+  log_responses: true
+  log_errors: true
+  log_analytics: true
+  
+  # Log formats
+  request_format: "Search request: {query} ({search_type}, {num_results} results)"
+  response_format: "Search response: {status} ({processing_time}s, {documents} documents, {chunks} chunks)"
+  error_format: "Search error: {error} for query '{query}'"
+
+# Monitoring settings
+monitoring:
+  enabled: true
+  track_metrics: true
+  track_performance: true
+  
+  # Metrics to track
+  metrics:
+    - "search_count"
+    - "search_success_rate"
+    - "average_processing_time"
+    - "average_results_count"
+    - "analytics_recording_rate"
+  
+  # Performance thresholds
+  performance:
+    max_processing_time: 30.0
+    min_success_rate: 0.95
+    max_error_rate: 0.05
+
+# Development settings
+development:
+  debug_mode: false
+  verbose_logging: false
+  mock_analytics: false
+  
+  # Testing
+  test_mode: false
+  use_mock_tools: false
+  simulate_errors: false
+
+
+
+

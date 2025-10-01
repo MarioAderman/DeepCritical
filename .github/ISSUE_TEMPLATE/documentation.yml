@@ -1,0 +1,133 @@
+name: 📚 Documentation
+description: Request documentation improvements or report documentation issues
+title: "[DOCS]: "
+labels: ["documentation", "needs-triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping improve our documentation! Please provide details about the documentation issue or improvement.
+
+  - type: dropdown
+    id: doc_type
+    attributes:
+      label: Documentation Type
+      description: What type of documentation is affected?
+      options:
+        - README
+        - API Documentation
+        - Configuration Guide
+        - Installation Guide
+        - Usage Examples
+        - Architecture Documentation
+        - Developer Guide
+        - Contributing Guide
+        - Code Comments
+        - Error Messages
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: issue_type
+    attributes:
+      label: Issue Type
+      description: What type of documentation issue is this?
+      options:
+        - Missing Documentation
+        - Outdated Documentation
+        - Incorrect Information
+        - Unclear/Confusing
+        - Typo/Grammar Error
+        - Missing Examples
+        - Poor Organization
+        - Accessibility Issue
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the documentation issue or improvement
+      placeholder: |
+        What documentation needs to be improved? Be specific about what's missing, incorrect, or unclear.
+    validations:
+      required: true
+
+  - type: textarea
+    id: current_state
+    attributes:
+      label: Current State
+      description: What is the current documentation like?
+      placeholder: |
+        Describe what the current documentation says or what's missing...
+
+  - type: textarea
+    id: desired_state
+    attributes:
+      label: Desired State
+      description: What should the documentation look like?
+      placeholder: |
+        Describe what you think the documentation should say or include...
+
+  - type: textarea
+    id: affected_sections
+    attributes:
+      label: Affected Sections
+      description: Which specific sections or files are affected?
+      placeholder: |
+        List the specific files, sections, or URLs that need attention:
+        - README.md (Quickstart section)
+        - docs/bioinformatics_integration.md
+        - configs/config.yaml comments
+        - etc.
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: Examples
+      description: Provide examples of what should be documented
+      placeholder: |
+        If applicable, provide examples of:
+        - Code snippets that should be documented
+        - Configuration examples
+        - Usage examples
+        - Expected output examples
+
+  - type: textarea
+    id: target_audience
+    attributes:
+      label: Target Audience
+      description: Who is this documentation for?
+      placeholder: |
+        Describe the intended audience:
+        - New users
+        - Experienced users
+        - Developers
+        - Researchers
+        - System administrators
+        - etc.
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Any other context about the documentation issue
+      placeholder: |
+        Add any other context, screenshots, or references that might help...
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      description: Please confirm the following
+      options:
+        - label: I have searched existing issues to ensure this is not a duplicate
+          required: true
+        - label: I have provided all the information requested above
+          required: true
+        - label: I am willing to help write or improve the documentation
+          required: false

@@ -1,0 +1,3 @@
+code_sandbox:
+  system_prompt: |
+    You are a code sandbox for safe code execution.

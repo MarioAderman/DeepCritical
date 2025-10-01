@@ -1,0 +1,212 @@
+# Default multi-agent system configurations
+
+multi_agent_systems:
+  # Code Development System
+  - system_id: code_development_system
+    name: Code Development and Review System
+    coordination_strategy: collaborative
+    communication_protocol: direct
+    max_rounds: 8
+    consensus_threshold: 0.8
+    enabled: true
+    agents:
+      - agent_id: code_generator
+        role: code_executor
+        model_name: anthropic:claude-sonnet-4-0
+        system_prompt: "You are an expert software developer. Generate clean, efficient, and well-documented code."
+        tools: ["code_generation", "code_analysis", "documentation"]
+        max_iterations: 5
+        temperature: 0.3
+        enabled: true
+
+      - agent_id: code_linter
+        role: linter
+        model_name: anthropic:claude-sonnet-4-0
+        system_prompt: "You are a code quality expert. Identify issues, suggest improvements, and ensure best practices."
+        tools: ["linting", "static_analysis", "code_review"]
+        max_iterations: 3
+        temperature: 0.2
+        enabled: true
+
+      - agent_id: code_tester
+        role: code_executor
+        model_name: anthropic:claude-sonnet-4-0
+        system_prompt: "You are a testing expert. Create comprehensive tests and validate code functionality."
+        tools: ["test_generation", "test_execution", "coverage_analysis"]
+        max_iterations: 4
+        temperature: 0.4
+        enabled: true
+
+      - agent_id: code_reviewer
+        role: reviewer
+        model_name: anthropic:claude-sonnet-4-0
+        system_prompt: "You are a senior code reviewer. Provide comprehensive feedback on code quality, architecture, and maintainability."
+        tools: ["code_review", "architecture_analysis", "performance_analysis"]
+        max_iterations: 3
+        temperature: 0.3
+        enabled: true
+
+  # Research Analysis System
+  - system_id: research_analysis_system
+    name: Research Analysis and Synthesis System
+    coordination_strategy: sequential
+    communication_protocol: hierarchical
+    max_rounds: 6
+    consensus_threshold: 0.75
+    enabled: true
+    agents:
+      - agent_id: data_analyzer
+        role: reasoning_agent
+        model_name: anthropic:claude-sonnet-4-0
+        system_prompt: "You are a data analysis expert. Analyze datasets, identify patterns, and extract insights."
+        tools: ["data_analysis", "statistical_analysis", "visualization"]
+        max_iterations: 4
+        temperature: 0.4
+        enabled: true
+
+      - agent_id: statistician
+        role: reasoning_agent
+        model_name: anthropic:claude-sonnet-4-0
+        system_prompt: "You are a statistical expert. Design experiments, perform statistical tests, and interpret results."
+        tools: ["statistical_testing", "experimental_design", "power_analysis"]
+        max_iterations: 3
+        temperature: 0.3
+        enabled: true
+
+      - agent_id: domain_expert
+        role: reasoning_agent
+        model_name: anthropic:claude-sonnet-4-0
+        system_prompt: "You are a domain expert. Provide specialized knowledge and context for research analysis."
+        tools: ["domain_knowledge", "literature_review", "expert_opinion"]
+        max_iterations: 3
+        temperature: 0.5
+        enabled: true
+
+      - agent_id: research_writer
+        role: reasoning_agent
+        model_name: anthropic:claude-sonnet-4-0
+        system_prompt: "You are a scientific writer. Synthesize findings into clear, comprehensive reports."
+        tools: ["writing", "synthesis", "citation_management"]
+        max_iterations: 4
+        temperature: 0.6
+        enabled: true
+
+  # Hypothesis Generation System
+  - system_id: hypothesis_generation_system
+    name: Scientific Hypothesis Generation System
+    coordination_strategy: collaborative
+    communication_protocol: peer_to_peer
+    max_rounds: 5
+    consensus_threshold: 0.7
+    enabled: true
+    agents:
+      - agent_id: hypothesis_generator
+        role: hypothesis_generator
+        model_name: anthropic:claude-sonnet-4-0
+        system_prompt: "You are a creative hypothesis generator. Generate novel, testable scientific hypotheses."
+        tools: ["hypothesis_generation", "creativity_tools", "knowledge_synthesis"]
+        max_iterations: 4
+        temperature: 0.8
+        enabled: true
+
+      - agent_id: evidence_synthesizer
+        role: reasoning_agent
+        model_name: anthropic:claude-sonnet-4-0
+        system_prompt: "You are an evidence synthesis expert. Gather and synthesize evidence to support hypotheses."
+        tools: ["evidence_gathering", "literature_synthesis", "data_integration"]
+        max_iterations: 3
+        temperature: 0.4
+        enabled: true
+
+      - agent_id: hypothesis_validator
+        role: evaluator
+        model_name: anthropic:claude-sonnet-4-0
+        system_prompt: "You are a hypothesis validation expert. Assess the validity and testability of hypotheses."
+        tools: ["hypothesis_validation", "testability_assessment", "feasibility_analysis"]
+        max_iterations: 3
+        temperature: 0.3
+        enabled: true
+
+  # Bioinformatics Analysis System
+  - system_id: bioinformatics_analysis_system
+    name: Bioinformatics Data Analysis System
+    coordination_strategy: pipeline
+    communication_protocol: sequential
+    max_rounds: 7
+    consensus_threshold: 0.8
+    enabled: true
+    agents:
+      - agent_id: data_fusion_agent
+        role: bioinformatics_agent
+        model_name: anthropic:claude-sonnet-4-0
+        system_prompt: "You are a bioinformatics data fusion expert. Integrate data from multiple biological databases."
+        tools: ["data_fusion", "cross_reference_analysis", "quality_assessment"]
+        max_iterations: 4
+        temperature: 0.4
+        enabled: true
+
+      - agent_id: sequence_analyst
+        role: bioinformatics_agent
+        model_name: anthropic:claude-sonnet-4-0
+        system_prompt: "You are a sequence analysis expert. Analyze protein and DNA sequences for functional insights."
+        tools: ["sequence_analysis", "homology_search", "motif_analysis"]
+        max_iterations: 3
+        temperature: 0.3
+        enabled: true
+
+      - agent_id: structure_analyst
+        role: bioinformatics_agent
+        model_name: anthropic:claude-sonnet-4-0
+        system_prompt: "You are a structural biology expert. Analyze protein structures and predict functions."
+        tools: ["structure_analysis", "docking_analysis", "interaction_prediction"]
+        max_iterations: 3
+        temperature: 0.4
+        enabled: true
+
+      - agent_id: pathway_analyst
+        role: bioinformatics_agent
+        model_name: anthropic:claude-sonnet-4-0
+        system_prompt: "You are a pathway analysis expert. Analyze biological pathways and networks."
+        tools: ["pathway_analysis", "network_analysis", "enrichment_analysis"]
+        max_iterations: 3
+        temperature: 0.4
+        enabled: true
+
+  # Quality Assurance System
+  - system_id: quality_assurance_system
+    name: Quality Assurance and Validation System
+    coordination_strategy: hierarchical
+    communication_protocol: direct
+    max_rounds: 4
+    consensus_threshold: 0.9
+    enabled: true
+    agents:
+      - agent_id: quality_inspector
+        role: evaluator
+        model_name: anthropic:claude-sonnet-4-0
+        system_prompt: "You are a quality inspector. Assess the quality and reliability of research outputs."
+        tools: ["quality_assessment", "reliability_checking", "validation"]
+        max_iterations: 3
+        temperature: 0.2
+        enabled: true
+
+      - agent_id: consistency_checker
+        role: evaluator
+        model_name: anthropic:claude-sonnet-4-0
+        system_prompt: "You are a consistency checker. Ensure consistency across different outputs and analyses."
+        tools: ["consistency_checking", "cross_validation", "error_detection"]
+        max_iterations: 3
+        temperature: 0.2
+        enabled: true
+
+      - agent_id: final_reviewer
+        role: reviewer
+        model_name: anthropic:claude-sonnet-4-0
+        system_prompt: "You are a final reviewer. Provide comprehensive final review of all outputs."
+        tools: ["final_review", "comprehensive_assessment", "recommendation_generation"]
+        max_iterations: 2
+        temperature: 0.3
+        enabled: true
+
+
+

@@ -1,0 +1,181 @@
+name: ⚡ Performance Issue
+description: Report performance problems or suggest performance improvements
+title: "[PERF]: "
+labels: ["performance", "needs-triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a performance issue! Please provide detailed information to help us diagnose and fix the problem.
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which component has performance issues?
+      options:
+        - Core Workflow Engine
+        - PRIME Flow (Protein Engineering)
+        - Bioinformatics Flow (Data Fusion)
+        - DeepSearch Flow (Web Research)
+        - Challenge Flow (Experimental)
+        - Tool Registry
+        - Agent System
+        - Configuration Loading
+        - Pydantic Graph Execution
+        - Memory Usage
+        - Network/API Calls
+        - Database Operations
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: performance_type
+    attributes:
+      label: Performance Type
+      description: What type of performance issue is this?
+      options:
+        - Slow Execution
+        - High Memory Usage
+        - High CPU Usage
+        - Network Timeout
+        - Memory Leak
+        - Slow Startup
+        - Slow Configuration Loading
+        - Slow Tool Execution
+        - Slow Agent Response
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Performance Issue Description
+      description: Describe the performance problem
+      placeholder: |
+        What performance issue are you experiencing? Be specific about what's slow or consuming resources.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps_to_reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the performance issue
+      placeholder: |
+        1. Run command: ...
+        2. Wait for ...
+        3. Observe performance issue
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_performance
+    attributes:
+      label: Expected Performance
+      description: What performance did you expect?
+      placeholder: |
+        Describe what you expected in terms of:
+        - Execution time
+        - Memory usage
+        - CPU usage
+        - Response time
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual_performance
+    attributes:
+      label: Actual Performance
+      description: What performance are you actually seeing?
+      placeholder: |
+        Provide specific metrics:
+        - Execution time: X seconds/minutes
+        - Memory usage: X MB/GB
+        - CPU usage: X%
+        - Response time: X seconds
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Your system environment
+      placeholder: |
+        - OS: [e.g., Windows 10, macOS 13.0, Ubuntu 22.04]
+        - Python version: [e.g., 3.10.8]
+        - DeepCritical version: [e.g., 0.1.0]
+        - Hardware: [e.g., CPU: Intel i7, RAM: 16GB]
+        - Configuration: [e.g., app_mode=single_react, flows.prime.enabled=true]
+    validations:
+      required: true
+
+  - type: textarea
+    id: command_used
+    attributes:
+      label: Command Used
+      description: The exact command that shows the performance issue
+      placeholder: |
+        uv run deepresearch question="..." app_mode=single_react
+    validations:
+      required: true
+
+  - type: textarea
+    id: profiling_data
+    attributes:
+      label: Profiling Data
+      description: Any profiling or performance measurement data
+      placeholder: |
+        If you have profiling data, paste it here:
+        - cProfile output
+        - Memory profiler results
+        - Time measurements
+        - System resource usage
+      render: shell
+
+  - type: textarea
+    id: configuration
+    attributes:
+      label: Configuration
+      description: Relevant configuration that might affect performance
+      placeholder: |
+        Paste relevant configuration snippets that might be related to the performance issue...
+      render: yaml
+
+  - type: textarea
+    id: workload_details
+    attributes:
+      label: Workload Details
+      description: Details about the workload causing performance issues
+      placeholder: |
+        Describe the workload:
+        - Size of input data
+        - Number of tools being executed
+        - Complexity of the research question
+        - Number of agents involved
+        - etc.
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Any other context about the performance issue
+      placeholder: |
+        Add any other context, observations, or potential causes...
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      description: Please confirm the following
+      options:
+        - label: I have searched existing issues to ensure this is not a duplicate
+          required: true
+        - label: I have provided all the information requested above
+          required: true
+        - label: I am willing to help test performance improvements
+          required: false

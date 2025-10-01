@@ -1,0 +1,42 @@
+# Docker Sandbox Configuration
+# Configuration for the Docker sandbox tool used for code execution
+
+defaults:
+  - _self_
+
+# Container configuration
+image: "python:3.11-slim"  # Default Docker image for code execution
+workdir: "/workspace"      # Working directory inside container
+auto_remove: true          # Automatically remove containers after execution
+
+# Resource limits (optional)
+cpu: null                  # CPU quota (e.g., 50000 for 0.5 CPU cores)
+mem: null                  # Memory limit (e.g., "512m", "1g")
+
+# Execution policies
+execution_policies:
+  python: true
+  bash: true
+  shell: true
+  sh: true
+  pwsh: false
+  powershell: false
+  ps1: false
+  javascript: false
+  html: false
+  css: false
+
+# Timeout settings
+default_timeout: 60        # Default timeout in seconds
+max_timeout: 300          # Maximum allowed timeout
+
+# Security settings
+allow_network: true       # Allow network access
+allow_file_system: true   # Allow file system access
+allow_env_vars: true      # Allow custom environment variables
+
+# Logging
+log_level: "INFO"         # Logging level for sandbox operations
+log_container_output: true # Log container stdout/stderr
+
+

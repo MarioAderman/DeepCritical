@@ -1,0 +1,149 @@
+# Default data loader configurations for RAG workflows
+
+data_loaders:
+  # Scientific Paper Loaders
+  - loader_type: scientific_paper_loader
+    name: pubmed_loader
+    enabled: true
+    parameters:
+      query: ""
+      max_papers: 100
+      include_abstracts: true
+      include_full_text: false
+      date_range: "2020-2024"
+      language: "english"
+      article_types: ["research", "review"]
+    output_collection: scientific_papers
+    chunk_size: 1000
+    chunk_overlap: 200
+
+  - loader_type: scientific_paper_loader
+    name: arxiv_loader
+    enabled: true
+    parameters:
+      query: ""
+      max_papers: 50
+      categories: ["cs.AI", "cs.LG", "q-bio.BM", "q-bio.QM"]
+      include_abstracts: true
+      include_full_text: true
+      date_range: "2023-2024"
+    output_collection: arxiv_papers
+    chunk_size: 1200
+    chunk_overlap: 250
+
+  # Bioinformatics Loaders
+  - loader_type: gene_ontology_loader
+    name: go_annotations_loader
+    enabled: true
+    parameters:
+      organism: "human"
+      evidence_codes: ["IDA", "EXP", "IPI", "IMP"]
+      include_obsolete: false
+      max_annotations: 1000
+      quality_threshold: 0.8
+    output_collection: go_annotations
+    chunk_size: 800
+    chunk_overlap: 150
+
+  - loader_type: pubmed_loader
+    name: bioinformatics_pubmed_loader
+    enabled: true
+    parameters:
+      query: ""
+      max_papers: 200
+      mesh_terms: ["Computational Biology", "Bioinformatics", "Molecular Biology"]
+      include_abstracts: true
+      include_full_text: false
+      date_range: "2020-2024"
+    output_collection: bioinformatics_papers
+    chunk_size: 900
+    chunk_overlap: 180
+
+  - loader_type: geo_loader
+    name: gene_expression_loader
+    enabled: true
+    parameters:
+      organism: "human"
+      experiment_types: ["RNA-seq", "microarray"]
+      max_series: 50
+      include_metadata: true
+      include_expression_data: true
+      quality_threshold: 0.7
+    output_collection: gene_expression_data
+    chunk_size: 600
+    chunk_overlap: 120
+
+  # Web Content Loaders
+  - loader_type: web_scraper
+    name: scientific_news_loader
+    enabled: true
+    parameters:
+      sources: ["nature.com", "science.org", "cell.com"]
+      max_articles: 50
+      include_content: true
+      include_metadata: true
+      date_range: "2024"
+      content_selectors: ["article", ".content", ".abstract"]
+    output_collection: scientific_news
+    chunk_size: 800
+    chunk_overlap: 160
+
+  # Database Loaders
+  - loader_type: database_loader
+    name: uniprot_loader
+    enabled: true
+    parameters:
+      organism: "human"
+      max_entries: 500
+      include_sequences: true
+      include_annotations: true
+      include_structures: true
+      quality_threshold: 0.8
+    output_collection: uniprot_data
+    chunk_size: 700
+    chunk_overlap: 140
+
+  - loader_type: database_loader
+    name: pdb_loader
+    enabled: true
+    parameters:
+      organism: "human"
+      max_structures: 100
+      resolution_threshold: 3.0
+      include_sequences: true
+      include_annotations: true
+      include_ligands: true
+    output_collection: pdb_structures
+    chunk_size: 1000
+    chunk_overlap: 200
+
+  # File Loaders
+  - loader_type: file_loader
+    name: document_loader
+    enabled: true
+    parameters:
+      file_types: ["pdf", "txt", "docx", "md"]
+      max_files: 100
+      include_metadata: true
+      enable_ocr: true
+      language: "english"
+    output_collection: documents
+    chunk_size: 1000
+    chunk_overlap: 200
+
+  # API Loaders
+  - loader_type: api_loader
+    name: external_api_loader
+    enabled: true
+    parameters:
+      api_endpoints: []
+      max_requests: 50
+      rate_limit: 1.0  # requests per second
+      include_metadata: true
+      enable_caching: true
+    output_collection: api_data
+    chunk_size: 800
+    chunk_overlap: 160
+
+
+

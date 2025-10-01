@@ -1,0 +1,234 @@
+# Deep Search Configuration
+# Based on Jina AI DeepResearch patterns
+
+# Core deep search settings
+deepsearch:
+  enabled: true
+  
+  # Search limits and constraints
+  max_steps: 20
+  token_budget: 10000
+  max_urls_per_step: 5
+  max_queries_per_step: 5
+  max_reflect_per_step: 2
+  max_clusters: 5
+  
+  # Timeout settings
+  search_timeout: 30
+  url_visit_timeout: 30
+  reflection_timeout: 15
+  
+  # Quality thresholds
+  min_confidence_score: 0.7
+  min_quality_threshold: 0.8
+  
+  # Search engines and sources
+  search_engines:
+    - google
+    - bing
+    - duckduckgo
+  
+  # Evaluation criteria
+  evaluation_criteria:
+    - definitive
+    - completeness
+    - freshness
+    - attribution
+  
+  # Language settings
+  language:
+    auto_detect: true
+    default_language: "en"
+    search_language: null
+  
+  # Agent personalities
+  agent_personalities:
+    analytical:
+      max_steps: 20
+      token_budget: 10000
+      research_depth: comprehensive
+      output_style: structured
+    
+    thorough:
+      max_steps: 30
+      token_budget: 15000
+      research_depth: deep
+      output_style: detailed
+    
+    quick:
+      max_steps: 10
+      token_budget: 5000
+      research_depth: surface
+      output_style: concise
+
+# Web search configuration
+web_search:
+  enabled: true
+  default_engine: google
+  max_results_per_query: 10
+  time_filters:
+    enabled: true
+    default: null
+    options:
+      - "qdr:h"  # past hour
+      - "qdr:d"  # past day
+      - "qdr:w"  # past week
+      - "qdr:m"  # past month
+      - "qdr:y"  # past year
+  
+  # Search query optimization
+  query_optimization:
+    enabled: true
+    rewrite_queries: true
+    add_synonyms: true
+    expand_abbreviations: true
+
+# URL visiting configuration
+url_visit:
+  enabled: true
+  max_content_length: 5000
+  extract_text: true
+  extract_metadata: true
+  follow_redirects: true
+  respect_robots_txt: true
+  
+  # Content filtering
+  content_filters:
+    min_content_length: 100
+    max_content_length: 50000
+    exclude_patterns:
+      - "*.pdf"
+      - "*.doc"
+      - "*.docx"
+  
+  # User agent settings
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+
+# Reflection and reasoning
+reflection:
+  enabled: true
+  max_questions_per_step: 2
+  question_types:
+    - knowledge_gaps
+    - verification_needs
+    - depth_requirements
+    - source_validation
+  
+  # Reflection strategies
+  strategies:
+    - gap_analysis
+    - source_critique
+    - depth_assessment
+    - completeness_check
+
+# Answer generation
+answer_generation:
+  enabled: true
+  synthesis_method: comprehensive
+  include_sources: true
+  include_confidence: true
+  include_processing_steps: true
+  
+  # Output formatting
+  output_format:
+    include_question: true
+    include_answer: true
+    include_sources: true
+    include_confidence: true
+    include_quality_metrics: true
+    include_processing_summary: true
+
+# Quality evaluation
+evaluation:
+  enabled: true
+  
+  # Evaluation types
+  types:
+    definitive:
+      enabled: true
+      weight: 0.3
+    completeness:
+      enabled: true
+      weight: 0.25
+    freshness:
+      enabled: true
+      weight: 0.2
+    attribution:
+      enabled: true
+      weight: 0.15
+    plurality:
+      enabled: true
+      weight: 0.1
+  
+  # Quality thresholds
+  thresholds:
+    min_definitive_score: 0.7
+    min_completeness_score: 0.6
+    min_freshness_score: 0.5
+    min_attribution_score: 0.8
+    min_plurality_score: 0.6
+
+# Performance and monitoring
+performance:
+  # Execution tracking
+  track_execution: true
+  log_performance_metrics: true
+  
+  # Resource limits
+  max_memory_usage: "1GB"
+  max_cpu_usage: 80
+  
+  # Caching
+  enable_caching: true
+  cache_ttl: 3600  # 1 hour
+  
+  # Rate limiting
+  rate_limits:
+    searches_per_minute: 30
+    url_visits_per_minute: 20
+    reflections_per_minute: 10
+
+# Error handling
+error_handling:
+  # Retry settings
+  max_retries: 3
+  retry_delay: 1
+  exponential_backoff: true
+  
+  # Error recovery
+  graceful_degradation: true
+  fallback_strategies:
+    - reduce_search_scope
+    - use_cached_results
+    - simplify_question
+  
+  # Logging
+  log_errors: true
+  log_level: INFO
+
+# Integration settings
+integration:
+  # Tool integration
+  tools:
+    web_search: true
+    url_visit: true
+    reflection: true
+    answer_generator: true
+    query_rewriter: true
+  
+  # External services
+  external_services:
+    search_apis: []
+    content_apis: []
+    evaluation_apis: []
+  
+  # Database integration
+  database:
+    enabled: false
+    connection_string: null
+    cache_results: true
+    store_workflows: true
+
+
+
+

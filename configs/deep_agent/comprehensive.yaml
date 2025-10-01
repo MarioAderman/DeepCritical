@@ -1,0 +1,202 @@
+# DeepAgent Comprehensive Configuration
+# Advanced configuration with all features enabled
+
+# Enable DeepAgent flow with comprehensive mode
+flows:
+  deep_agent:
+    enabled: true
+    mode: "comprehensive"
+    max_iterations: 30
+    timeout: 900.0
+    enable_subagents: true
+    enable_middleware: true
+    enable_advanced_features: true
+
+# DeepAgent comprehensive configuration
+deep_agent:
+  # Advanced agent configurations
+  agents:
+    planning_agent:
+      enabled: true
+      model_name: "anthropic:claude-sonnet-4-0"
+      max_iterations: 8
+      timeout: 180.0
+      tools: ["write_todos", "task", "analyze_requirements"]
+      capabilities: ["planning", "task_management", "requirement_analysis"]
+      system_prompt: "You are an advanced planning specialist with expertise in complex project management and workflow optimization."
+    
+    filesystem_agent:
+      enabled: true
+      model_name: "anthropic:claude-sonnet-4-0"
+      max_iterations: 5
+      timeout: 120.0
+      tools: ["list_files", "read_file", "write_file", "edit_file", "search_files", "backup_files"]
+      capabilities: ["filesystem", "content_management", "version_control"]
+      system_prompt: "You are a filesystem specialist with expertise in file operations, content management, and project organization."
+    
+    research_agent:
+      enabled: true
+      model_name: "anthropic:claude-sonnet-4-0"
+      max_iterations: 15
+      timeout: 450.0
+      tools: ["web_search", "rag_query", "task", "analyze_data", "synthesize_information"]
+      capabilities: ["research", "analysis", "data_synthesis", "information_retrieval"]
+      system_prompt: "You are a research specialist with expertise in information gathering, data analysis, and knowledge synthesis."
+    
+    code_agent:
+      enabled: true
+      model_name: "anthropic:claude-sonnet-4-0"
+      max_iterations: 10
+      timeout: 300.0
+      tools: ["write_code", "review_code", "test_code", "debug_code", "refactor_code"]
+      capabilities: ["code_generation", "code_review", "testing", "debugging"]
+      system_prompt: "You are a code specialist with expertise in software development, code review, and quality assurance."
+    
+    analysis_agent:
+      enabled: true
+      model_name: "anthropic:claude-sonnet-4-0"
+      max_iterations: 12
+      timeout: 360.0
+      tools: ["analyze_data", "generate_insights", "create_visualizations", "statistical_analysis"]
+      capabilities: ["data_analysis", "insight_generation", "visualization", "statistics"]
+      system_prompt: "You are an analysis specialist with expertise in data analysis, statistical modeling, and insight generation."
+    
+    general_agent:
+      enabled: true
+      model_name: "anthropic:claude-sonnet-4-0"
+      max_iterations: 20
+      timeout: 900.0
+      tools: ["task", "write_todos", "list_files", "read_file", "coordinate_agents"]
+      capabilities: ["orchestration", "task_delegation", "coordination", "synthesis"]
+      system_prompt: "You are a general-purpose orchestrator with expertise in coordinating multiple specialized agents and synthesizing complex results."
+  
+  # Advanced middleware configuration
+  middleware:
+    planning_middleware:
+      enabled: true
+      system_prompt_addition: "You have access to advanced task planning and management tools. Focus on creating efficient, scalable workflows."
+      enable_adaptive_planning: true
+      planning_horizon: 7  # days
+    
+    filesystem_middleware:
+      enabled: true
+      system_prompt_addition: "You have access to comprehensive filesystem operations and content management tools. Maintain project organization and version control."
+      enable_backup: true
+      enable_versioning: true
+    
+    subagent_middleware:
+      enabled: true
+      system_prompt_addition: "You can spawn specialized sub-agents for complex tasks. Coordinate their work and synthesize their results."
+      max_subagents: 8
+      subagent_timeout: 450.0
+      enable_subagent_communication: true
+    
+    analysis_middleware:
+      enabled: true
+      system_prompt_addition: "You have access to advanced analysis and visualization tools. Focus on generating actionable insights."
+      enable_statistical_analysis: true
+      enable_visualization: true
+    
+    code_middleware:
+      enabled: true
+      system_prompt_addition: "You have access to code generation, review, and testing tools. Focus on producing high-quality, maintainable code."
+      enable_code_review: true
+      enable_testing: true
+      enable_documentation: true
+  
+  # Advanced state management
+  state:
+    enable_persistence: true
+    state_file: "deep_agent_comprehensive_state.json"
+    auto_save_interval: 15.0
+    enable_state_compression: true
+    max_state_size: 10485760  # 10MB
+    enable_state_history: true
+    history_retention: 50
+  
+  # Advanced tool configuration
+  tools:
+    write_todos:
+      enabled: true
+      max_todos: 100
+      auto_cleanup: true
+      enable_prioritization: true
+      enable_dependencies: true
+    
+    task:
+      enabled: true
+      max_concurrent_tasks: 5
+      task_timeout: 450.0
+      enable_task_chaining: true
+      enable_task_monitoring: true
+    
+    filesystem:
+      enabled: true
+      max_file_size: 52428800  # 50MB
+      allowed_extensions: [".md", ".txt", ".py", ".json", ".yaml", ".yml", ".csv", ".xlsx", ".pdf"]
+      enable_file_watching: true
+      enable_auto_backup: true
+    
+    analysis:
+      enabled: true
+      max_data_size: 104857600  # 100MB
+      enable_statistical_tests: true
+      enable_visualization: true
+      visualization_formats: ["png", "svg", "html"]
+    
+    code:
+      enabled: true
+      max_code_size: 1048576  # 1MB
+      enable_syntax_highlighting: true
+      enable_linting: true
+      supported_languages: ["python", "javascript", "typescript", "java", "cpp", "go"]
+  
+  # Advanced orchestration settings
+  orchestration:
+    strategy: "collaborative"  # Options: collaborative, sequential, hierarchical, consensus
+    max_parallel_agents: 5
+    consensus_threshold: 0.85
+    enable_metrics: true
+    metrics_retention: 200
+    enable_performance_monitoring: true
+    enable_adaptive_scheduling: true
+    enable_load_balancing: true
+  
+  # Advanced features
+  advanced_features:
+    enable_multi_modal: true
+    enable_streaming: true
+    enable_caching: true
+    cache_size: 104857600  # 100MB
+    enable_optimization: true
+    enable_parallel_processing: true
+    max_parallel_processes: 4
+
+# Advanced model configuration
+model_name: "anthropic:claude-sonnet-4-0"
+temperature: 0.6
+max_tokens: 6000
+top_p: 0.9
+frequency_penalty: 0.1
+presence_penalty: 0.1
+
+# Advanced execution settings
+retries: 5
+timeout: 900.0
+enable_logging: true
+log_level: "DEBUG"
+enable_performance_logging: true
+enable_error_tracking: true
+enable_usage_analytics: true
+
+# Advanced output configuration
+output_dir: "outputs"
+save_results: true
+save_state: true
+save_metrics: true
+save_logs: true
+enable_compression: true
+output_formats: ["json", "yaml", "markdown", "html"]
+
+
+

@@ -1,0 +1,65 @@
+# Default configuration for workflow orchestration
+# This configures the primary REACT workflow and its sub-workflows
+
+defaults:
+  - _self_
+  - primary_workflow: react_primary
+  - sub_workflows: default_sub_workflows
+  - data_loaders: default_data_loaders
+  - multi_agent_systems: default_multi_agent
+  - judges: default_judges
+
+# Primary workflow configuration
+primary_workflow:
+  workflow_type: primary_react
+  name: main_research_workflow
+  enabled: true
+  priority: 10
+  max_retries: 3
+  timeout: 300.0
+  parameters:
+    max_iterations: 10
+    enable_reflection: true
+    enable_self_correction: true
+    coordination_strategy: adaptive
+
+# Execution strategy
+execution_strategy: hybrid  # parallel, sequential, hybrid
+max_concurrent_workflows: 5
+global_timeout: 1800.0  # 30 minutes
+enable_monitoring: true
+enable_caching: true
+
+# Workflow composition settings
+composition:
+  strategy: adaptive  # adaptive, rule_based, ml_based
+  enable_auto_selection: true
+  enable_dependency_resolution: true
+  enable_optimization: true
+
+# Output configuration
+outputs:
+  enable_hypothesis_datasets: true
+  enable_testing_environments: true
+  enable_reasoning_results: true
+  enable_automated_datasets: true
+  output_format: structured_json
+  include_metadata: true
+  include_execution_traces: true
+
+# Monitoring and logging
+monitoring:
+  enable_metrics: true
+  enable_tracing: true
+  log_level: INFO
+  metrics_retention_days: 30
+
+# Performance settings
+performance:
+  enable_parallel_execution: true
+  enable_result_caching: true
+  cache_ttl: 3600  # 1 hour
+  enable_workflow_optimization: true
+
+
+

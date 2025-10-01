@@ -1,0 +1,14 @@
+# OpenAI Embeddings Configuration
+model_type: "openai"
+model_name: "text-embedding-3-small"
+api_key: ${oc.env:OPENAI_API_KEY,null}
+base_url: null
+num_dimensions: 1536
+batch_size: 32
+max_retries: 3
+timeout: 30.0
+
+
+
+
+

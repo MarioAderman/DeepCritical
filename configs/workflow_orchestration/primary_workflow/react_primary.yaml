@@ -1,0 +1,57 @@
+# Primary REACT workflow configuration
+workflow_type: primary_react
+name: main_research_workflow
+enabled: true
+priority: 10
+max_retries: 3
+timeout: 300.0
+dependencies: []
+parameters:
+  max_iterations: 10
+  enable_reflection: true
+  enable_self_correction: true
+  coordination_strategy: adaptive
+  enable_sub_workflow_spawning: true
+  enable_dynamic_composition: true
+  enable_multi_agent_coordination: true
+output_format: comprehensive_results
+
+# REACT-specific parameters
+react:
+  max_reasoning_steps: 5
+  max_action_steps: 3
+  max_observation_steps: 2
+  enable_tool_use: true
+  enable_web_search: true
+  enable_code_execution: true
+  enable_rag_queries: true
+
+# Sub-workflow spawning configuration
+sub_workflow_spawning:
+  enable_rag_workflows: true
+  enable_bioinformatics_workflows: true
+  enable_search_workflows: true
+  enable_multi_agent_workflows: true
+  enable_hypothesis_workflows: true
+  enable_reasoning_workflows: true
+  enable_code_execution_workflows: true
+  enable_evaluation_workflows: true
+
+# Dynamic composition settings
+dynamic_composition:
+  enable_input_analysis: true
+  enable_workflow_selection: true
+  enable_dependency_resolution: true
+  enable_parameter_inference: true
+  enable_output_aggregation: true
+
+# Multi-agent coordination
+multi_agent_coordination:
+  enable_agent_orchestration: true
+  enable_judge_evaluation: true
+  enable_consensus_building: true
+  enable_quality_assessment: true
+  max_coordination_rounds: 5
+
+
+

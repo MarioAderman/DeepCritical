@@ -1,0 +1,171 @@
+# Default sub-workflow configurations
+
+sub_workflows:
+  # RAG Workflows
+  - workflow_type: rag_workflow
+    name: scientific_papers_rag
+    enabled: true
+    priority: 8
+    max_retries: 3
+    timeout: 120.0
+    parameters:
+      collection_name: scientific_papers
+      chunk_size: 1000
+      chunk_overlap: 200
+      top_k: 5
+      enable_reranking: true
+      reranker_model: "cross-encoder/ms-marco-MiniLM-L-6-v2"
+    output_format: rag_response
+
+  - workflow_type: rag_workflow
+    name: bioinformatics_rag
+    enabled: true
+    priority: 8
+    max_retries: 3
+    timeout: 120.0
+    parameters:
+      collection_name: bioinformatics_data
+      chunk_size: 800
+      chunk_overlap: 150
+      top_k: 7
+      enable_bioinformatics_filters: true
+      quality_threshold: 0.8
+    output_format: bioinformatics_rag_response
+
+  # Bioinformatics Workflows
+  - workflow_type: bioinformatics_workflow
+    name: go_annotation_workflow
+    enabled: true
+    priority: 7
+    max_retries: 3
+    timeout: 180.0
+    parameters:
+      data_sources: ["GO", "PubMed", "UniProt"]
+      fusion_strategy: "evidence_based"
+      quality_threshold: 0.8
+      enable_cross_references: true
+    output_format: fused_dataset
+
+  - workflow_type: bioinformatics_workflow
+    name: protein_analysis_workflow
+    enabled: true
+    priority: 7
+    max_retries: 3
+    timeout: 240.0
+    parameters:
+      analysis_types: ["structure_prediction", "function_prediction", "interaction_analysis"]
+      tools: ["alphafold2", "esmfold", "blast_search"]
+      enable_quality_assessment: true
+    output_format: protein_analysis_results
+
+  # Search Workflows
+  - workflow_type: search_workflow
+    name: web_search_workflow
+    enabled: true
+    priority: 6
+    max_retries: 3
+    timeout: 60.0
+    parameters:
+      search_engines: ["google", "bing", "duckduckgo"]
+      max_results: 10
+      enable_result_filtering: true
+      enable_content_extraction: true
+    output_format: search_results
+
+  - workflow_type: search_workflow
+    name: academic_search_workflow
+    enabled: true
+    priority: 6
+    max_retries: 3
+    timeout: 90.0
+    parameters:
+      databases: ["PubMed", "arXiv", "Google Scholar"]
+      max_results: 15
+      enable_abstract_extraction: true
+      enable_citation_analysis: true
+    output_format: academic_search_results
+
+  # Multi-Agent Workflows
+  - workflow_type: multi_agent_workflow
+    name: code_development_workflow
+    enabled: true
+    priority: 5
+    max_retries: 3
+    timeout: 300.0
+    parameters:
+      agents: ["code_generator", "linter", "tester", "reviewer"]
+      coordination_strategy: "collaborative"
+      enable_code_execution: true
+      enable_quality_checks: true
+    output_format: code_development_results
+
+  - workflow_type: multi_agent_workflow
+    name: research_analysis_workflow
+    enabled: true
+    priority: 5
+    max_retries: 3
+    timeout: 240.0
+    parameters:
+      agents: ["data_analyzer", "statistician", "domain_expert", "writer"]
+      coordination_strategy: "sequential"
+      enable_statistical_analysis: true
+      enable_visualization: true
+    output_format: research_analysis_results
+
+  # Hypothesis Workflows
+  - workflow_type: hypothesis_generation
+    name: scientific_hypothesis_generator
+    enabled: true
+    priority: 4
+    max_retries: 3
+    timeout: 180.0
+    parameters:
+      hypothesis_types: ["causal", "correlational", "mechanistic"]
+      enable_evidence_synthesis: true
+      enable_confidence_scoring: true
+      max_hypotheses: 10
+    output_format: hypothesis_dataset
+
+  - workflow_type: hypothesis_testing
+    name: experimental_design_workflow
+    enabled: true
+    priority: 4
+    max_retries: 3
+    timeout: 200.0
+    parameters:
+      test_types: ["computational", "simulation", "analysis"]
+      enable_statistical_design: true
+      enable_power_analysis: true
+      enable_result_validation: true
+    output_format: testing_environment
+
+  # Reasoning Workflows
+  - workflow_type: reasoning_workflow
+    name: scientific_reasoning_workflow
+    enabled: true
+    priority: 3
+    max_retries: 3
+    timeout: 150.0
+    parameters:
+      reasoning_types: ["deductive", "inductive", "abductive"]
+      enable_evidence_integration: true
+      enable_uncertainty_quantification: true
+      max_reasoning_steps: 8
+    output_format: reasoning_result
+
+  # Evaluation Workflows
+  - workflow_type: evaluation_workflow
+    name: quality_assessment_workflow
+    enabled: true
+    priority: 2
+    max_retries: 3
+    timeout: 120.0
+    parameters:
+      evaluation_criteria: ["accuracy", "completeness", "clarity", "relevance"]
+      enable_multi_judge_evaluation: true
+      enable_consensus_building: true
+      scoring_scale: "1-10"
+    output_format: evaluation_results
+
+
+

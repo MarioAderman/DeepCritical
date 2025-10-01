@@ -1,0 +1,93 @@
+# DeepAgent Basic Configuration
+# Simple configuration for basic DeepAgent workflows
+
+# Enable DeepAgent flow with basic mode
+flows:
+  deep_agent:
+    enabled: true
+    mode: "basic"
+    max_iterations: 10
+    timeout: 300.0
+    enable_subagents: false
+    enable_middleware: true
+    enable_advanced_features: false
+
+# DeepAgent basic configuration
+deep_agent:
+  # Basic agent configurations
+  agents:
+    planning_agent:
+      enabled: true
+      model_name: "anthropic:claude-sonnet-4-0"
+      max_iterations: 3
+      timeout: 60.0
+      tools: ["write_todos"]
+      capabilities: ["planning"]
+    
+    filesystem_agent:
+      enabled: true
+      model_name: "anthropic:claude-sonnet-4-0"
+      max_iterations: 2
+      timeout: 30.0
+      tools: ["list_files", "read_file", "write_file"]
+      capabilities: ["filesystem"]
+    
+    research_agent:
+      enabled: true
+      model_name: "anthropic:claude-sonnet-4-0"
+      max_iterations: 5
+      timeout: 120.0
+      tools: ["web_search"]
+      capabilities: ["research"]
+  
+  # Basic middleware configuration
+  middleware:
+    planning_middleware:
+      enabled: true
+      system_prompt_addition: "You have access to basic task planning tools."
+    
+    filesystem_middleware:
+      enabled: true
+      system_prompt_addition: "You have access to basic filesystem operations."
+  
+  # Basic state management
+  state:
+    enable_persistence: false
+    auto_save_interval: 60.0
+  
+  # Basic tool configuration
+  tools:
+    write_todos:
+      enabled: true
+      max_todos: 20
+      auto_cleanup: false
+    
+    filesystem:
+      enabled: true
+      max_file_size: 1048576  # 1MB
+      allowed_extensions: [".md", ".txt", ".py"]
+  
+  # Basic orchestration settings
+  orchestration:
+    strategy: "sequential"  # Simple sequential execution
+    max_parallel_agents: 1
+    enable_metrics: false
+
+# Basic model configuration
+model_name: "anthropic:claude-sonnet-4-0"
+temperature: 0.7
+max_tokens: 2000
+
+# Basic execution settings
+retries: 2
+timeout: 300.0
+enable_logging: true
+log_level: "WARNING"
+
+# Basic output configuration
+output_dir: "outputs"
+save_results: true
+save_state: false
+
+
+

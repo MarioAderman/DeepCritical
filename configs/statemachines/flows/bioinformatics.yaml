@@ -1,0 +1,26 @@
+# @package _global_
+
+# Bioinformatics flow configuration
+# Enables bioinformatics data fusion and reasoning workflows
+# Uses centralized configuration from bioinformatics config files
+
+enabled: true
+
+# Import bioinformatics configurations
+defaults:
+  - /bioinformatics/defaults
+  - /bioinformatics/data_sources
+  - /bioinformatics/agents
+  - /bioinformatics/tools
+  - /bioinformatics/workflow
+
+# Override specific settings for this flow
+data_sources: ${bioinformatics.data_sources}
+fusion: ${bioinformatics.fusion}
+reasoning: ${bioinformatics.reasoning}
+agents: ${bioinformatics.agents}
+tools: ${bioinformatics.tools}
+workflow: ${bioinformatics.workflow}
+output: ${bioinformatics.output}
+performance: ${bioinformatics.performance}
+validation: ${bioinformatics.validation}

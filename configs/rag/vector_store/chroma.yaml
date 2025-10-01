@@ -1,0 +1,16 @@
+# Chroma Vector Store Configuration
+store_type: "chroma"
+connection_string: null
+host: "localhost"
+port: 8000
+database: null
+collection_name: "research_docs"
+api_key: null
+embedding_dimension: 1536
+distance_metric: "cosine"
+index_type: "hnsw"
+
+
+
+
+

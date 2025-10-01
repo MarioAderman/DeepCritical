@@ -1,0 +1,71 @@
+enabled: false
+
+name: "HuggingFace Critical Assessment challenge in preclinical biology"
+domain: "Preclinical biology"
+
+vision:
+  pillars:
+    - "Critical assessment (CA) is a pillar of science"
+    - "Era 1: peer-reviewed journals"
+    - "Era 2: community challenges (CASP, CAGI, DREAM)"
+    - "Era 3: AI-driven critical assessment"
+
+pilot:
+  title: "Stage 1 (Pilot)"
+  focus: "APOE4 lipid mechanisms and Alzheimer’s risk"
+  tasks:
+    - "Develop AI tools for mechanism critical assessment"
+    - "Use six proposed lipid mechanisms"
+
+stages:
+  - id: 1
+    name: "Pilot"
+    goals:
+      - "Develop CA tools on APOE4 lipid mechanisms"
+  - id: 2
+    name: "Scale"
+    goals:
+      - "Assess all proposed APOE4 mechanisms"
+      - "Extract therapeutic implications"
+  - id: 3
+    name: "Graph"
+    goals:
+      - "Construct disease mechanism knowledge graph for all diseases"
+
+process:
+  preparation:
+    - "Advisory board"
+    - "Recruit participants"
+    - "Prepare challenge description and material"
+    - "Finalize mechanism questions"
+  run:
+    - "COMMS launch"
+    - "Recruit participants"
+    - "Release material"
+    - "Collect methods and answers"
+    - "Leaderboard and channel"
+  assessment:
+    - "Cross-assessment by participants"
+    - "Expert assessment by APOE experimental community"
+    - "Pilot AI assessment"
+
+assessment_criteria:
+  categories:
+    - name: "Extrapolation Factors"
+      items:
+        - "Different system"
+        - "Different location"
+        - "Molecular environment"
+        - "Cellular environment"
+        - "Surrogate phenotypes"
+        - "Perturbation size"
+        - "Generality"
+
+outputs:
+  - "Mechanism CA reports"
+  - "Therapeutic implications"
+  - "Mechanism knowledge graph seeds"
+
+
+
+

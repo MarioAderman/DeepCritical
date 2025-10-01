@@ -1,0 +1,19 @@
+# Main configuration with enhanced REACT architecture modes
+
+defaults:
+  - config
+  - app_modes/single_react
+
+# Override with specific mode
+# app_mode: "single_react"        # Simple single-level REACT
+# app_mode: "multi_level_react"   # Nested REACT loops with different state machine modes
+# app_mode: "nested_orchestration" # Complex nested orchestrators with subgraph coordination
+# app_mode: "loss_driven"         # Execution driven by loss functions and quality metrics
+
+# Example usage:
+# deepresearch question="Analyze machine learning in drug discovery" app_mode=multi_level_react
+# deepresearch question="Design a comprehensive research framework" app_mode=nested_orchestration
+# deepresearch question="Optimize research quality" app_mode=loss_driven
+
+
+

@@ -1,0 +1,117 @@
+# @package _global_
+
+# Example configuration for bioinformatics workflows using centralized config
+# This demonstrates how to use the new configuration system
+
+# Main configuration
+question: "What is the function of TP53 gene based on GO annotations and recent literature?"
+
+# Enable bioinformatics flow with centralized configuration
+flows:
+  bioinformatics:
+    enabled: true
+    
+    # Import centralized bioinformatics configurations
+    defaults:
+      - /bioinformatics/defaults
+      - /bioinformatics/data_sources
+      - /bioinformatics/agents
+      - /bioinformatics/tools
+      - /bioinformatics/workflow
+    
+    # Override specific settings for this example
+    data_sources:
+      go:
+        enabled: true
+        evidence_codes: ["IDA", "EXP"]  # Gold standard evidence
+        year_min: 2022
+        quality_threshold: 0.9
+      pubmed:
+        enabled: true
+        max_results: 50
+        include_full_text: true
+        year_min: 2020
+      geo:
+        enabled: false  # Disable for this example
+      drugbank:
+        enabled: false
+      pdb:
+        enabled: true
+        include_interactions: true
+        resolution_max: 3.0
+      intact:
+        enabled: true
+        confidence_min: 0.7
+    
+    fusion:
+      quality_threshold: 0.85
+      max_entities: 500
+      cross_reference_enabled: true
+      temporal_consistency: true
+    
+    reasoning:
+      model: "anthropic:claude-sonnet-4-0"
+      confidence_threshold: 0.8
+      max_reasoning_steps: 15
+      integrative_approach: true
+    
+    agents:
+      data_fusion:
+        model: "anthropic:claude-sonnet-4-0"
+        max_retries: 3
+        timeout: 300
+      reasoning:
+        model: "anthropic:claude-sonnet-4-0"
+        max_retries: 3
+        timeout: 300
+      quality_assessment:
+        model: "anthropic:claude-sonnet-4-0"
+        metrics: ["evidence_quality", "cross_consistency", "completeness", "temporal_relevance"]
+    
+    output:
+      include_quality_metrics: true
+      include_reasoning_chain: true
+      include_supporting_evidence: true
+      include_processing_notes: true
+      format: "detailed"
+    
+    performance:
+      parallel_processing: true
+      max_concurrent_requests: 3
+      cache_enabled: true
+      cache_ttl: 1800
+    
+    validation:
+      strict_mode: false
+      validate_evidence_codes: true
+      validate_cross_references: true
+      require_curation_notes: false
+
+# Pydantic AI configuration
+pyd_ai:
+  model: "anthropic:claude-sonnet-4-0"
+  builtin_tools:
+    web_search:
+      enabled: true
+      search_context_size: high
+      max_uses: 10
+    code_execution:
+      enabled: false
+    url_context:
+      enabled: false
+  toolsets:
+    langchain:
+      enabled: false
+    aci:
+      enabled: false
+
+# General settings
+retries: 3
+output_dir: "outputs"
+log_level: "INFO"
+
+
+
+
+
+

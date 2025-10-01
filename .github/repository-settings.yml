@@ -1,0 +1,260 @@
+# GitHub Repository Settings Configuration for DeepCritical
+# This file documents the recommended repository settings for the DeepCritical project
+
+# Repository Settings
+name: "DeepCritical"
+description: "Hydra + Pydantic Graph Deep Research with PRIME Architecture - A comprehensive research automation platform for autonomous scientific discovery workflows"
+topics:
+  - "research-automation"
+  - "bioinformatics"
+  - "protein-engineering"
+  - "hydra"
+  - "pydantic"
+  - "ai-agents"
+  - "scientific-workflows"
+  - "data-fusion"
+  - "prime-architecture"
+  - "python"
+  - "machine-learning"
+  - "scientific-computing"
+
+# Repository Visibility
+visibility: "private"  # or "private" for internal use
+
+# Features
+features:
+  issues: true
+  projects: true
+  wiki: false
+  discussions: true
+  pages: true
+  packages: false
+
+# Branch Protection Rules
+branch_protection:
+  main:
+    required_status_checks:
+      strict: true
+      contexts:
+        - "ci"
+        - "lint"
+        - "test"
+    enforce_admins: true
+    required_pull_request_reviews:
+      required_approving_review_count: 1
+      dismiss_stale_reviews: true
+      require_code_owner_reviews: false
+    restrictions: null
+    allow_force_pushes: false
+    allow_deletions: false
+
+# Issue Labels
+labels:
+  # Priority Labels
+  - name: "priority: critical"
+    color: "d73a4a"
+    description: "Critical priority issue"
+  - name: "priority: high"
+    color: "f85149"
+    description: "High priority issue"
+  - name: "priority: medium"
+    color: "fbca04"
+    description: "Medium priority issue"
+  - name: "priority: low"
+    color: "0e8a16"
+    description: "Low priority issue"
+
+  # Type Labels
+  - name: "type: bug"
+    color: "d73a4a"
+    description: "Something isn't working"
+  - name: "type: enhancement"
+    color: "a2eeef"
+    description: "New feature or request"
+  - name: "type: documentation"
+    color: "0075ca"
+    description: "Improvements or additions to documentation"
+  - name: "type: performance"
+    color: "7057ff"
+    description: "Performance related issue"
+  - name: "type: question"
+    color: "d876e3"
+    description: "Further information is requested"
+
+  # Component Labels
+  - name: "component: core"
+    color: "c5def5"
+    description: "Core workflow engine"
+  - name: "component: prime"
+    color: "c5def5"
+    description: "PRIME flow (protein engineering)"
+  - name: "component: bioinformatics"
+    color: "c5def5"
+    description: "Bioinformatics flow (data fusion)"
+  - name: "component: deepsearch"
+    color: "c5def5"
+    description: "DeepSearch flow (web research)"
+  - name: "component: challenge"
+    color: "c5def5"
+    description: "Challenge flow (experimental)"
+  - name: "component: tools"
+    color: "c5def5"
+    description: "Tool registry and tools"
+  - name: "component: agents"
+    color: "c5def5"
+    description: "Agent system"
+  - name: "component: config"
+    color: "c5def5"
+    description: "Configuration (Hydra)"
+  - name: "component: graph"
+    color: "c5def5"
+    description: "Pydantic Graph"
+  - name: "component: docs"
+    color: "c5def5"
+    description: "Documentation"
+
+  # Status Labels
+  - name: "status: needs-triage"
+    color: "f9d0c4"
+    description: "Needs initial triage"
+  - name: "status: in-progress"
+    color: "fef2c0"
+    description: "Work in progress"
+  - name: "status: blocked"
+    color: "d93f0b"
+    description: "Blocked by external dependency"
+  - name: "status: needs-review"
+    color: "fbca04"
+    description: "Needs code review"
+  - name: "status: ready-for-testing"
+    color: "0e8a16"
+    description: "Ready for testing"
+  - name: "status: resolved"
+    color: "0e8a16"
+    description: "Issue has been resolved"
+
+  # Special Labels
+  - name: "good first issue"
+    color: "7057ff"
+    description: "Good for newcomers"
+  - name: "help wanted"
+    color: "008672"
+    description: "Extra attention is needed"
+  - name: "duplicate"
+    color: "cfd3d7"
+    description: "This issue or pull request already exists"
+  - name: "wontfix"
+    color: "ffffff"
+    description: "This will not be worked on"
+  - name: "invalid"
+    color: "e4e669"
+    description: "This doesn't seem right"
+
+# Milestones
+milestones:
+  - title: "v0.2.0 - Enhanced Bioinformatics"
+    description: "Enhanced bioinformatics workflows and data fusion capabilities"
+    state: "open"
+    due_on: "2024-12-31T23:59:59Z"
+  - title: "v0.3.0 - Advanced PRIME"
+    description: "Advanced PRIME flow with improved protein engineering tools"
+    state: "open"
+    due_on: "2025-03-31T23:59:59Z"
+  - title: "v1.0.0 - Production Ready"
+    description: "Production-ready release with full feature set"
+    state: "open"
+    due_on: "2025-06-30T23:59:59Z"
+
+# Security Settings
+security:
+  vulnerability_alerts: true
+  secret_scanning: true
+  secret_scanning_push_protection: true
+  dependabot_alerts: true
+  dependabot_security_updates: true
+
+# Dependabot Configuration
+dependabot:
+  version: 2
+  updates:
+    - package-ecosystem: "pip"
+      directory: "/"
+      schedule:
+        interval: "weekly"
+        day: "monday"
+        time: "09:00"
+      open-pull-requests-limit: 10
+      reviewers:
+        - "maintainers"
+      assignees:
+        - "maintainers"
+      commit-message:
+        prefix: "deps"
+        include: "scope"
+
+# Code Owners
+code_owners:
+  - path: "DeepResearch/src/agents/"
+    owners: ["@maintainers"]
+  - path: "DeepResearch/src/datatypes/"
+    owners: ["@maintainers"]
+  - path: "DeepResearch/tools/"
+    owners: ["@maintainers"]
+  - path: "configs/"
+    owners: ["@maintainers"]
+  - path: ".github/"
+    owners: ["@maintainers"]
+
+# Repository Rules
+rules:
+  - name: "Require PR for main branch"
+    target: "branch"
+    parameters:
+      branch_name: "main"
+      required_status_checks:
+        - "ci"
+        - "lint"
+        - "test"
+      required_pull_request_reviews:
+        required_approving_review_count: 1
+      dismiss_stale_reviews: true
+      require_code_owner_reviews: false
+      require_last_push_approval: false
+      required_linear_history: false
+      allow_force_pushes: false
+      allow_deletions: false
+      block_creations: false
+      allow_fork_syncing: true
+
+# Webhooks (if needed)
+webhooks:
+  - url: "https://your-ci-system.com/webhook"
+    content_type: "json"
+    secret: "your-webhook-secret"
+    events:
+      - "push"
+      - "pull_request"
+      - "issues"
+      - "issue_comment"
+
+# Repository Variables (for GitHub Actions)
+variables:
+  - name: "PYTHON_VERSION"
+    value: "3.10"
+  - name: "UV_VERSION"
+    value: "latest"
+  - name: "TEST_TIMEOUT"
+    value: "300"
+
+# Repository Secrets (to be set manually)
+secrets:
+  - name: "PYPI_TOKEN"
+    description: "PyPI token for publishing packages"
+  - name: "ANTHROPIC_API_KEY"
+    description: "Anthropic API key for Claude models"
+  - name: "OPENAI_API_KEY"
+    description: "OpenAI API key for GPT models"
+  - name: "SERPER_API_KEY"
+    description: "Serper API key for web search"
+  - name: "CODECOV_TOKEN"
+    description: "Codecov token for coverage reporting"

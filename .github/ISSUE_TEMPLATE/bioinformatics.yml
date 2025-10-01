@@ -1,0 +1,183 @@
+name: 🧬 Bioinformatics Issue
+description: Report issues or request features related to bioinformatics workflows and data fusion
+title: "[BIOINFO]: "
+labels: ["bioinformatics", "needs-triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a bioinformatics-related issue! This template is specifically for issues related to the bioinformatics flow, data fusion, and scientific workflows.
+
+  - type: dropdown
+    id: issue_type
+    attributes:
+      label: Issue Type
+      description: What type of bioinformatics issue is this?
+      options:
+        - Data Source Issue
+        - Data Fusion Problem
+        - GO Annotation Issue
+        - PubMed Integration Issue
+        - Reasoning Task Problem
+        - Agent Communication Issue
+        - Data Quality Issue
+        - Performance Issue
+        - Feature Request
+        - Bug Report
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: data_source
+    attributes:
+      label: Data Source
+      description: Which data source is involved?
+      options:
+        - Gene Ontology (GO)
+        - PubMed
+        - GEO (Gene Expression Omnibus)
+        - CMAP (Connectivity Map)
+        - DrugBank
+        - TTD (Therapeutic Target Database)
+        - PDB (Protein Data Bank)
+        - IntAct
+        - Multiple Sources
+        - Custom Data Source
+        - Not Applicable
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Issue Description
+      description: Describe the bioinformatics issue or request
+      placeholder: |
+        Provide a clear description of the issue, including:
+        - What biological data or process is involved
+        - What should happen vs. what actually happens
+        - Any specific genes, proteins, or biological entities involved
+    validations:
+      required: true
+
+  - type: textarea
+    id: biological_context
+    attributes:
+      label: Biological Context
+      description: Provide biological context for the issue
+      placeholder: |
+        Include relevant biological information:
+        - Gene symbols or IDs (e.g., TP53, P04637)
+        - Protein names or UniProt IDs
+        - GO terms or biological processes
+        - Organism (e.g., Homo sapiens, Mus musculus)
+        - Biological question or hypothesis
+    validations:
+      required: true
+
+  - type: textarea
+    id: data_details
+    attributes:
+      label: Data Details
+      description: Specific data or query details
+      placeholder: |
+        Provide specific details about the data or query:
+        - Gene sequences, protein sequences, or other biological data
+        - Search queries or parameters used
+        - Expected vs. actual results
+        - Data quality or completeness issues
+
+  - type: textarea
+    id: command_used
+    attributes:
+      label: Command Used
+      description: The exact command that caused the issue
+      placeholder: |
+        uv run deepresearch flows.bioinformatics.enabled=true question="..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: configuration
+    attributes:
+      label: Bioinformatics Configuration
+      description: Relevant bioinformatics configuration
+      placeholder: |
+        Paste relevant configuration from configs/bioinformatics/ or related settings:
+        - Data source settings
+        - Evidence code filters
+        - Quality thresholds
+        - Fusion parameters
+      render: yaml
+
+  - type: textarea
+    id: error_logs
+    attributes:
+      label: Error Logs
+      description: Any error messages or logs
+      placeholder: |
+        Paste any error messages, stack traces, or relevant logs here...
+      render: shell
+
+  - type: textarea
+    id: expected_results
+    attributes:
+      label: Expected Results
+      description: What results did you expect?
+      placeholder: |
+        Describe what you expected to see:
+        - Specific GO annotations
+        - PubMed paper matches
+        - Data fusion results
+        - Reasoning conclusions
+        - Quality metrics
+
+  - type: textarea
+    id: actual_results
+    attributes:
+      label: Actual Results
+      description: What results did you actually get?
+      placeholder: |
+        Describe what you actually received:
+        - Missing or incorrect annotations
+        - Wrong paper matches
+        - Failed data fusion
+        - Incorrect reasoning
+        - Quality issues
+
+  - type: textarea
+    id: scientific_impact
+    attributes:
+      label: Scientific Impact
+      description: How does this affect your research?
+      placeholder: |
+        Describe the impact on your scientific work:
+        - Research question affected
+        - Hypothesis testing impact
+        - Data interpretation issues
+        - Publication or analysis delays
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Any other relevant information
+      placeholder: |
+        Add any other context, references, or information that might help...
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      description: Please confirm the following
+      options:
+        - label: I have searched existing issues to ensure this is not a duplicate
+          required: true
+        - label: I have provided all the information requested above
+          required: true
+        - label: I am willing to help test bioinformatics improvements
+          required: false
+        - label: I can provide additional biological data if needed
+          required: false

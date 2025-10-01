@@ -1,0 +1,125 @@
+name: ❓ Question
+description: Ask a question about DeepCritical usage, configuration, or development
+title: "[QUESTION]: "
+labels: ["question", "needs-triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for your question! Please provide as much detail as possible to help us give you a helpful answer.
+
+  - type: dropdown
+    id: question_type
+    attributes:
+      label: Question Type
+      description: What type of question is this?
+      options:
+        - Usage/How-to
+        - Configuration
+        - Installation/Setup
+        - Troubleshooting
+        - Architecture/Design
+        - Development
+        - API/Integration
+        - Best Practices
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which component is your question about?
+      options:
+        - Core Workflow Engine
+        - PRIME Flow (Protein Engineering)
+        - Bioinformatics Flow (Data Fusion)
+        - DeepSearch Flow (Web Research)
+        - Challenge Flow (Experimental)
+        - Tool Registry
+        - Agent System
+        - Configuration (Hydra)
+        - Pydantic Graph
+        - Documentation
+        - Installation/Setup
+        - General
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: What would you like to know?
+      placeholder: |
+        Ask your question here. Be as specific as possible to get the best answer.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Provide context for your question
+      placeholder: |
+        What are you trying to accomplish? What's your use case?
+        Include any relevant background information.
+    validations:
+      required: true
+
+  - type: textarea
+    id: what_you_tried
+    attributes:
+      label: What You've Tried
+      description: What have you already tried or researched?
+      placeholder: |
+        Describe what you've already tried:
+        - Commands you've run
+        - Documentation you've read
+        - Solutions you've attempted
+        - Research you've done
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Your environment details (if relevant)
+      placeholder: |
+        - OS: [e.g., Windows 10, macOS 13.0, Ubuntu 22.04]
+        - Python version: [e.g., 3.10.8]
+        - DeepCritical version: [e.g., 0.1.0]
+        - Installation method: [e.g., uv, pip]
+        - Configuration: [e.g., app_mode=single_react, flows.prime.enabled=true]
+
+  - type: textarea
+    id: expected_outcome
+    attributes:
+      label: Expected Outcome
+      description: What outcome are you hoping for?
+      placeholder: |
+        What would a successful answer look like for you?
+        What specific information or solution are you looking for?
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Any other relevant information
+      placeholder: |
+        Add any other context, examples, or information that might help answer your question.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      description: Please confirm the following
+      options:
+        - label: I have searched existing issues and documentation
+          required: true
+        - label: I have provided all the information requested above
+          required: true
+        - label: I am willing to help improve documentation based on the answer
+          required: false

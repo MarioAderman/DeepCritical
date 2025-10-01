@@ -1,0 +1,11 @@
+prompts:
+  globals:
+    # Shared variables available to all prompts, override per-env
+    timezone: UTC
+    project_name: DeepResearch
+    organization: DeepCritical
+    language_style: analytical
+
+
+
+

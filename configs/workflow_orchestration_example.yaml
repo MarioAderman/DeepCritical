@@ -1,0 +1,106 @@
+# Example configuration demonstrating the full workflow orchestration capabilities
+# This shows how to configure a comprehensive research workflow with multiple specialized workflows
+
+defaults:
+  - _self_
+  - primary_workflow: react_primary
+  - sub_workflows: comprehensive_sub_workflows
+  - data_loaders: comprehensive_data_loaders
+  - multi_agent_systems: comprehensive_multi_agent
+  - judges: comprehensive_judges
+
+# Enable workflow orchestration
+workflow_orchestration:
+  enabled: true
+
+# Execution strategy
+execution_strategy: hybrid  # parallel, sequential, hybrid
+max_concurrent_workflows: 8
+global_timeout: 3600.0  # 1 hour
+enable_monitoring: true
+enable_caching: true
+
+# Workflow composition settings
+composition:
+  strategy: adaptive  # adaptive, rule_based, ml_based
+  enable_auto_selection: true
+  enable_dependency_resolution: true
+  enable_optimization: true
+  enable_workflow_learning: true
+
+# Output configuration
+outputs:
+  enable_hypothesis_datasets: true
+  enable_testing_environments: true
+  enable_reasoning_results: true
+  enable_automated_datasets: true
+  enable_agent_response_datasets: true
+  output_format: comprehensive_json
+  include_metadata: true
+  include_execution_traces: true
+  include_performance_metrics: true
+  include_quality_assessments: true
+
+# Monitoring and logging
+monitoring:
+  enable_metrics: true
+  enable_tracing: true
+  enable_performance_monitoring: true
+  log_level: INFO
+  metrics_retention_days: 30
+  enable_alerting: true
+  alert_thresholds:
+    execution_time: 300  # seconds
+    error_rate: 0.1  # 10%
+    quality_score: 7.0  # minimum quality score
+
+# Performance settings
+performance:
+  enable_parallel_execution: true
+  enable_result_caching: true
+  cache_ttl: 7200  # 2 hours
+  enable_workflow_optimization: true
+  enable_adaptive_scaling: true
+  max_memory_usage: "8GB"
+  enable_gpu_acceleration: true
+
+# Quality assurance
+quality_assurance:
+  enable_judge_evaluation: true
+  enable_consensus_building: true
+  enable_quality_gates: true
+  minimum_quality_score: 7.0
+  enable_automatic_retry: true
+  max_quality_retries: 3
+
+# Research-specific settings
+research:
+  enable_hypothesis_generation: true
+  enable_hypothesis_testing: true
+  enable_experimental_design: true
+  enable_statistical_analysis: true
+  enable_visualization: true
+  enable_publication_ready_outputs: true
+
+# Bioinformatics-specific settings
+bioinformatics:
+  enable_data_fusion: true
+  enable_cross_database_analysis: true
+  enable_quality_control: true
+  enable_statistical_validation: true
+  enable_pathway_analysis: true
+  enable_network_analysis: true
+
+# Multi-agent coordination
+multi_agent:
+  enable_collaborative_workflows: true
+  enable_consensus_building: true
+  enable_conflict_resolution: true
+  enable_adaptive_coordination: true
+  enable_learning_from_interactions: true
+
+# Example user input for testing
+question: "Analyze the role of machine learning in drug discovery and design a comprehensive research framework for accelerating pharmaceutical development"
+
+
+

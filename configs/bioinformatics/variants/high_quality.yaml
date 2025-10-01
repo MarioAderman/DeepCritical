@@ -1,0 +1,38 @@
+# @package _global_
+
+# High-quality bioinformatics configuration
+# Focuses on recent, gold-standard data only
+
+defaults:
+  - /bioinformatics/defaults
+  - /bioinformatics/data_sources
+  - /bioinformatics/agents
+  - /bioinformatics/tools
+  - /bioinformatics/workflow
+
+# Override for high-quality settings
+data_sources:
+  go:
+    evidence_codes: ${bioinformatics.evidence_codes.gold_standard}  # Only IDA
+    year_min: ${bioinformatics.temporal.current_year}  # 2023
+    quality_threshold: ${bioinformatics.quality.gold_standard_threshold}  # 0.95
+  
+  pubmed:
+    max_results: ${bioinformatics.pubmed.high_quality_max_results}  # 20
+    year_min: ${bioinformatics.temporal.current_year}  # 2023
+
+fusion:
+  quality_threshold: ${bioinformatics.quality.high_quality_threshold}  # 0.9
+  max_entities: ${bioinformatics.limits.high_quality_max_entities}  # 100
+
+reasoning:
+  confidence_threshold: ${bioinformatics.reasoning.high_confidence_threshold}  # 0.8
+
+performance:
+  max_concurrent_requests: 2  # Reduced for high-quality processing
+
+
+
+
+
+

@@ -1,0 +1,176 @@
+# Default judge configurations for evaluating workflow outputs
+
+judges:
+  # Quality Assessment Judge
+  - judge_id: quality_judge
+    name: Quality Assessment Judge
+    model_name: anthropic:claude-sonnet-4-0
+    evaluation_criteria:
+      - accuracy
+      - completeness
+      - clarity
+      - relevance
+      - coherence
+      - evidence_quality
+    scoring_scale: "1-10"
+    enabled: true
+    parameters:
+      temperature: 0.2
+      max_tokens: 1000
+      enable_detailed_feedback: true
+      enable_improvement_suggestions: true
+
+  # Scientific Validity Judge
+  - judge_id: scientific_validity_judge
+    name: Scientific Validity Judge
+    model_name: anthropic:claude-sonnet-4-0
+    evaluation_criteria:
+      - scientific_accuracy
+      - methodology_soundness
+      - evidence_strength
+      - logical_reasoning
+      - reproducibility
+      - novelty
+    scoring_scale: "1-10"
+    enabled: true
+    parameters:
+      temperature: 0.1
+      max_tokens: 1200
+      enable_methodology_review: true
+      enable_evidence_assessment: true
+
+  # Code Quality Judge
+  - judge_id: code_quality_judge
+    name: Code Quality Judge
+    model_name: anthropic:claude-sonnet-4-0
+    evaluation_criteria:
+      - code_correctness
+      - efficiency
+      - readability
+      - maintainability
+      - documentation_quality
+      - best_practices_adherence
+    scoring_scale: "1-10"
+    enabled: true
+    parameters:
+      temperature: 0.2
+      max_tokens: 800
+      enable_code_analysis: true
+      enable_performance_review: true
+
+  # Research Impact Judge
+  - judge_id: research_impact_judge
+    name: Research Impact Judge
+    model_name: anthropic:claude-sonnet-4-0
+    evaluation_criteria:
+      - research_significance
+      - practical_applicability
+      - theoretical_contribution
+      - innovation_level
+      - potential_impact
+      - feasibility
+    scoring_scale: "1-10"
+    enabled: true
+    parameters:
+      temperature: 0.3
+      max_tokens: 1000
+      enable_impact_assessment: true
+      enable_feasibility_analysis: true
+
+  # Hypothesis Quality Judge
+  - judge_id: hypothesis_quality_judge
+    name: Hypothesis Quality Judge
+    model_name: anthropic:claude-sonnet-4-0
+    evaluation_criteria:
+      - testability
+      - falsifiability
+      - specificity
+      - evidence_support
+      - logical_consistency
+      - novelty
+    scoring_scale: "1-10"
+    enabled: true
+    parameters:
+      temperature: 0.2
+      max_tokens: 900
+      enable_testability_assessment: true
+      enable_evidence_evaluation: true
+
+  # Reasoning Quality Judge
+  - judge_id: reasoning_quality_judge
+    name: Reasoning Quality Judge
+    model_name: anthropic:claude-sonnet-4-0
+    evaluation_criteria:
+      - logical_soundness
+      - argument_structure
+      - evidence_integration
+      - conclusion_validity
+      - reasoning_clarity
+      - assumption_explicitness
+    scoring_scale: "1-10"
+    enabled: true
+    parameters:
+      temperature: 0.1
+      max_tokens: 1100
+      enable_logical_analysis: true
+      enable_argument_evaluation: true
+
+  # Bioinformatics Accuracy Judge
+  - judge_id: bioinformatics_accuracy_judge
+    name: Bioinformatics Accuracy Judge
+    model_name: anthropic:claude-sonnet-4-0
+    evaluation_criteria:
+      - biological_accuracy
+      - data_integration_quality
+      - statistical_validity
+      - interpretation_correctness
+      - methodology_appropriateness
+      - result_reliability
+    scoring_scale: "1-10"
+    enabled: true
+    parameters:
+      temperature: 0.2
+      max_tokens: 1000
+      enable_biological_validation: true
+      enable_statistical_review: true
+
+  # Multi-Agent Coordination Judge
+  - judge_id: coordination_quality_judge
+    name: Multi-Agent Coordination Judge
+    model_name: anthropic:claude-sonnet-4-0
+    evaluation_criteria:
+      - coordination_effectiveness
+      - communication_quality
+      - task_distribution
+      - consensus_building
+      - conflict_resolution
+      - overall_system_performance
+    scoring_scale: "1-10"
+    enabled: true
+    parameters:
+      temperature: 0.3
+      max_tokens: 900
+      enable_coordination_analysis: true
+      enable_performance_evaluation: true
+
+  # Overall System Judge
+  - judge_id: overall_system_judge
+    name: Overall System Performance Judge
+    model_name: anthropic:claude-sonnet-4-0
+    evaluation_criteria:
+      - overall_quality
+      - system_integration
+      - user_satisfaction
+      - efficiency
+      - reliability
+      - scalability
+    scoring_scale: "1-10"
+    enabled: true
+    parameters:
+      temperature: 0.2
+      max_tokens: 1200
+      enable_comprehensive_evaluation: true
+      enable_system_optimization_suggestions: true
+
+
+

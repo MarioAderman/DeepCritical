@@ -1,0 +1,230 @@
+# Nested orchestration mode configuration
+# Complex nested orchestrators with subgraph coordination
+
+app_mode: "nested_orchestration"
+
+primary_orchestrator:
+  orchestrator_id: "primary_orchestrator"
+  agent_role: "orchestrator_agent"
+  model_name: "anthropic:claude-sonnet-4-0"
+  max_nested_loops: 5
+  coordination_strategy: "hierarchical"
+  can_spawn_subgraphs: true
+  can_spawn_agents: true
+  break_conditions:
+    - condition_type: "iteration_limit"
+      threshold: 25
+      operator: ">="
+      enabled: true
+    - condition_type: "confidence_threshold"
+      threshold: 0.9
+      operator: ">="
+      enabled: true
+
+nested_react_configs:
+  - loop_id: "main_research_loop"
+    parent_loop_id: null
+    max_iterations: 10
+    state_machine_mode: "group_chat"
+    subgraphs:
+      - "rag_subgraph"
+      - "search_subgraph"
+      - "bioinformatics_subgraph"
+    agent_roles:
+      - "search_agent"
+      - "rag_agent"
+      - "bioinformatics_agent"
+      - "coordinator"
+    tools:
+      - "web_search"
+      - "rag_query"
+      - "bioinformatics_fusion"
+      - "coordination_tool"
+    priority: 10
+    break_conditions:
+      - condition_type: "consensus_level"
+        threshold: 0.85
+        operator: ">="
+        enabled: true
+
+  - loop_id: "data_analysis_loop"
+    parent_loop_id: "main_research_loop"
+    max_iterations: 8
+    state_machine_mode: "sequential"
+    subgraphs:
+      - "code_subgraph"
+      - "evaluation_subgraph"
+    agent_roles:
+      - "code_executor"
+      - "evaluator"
+      - "linter"
+    tools:
+      - "code_sandbox"
+      - "evaluation_tool"
+      - "linter_tool"
+    priority: 8
+    break_conditions:
+      - condition_type: "quality_score"
+        threshold: 0.9
+        operator: ">="
+        enabled: true
+
+  - loop_id: "hypothesis_loop"
+    parent_loop_id: "data_analysis_loop"
+    max_iterations: 6
+    state_machine_mode: "pipeline"
+    subgraphs:
+      - "reasoning_subgraph"
+      - "evaluation_subgraph"
+    agent_roles:
+      - "hypothesis_generator"
+      - "hypothesis_tester"
+      - "reasoning_agent"
+    tools:
+      - "hypothesis_generator"
+      - "hypothesis_tester"
+      - "reasoning_engine"
+    priority: 6
+    break_conditions:
+      - condition_type: "confidence_threshold"
+        threshold: 0.95
+        operator: ">="
+        enabled: true
+
+  - loop_id: "synthesis_loop"
+    parent_loop_id: "hypothesis_loop"
+    max_iterations: 4
+    state_machine_mode: "hierarchical"
+    subgraphs:
+      - "evaluation_subgraph"
+    agent_roles:
+      - "coordinator"
+      - "synthesizer"
+      - "judge"
+    tools:
+      - "synthesis_tool"
+      - "judge_tool"
+      - "finalization_tool"
+    priority: 4
+    break_conditions:
+      - condition_type: "confidence_threshold"
+        threshold: 0.98
+        operator: ">="
+        enabled: true
+
+subgraph_configs:
+  - subgraph_id: "rag_subgraph"
+    subgraph_type: "rag_subgraph"
+    state_machine_path: "DeepResearch.src.statemachines.rag_workflow"
+    entry_node: "InitializeRAG"
+    exit_node: "GenerateResponse"
+    parameters:
+      chunk_size: 1000
+      chunk_overlap: 200
+      top_k: 5
+    tools:
+      - "rag_query"
+      - "document_loader"
+    max_execution_time: 120.0
+    enabled: true
+
+  - subgraph_id: "search_subgraph"
+    subgraph_type: "search_subgraph"
+    state_machine_path: "DeepResearch.src.statemachines.search_workflow"
+    entry_node: "InitializeSearch"
+    exit_node: "GenerateFinalResponse"
+    parameters:
+      num_results: 10
+      chunk_size: 1000
+    tools:
+      - "web_search"
+      - "url_visit"
+    max_execution_time: 90.0
+    enabled: true
+
+  - subgraph_id: "bioinformatics_subgraph"
+    subgraph_type: "bioinformatics_subgraph"
+    state_machine_path: "DeepResearch.src.statemachines.bioinformatics_workflow"
+    entry_node: "ParseBioinformaticsQuery"
+    exit_node: "SynthesizeResults"
+    parameters:
+      fusion_type: "MultiSource"
+      quality_threshold: 0.8
+    tools:
+      - "bioinformatics_fusion"
+      - "reasoning_engine"
+    max_execution_time: 180.0
+    enabled: true
+
+  - subgraph_id: "code_subgraph"
+    subgraph_type: "code_subgraph"
+    state_machine_path: "DeepResearch.src.statemachines.code_execution_workflow"
+    entry_node: "InitializeCode"
+    exit_node: "FinalizeCode"
+    parameters:
+      max_attempts: 3
+      timeout: 30
+    tools:
+      - "code_sandbox"
+      - "linter"
+    max_execution_time: 60.0
+    enabled: true
+
+  - subgraph_id: "reasoning_subgraph"
+    subgraph_type: "reasoning_subgraph"
+    state_machine_path: "DeepResearch.src.statemachines.reasoning_workflow"
+    entry_node: "InitializeReasoning"
+    exit_node: "SynthesizeReasoning"
+    parameters:
+      reasoning_type: "scientific"
+      confidence_threshold: 0.8
+    tools:
+      - "reasoning_engine"
+      - "evidence_evaluator"
+    max_execution_time: 90.0
+    enabled: true
+
+  - subgraph_id: "evaluation_subgraph"
+    subgraph_type: "evaluation_subgraph"
+    state_machine_path: "DeepResearch.src.statemachines.evaluation_workflow"
+    entry_node: "InitializeEvaluation"
+    exit_node: "FinalizeEvaluation"
+    parameters:
+      evaluation_criteria: ["quality", "accuracy", "completeness"]
+      scoring_scale: "1-10"
+    tools:
+      - "evaluation_tool"
+      - "judge_tool"
+    max_execution_time: 60.0
+    enabled: true
+
+loss_functions:
+  - condition_type: "confidence_threshold"
+    threshold: 0.9
+    operator: ">="
+    enabled: true
+  - condition_type: "quality_score"
+    threshold: 0.9
+    operator: ">="
+    enabled: true
+  - condition_type: "consensus_level"
+    threshold: 0.85
+    operator: ">="
+    enabled: true
+
+global_break_conditions:
+  - condition_type: "time_limit"
+    threshold: 900.0
+    operator: ">="
+    enabled: true
+  - condition_type: "iteration_limit"
+    threshold: 30
+    operator: ">="
+    enabled: true
+
+execution_strategy: "adaptive"
+max_total_iterations: 30
+max_total_time: 900.0
+
+
+

@@ -1,0 +1,11 @@
+deepresearch:
+  start: Plan
+  nodes:
+    - Plan
+    - Search
+    - Analyze
+    - Synthesize
+    - PrepareChallenge
+    - RunChallenge
+    - EvaluateChallenge
+

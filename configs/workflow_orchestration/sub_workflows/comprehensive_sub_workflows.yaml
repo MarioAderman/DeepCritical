@@ -1,0 +1,306 @@
+# Comprehensive sub-workflow configurations for advanced research scenarios
+
+sub_workflows:
+  # Advanced RAG Workflows
+  - workflow_type: rag_workflow
+    name: scientific_literature_rag
+    enabled: true
+    priority: 9
+    max_retries: 3
+    timeout: 180.0
+    parameters:
+      collection_name: scientific_literature
+      chunk_size: 1200
+      chunk_overlap: 300
+      top_k: 10
+      enable_reranking: true
+      reranker_model: "cross-encoder/ms-marco-MiniLM-L-12-v2"
+      enable_hybrid_search: true
+      enable_semantic_search: true
+      enable_keyword_search: true
+    output_format: enhanced_rag_response
+
+  - workflow_type: rag_workflow
+    name: patent_literature_rag
+    enabled: true
+    priority: 8
+    max_retries: 3
+    timeout: 150.0
+    parameters:
+      collection_name: patent_literature
+      chunk_size: 1000
+      chunk_overlap: 200
+      top_k: 8
+      enable_patent_specific_processing: true
+      enable_claim_analysis: true
+      enable_prior_art_detection: true
+    output_format: patent_rag_response
+
+  - workflow_type: rag_workflow
+    name: regulatory_documents_rag
+    enabled: true
+    priority: 7
+    max_retries: 3
+    timeout: 120.0
+    parameters:
+      collection_name: regulatory_documents
+      chunk_size: 800
+      chunk_overlap: 150
+      top_k: 6
+      enable_regulatory_compliance_check: true
+      enable_guideline_extraction: true
+    output_format: regulatory_rag_response
+
+  # Advanced Bioinformatics Workflows
+  - workflow_type: bioinformatics_workflow
+    name: drug_target_analysis_workflow
+    enabled: true
+    priority: 9
+    max_retries: 3
+    timeout: 300.0
+    parameters:
+      data_sources: ["UniProt", "ChEMBL", "DrugBank", "PDB", "GO", "KEGG"]
+      analysis_types: ["target_identification", "binding_analysis", "pathway_analysis", "toxicity_prediction"]
+      tools: ["alphafold2", "esmfold", "autodock_vina", "diffdock", "blast_search", "hmmer_search"]
+      enable_quality_assessment: true
+      enable_statistical_validation: true
+      enable_cross_validation: true
+    output_format: drug_target_analysis_results
+
+  - workflow_type: bioinformatics_workflow
+    name: protein_protein_interaction_workflow
+    enabled: true
+    priority: 8
+    max_retries: 3
+    timeout: 240.0
+    parameters:
+      data_sources: ["IntAct", "STRING", "BioGRID", "MINT", "DIP"]
+      analysis_types: ["interaction_prediction", "network_analysis", "pathway_enrichment"]
+      tools: ["alphafold2", "esmfold", "interaction_predictors"]
+      enable_network_visualization: true
+      enable_pathway_analysis: true
+    output_format: protein_interaction_results
+
+  - workflow_type: bioinformatics_workflow
+    name: gene_expression_analysis_workflow
+    enabled: true
+    priority: 7
+    max_retries: 3
+    timeout: 200.0
+    parameters:
+      data_sources: ["GEO", "TCGA", "GTEx", "ENCODE"]
+      analysis_types: ["differential_expression", "pathway_analysis", "co_expression_analysis"]
+      tools: ["limma", "deseq2", "edgeR", "pathway_enrichment_tools"]
+      enable_statistical_analysis: true
+      enable_visualization: true
+    output_format: gene_expression_results
+
+  # Advanced Search Workflows
+  - workflow_type: search_workflow
+    name: academic_search_workflow
+    enabled: true
+    priority: 8
+    max_retries: 3
+    timeout: 120.0
+    parameters:
+      databases: ["PubMed", "arXiv", "Google Scholar", "IEEE Xplore", "ACM Digital Library"]
+      max_results: 20
+      enable_abstract_extraction: true
+      enable_citation_analysis: true
+      enable_author_analysis: true
+      enable_trend_analysis: true
+    output_format: academic_search_results
+
+  - workflow_type: search_workflow
+    name: patent_search_workflow
+    enabled: true
+    priority: 7
+    max_retries: 3
+    timeout: 100.0
+    parameters:
+      databases: ["USPTO", "EPO", "WIPO", "Google Patents"]
+      max_results: 15
+      enable_claim_analysis: true
+      enable_prior_art_detection: true
+      enable_patent_landscape_analysis: true
+    output_format: patent_search_results
+
+  - workflow_type: search_workflow
+    name: news_and_media_search_workflow
+    enabled: true
+    priority: 6
+    max_retries: 3
+    timeout: 90.0
+    parameters:
+      sources: ["news_apis", "social_media", "press_releases", "industry_reports"]
+      max_results: 12
+      enable_sentiment_analysis: true
+      enable_trend_detection: true
+      enable_source_credibility_assessment: true
+    output_format: news_search_results
+
+  # Advanced Multi-Agent Workflows
+  - workflow_type: multi_agent_workflow
+    name: drug_discovery_workflow
+    enabled: true
+    priority: 9
+    max_retries: 3
+    timeout: 600.0
+    parameters:
+      agents: ["target_identifier", "compound_designer", "docking_specialist", "toxicity_predictor", "synthesis_planner", "patent_analyst"]
+      coordination_strategy: "collaborative"
+      enable_quality_checks: true
+      enable_regulatory_compliance: true
+      enable_ip_analysis: true
+    output_format: drug_discovery_results
+
+  - workflow_type: multi_agent_workflow
+    name: research_planning_workflow
+    enabled: true
+    priority: 8
+    max_retries: 3
+    timeout: 300.0
+    parameters:
+      agents: ["research_planner", "methodology_expert", "statistician", "domain_expert", "budget_analyst", "timeline_planner"]
+      coordination_strategy: "sequential"
+      enable_feasibility_analysis: true
+      enable_risk_assessment: true
+      enable_resource_optimization: true
+    output_format: research_planning_results
+
+  - workflow_type: multi_agent_workflow
+    name: publication_workflow
+    enabled: true
+    priority: 7
+    max_retries: 3
+    timeout: 240.0
+    parameters:
+      agents: ["writer", "editor", "reviewer", "citation_manager", "figure_generator", "formatting_specialist"]
+      coordination_strategy: "pipeline"
+      enable_peer_review_simulation: true
+      enable_journal_matching: true
+      enable_impact_prediction: true
+    output_format: publication_results
+
+  # Advanced Hypothesis Workflows
+  - workflow_type: hypothesis_generation
+    name: scientific_hypothesis_generator
+    enabled: true
+    priority: 6
+    max_retries: 3
+    timeout: 200.0
+    parameters:
+      hypothesis_types: ["causal", "correlational", "mechanistic", "predictive", "explanatory"]
+      enable_evidence_synthesis: true
+      enable_confidence_scoring: true
+      enable_falsifiability_assessment: true
+      max_hypotheses: 15
+      enable_hypothesis_ranking: true
+    output_format: hypothesis_dataset
+
+  - workflow_type: hypothesis_testing
+    name: experimental_design_workflow
+    enabled: true
+    priority: 6
+    max_retries: 3
+    timeout: 250.0
+    parameters:
+      test_types: ["computational", "simulation", "statistical", "experimental"]
+      enable_statistical_design: true
+      enable_power_analysis: true
+      enable_result_validation: true
+      enable_alternative_hypothesis_testing: true
+    output_format: testing_environment
+
+  # Advanced Reasoning Workflows
+  - workflow_type: reasoning_workflow
+    name: scientific_reasoning_workflow
+    enabled: true
+    priority: 5
+    max_retries: 3
+    timeout: 180.0
+    parameters:
+      reasoning_types: ["deductive", "inductive", "abductive", "causal", "statistical"]
+      enable_evidence_integration: true
+      enable_uncertainty_quantification: true
+      enable_contradiction_detection: true
+      max_reasoning_steps: 12
+      enable_reasoning_validation: true
+    output_format: reasoning_result
+
+  - workflow_type: reasoning_workflow
+    name: clinical_reasoning_workflow
+    enabled: true
+    priority: 5
+    max_retries: 3
+    timeout: 160.0
+    parameters:
+      reasoning_types: ["diagnostic", "therapeutic", "prognostic", "preventive"]
+      enable_evidence_based_reasoning: true
+      enable_risk_assessment: true
+      enable_treatment_optimization: true
+      enable_patient_safety_considerations: true
+    output_format: clinical_reasoning_result
+
+  # Advanced Code Execution Workflows
+  - workflow_type: code_execution_workflow
+    name: data_analysis_workflow
+    enabled: true
+    priority: 4
+    max_retries: 3
+    timeout: 300.0
+    parameters:
+      languages: ["python", "r", "julia", "matlab"]
+      libraries: ["pandas", "numpy", "scipy", "scikit-learn", "matplotlib", "seaborn"]
+      enable_statistical_analysis: true
+      enable_visualization: true
+      enable_machine_learning: true
+      enable_parallel_processing: true
+    output_format: data_analysis_results
+
+  - workflow_type: code_execution_workflow
+    name: simulation_workflow
+    enabled: true
+    priority: 4
+    max_retries: 3
+    timeout: 400.0
+    parameters:
+      simulation_types: ["molecular_dynamics", "monte_carlo", "agent_based", "system_dynamics"]
+      enable_parameter_sweep: true
+      enable_sensitivity_analysis: true
+      enable_optimization: true
+      enable_validation: true
+    output_format: simulation_results
+
+  # Advanced Evaluation Workflows
+  - workflow_type: evaluation_workflow
+    name: comprehensive_quality_assessment
+    enabled: true
+    priority: 3
+    max_retries: 3
+    timeout: 150.0
+    parameters:
+      evaluation_criteria: ["accuracy", "completeness", "clarity", "relevance", "novelty", "reproducibility", "impact"]
+      enable_multi_judge_evaluation: true
+      enable_consensus_building: true
+      enable_bias_detection: true
+      scoring_scale: "1-10"
+      enable_improvement_recommendations: true
+    output_format: comprehensive_evaluation_results
+
+  - workflow_type: evaluation_workflow
+    name: regulatory_compliance_assessment
+    enabled: true
+    priority: 3
+    max_retries: 3
+    timeout: 120.0
+    parameters:
+      regulatory_frameworks: ["FDA", "EMA", "ICH", "GCP", "GLP"]
+      enable_compliance_checking: true
+      enable_risk_assessment: true
+      enable_documentation_review: true
+      enable_audit_trail_generation: true
+    output_format: regulatory_compliance_results
+
+
+
