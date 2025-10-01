@@ -1,4 +1,4 @@
-﻿from .base import registry
+from .base import registry
 
 # Import all tool modules to ensure registration
 from . import mock_tools
