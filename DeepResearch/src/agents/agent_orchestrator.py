@@ -18,15 +18,15 @@ from omegaconf import DictConfig
 from pydantic_ai import Agent, RunContext
 from pydantic import BaseModel, Field
 
-from ..src.datatypes.workflow_orchestration import (
+from ..datatypes.workflow_orchestration import (
     AgentOrchestratorConfig, NestedReactConfig, SubgraphConfig, BreakCondition,
     MultiStateMachineMode, SubgraphType, LossFunctionType, AppMode, AppConfiguration,
     WorkflowStatus, AgentRole, WorkflowType
 )
 
 if TYPE_CHECKING:
-    from ..src.agents.multi_agent_coordinator import MultiAgentCoordinator
-    from ..src.agents.workflow_orchestrator import PrimaryWorkflowOrchestrator
+    from ..agents.multi_agent_coordinator import MultiAgentCoordinator
+    from ..agents.workflow_orchestrator import PrimaryWorkflowOrchestrator
 
 
 class OrchestratorDependencies(BaseModel):

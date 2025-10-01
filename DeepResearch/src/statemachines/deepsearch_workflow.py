@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Annotated
+from typing import Any, Dict, List, Optional, Annotated, TYPE_CHECKING
 from enum import Enum
 
 from pydantic_graph import BaseNode, End, Graph, GraphRunContext, Edge
@@ -22,7 +22,9 @@ from ..utils.deepsearch_utils import (
     create_search_context, create_search_orchestrator, create_deep_search_evaluator
 )
 from ..utils.execution_status import ExecutionStatus
-from ...agents import DeepSearchAgent, AgentDependencies, AgentResult, AgentType
+
+if TYPE_CHECKING:
+    from ...agents import DeepSearchAgent, AgentDependencies, AgentResult, AgentType
 
 
 class DeepSearchPhase(str, Enum):
@@ -193,6 +195,9 @@ class ExecuteSearchStep(BaseNode[DeepSearchState]):
     async def run(self, ctx: GraphRunContext[DeepSearchState]) -> 'CheckSearchProgress':
         """Execute the next search step using DeepSearchAgent."""
         try:
+            # Import at runtime to avoid circular dependency
+            from ...agents import DeepSearchAgent
+
             # Create DeepSearchAgent
             deepsearch_agent = DeepSearchAgent()
             await deepsearch_agent.initialize()

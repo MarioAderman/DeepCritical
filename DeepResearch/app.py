@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass, field
-from typing import Optional, Annotated, List, Dict, Any
+from typing import Optional, Annotated, List, Dict, Any, Union
 
 import hydra
 from omegaconf import DictConfig
@@ -630,7 +630,9 @@ class Synthesize(BaseNode[ResearchState]):
 
 
 # --- Graph ---
-research_graph = Graph(nodes=(Plan, Search, Analyze, Synthesize), state_type=ResearchState)
+# Note: The actual graph is created in run_graph() with all nodes instantiated
+# This creates a minimal graph for reference, but the full graph with all nodes is in run_graph()
+research_graph = Graph(nodes=(Plan, Search, Analyze, Synthesize, PrimaryREACTWorkflow, EnhancedREACTWorkflow), state_type=ResearchState)
 
 
 # --- Challenge-specific nodes ---

@@ -17,15 +17,17 @@ from enum import Enum
 from pydantic_ai import Agent, RunContext
 from pydantic import BaseModel, Field
 
-from ..src.datatypes.workflow_orchestration import (
+from ..datatypes.workflow_orchestration import (
     MultiAgentSystemConfig, AgentConfig, AgentRole, WorkflowStatus,
-    JudgeConfig, JudgeEvaluationRequest, JudgeEvaluationResult
+    JudgeConfig
 )
+# Note: JudgeEvaluationRequest and JudgeEvaluationResult are defined in workflow_orchestrator.py
+# Import them from there if needed in the future
 
 if TYPE_CHECKING:
-    from ..src.agents.bioinformatics_agents import AgentOrchestrator
-    from ..src.agents.search_agent import SearchAgent
-    from ..src.agents.research_agent import ResearchAgent
+    from ..agents.bioinformatics_agents import AgentOrchestrator
+    from ..agents.search_agent import SearchAgent
+    from ..agents.research_agent import ResearchAgent
 
 
 class CoordinationStrategy(str, Enum):

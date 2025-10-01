@@ -2,33 +2,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Set, Tuple
-from enum import Enum
 
 from omegaconf import DictConfig
 
 from .prime_parser import StructuredProblem, ScientificIntent
-
-
-class ToolCategory(Enum):
-    """Tool categories in the PRIME ecosystem."""
-    KNOWLEDGE_QUERY = "knowledge_query"
-    SEQUENCE_ANALYSIS = "sequence_analysis"
-    STRUCTURE_PREDICTION = "structure_prediction"
-    MOLECULAR_DOCKING = "molecular_docking"
-    DE_NOVO_DESIGN = "de_novo_design"
-    FUNCTION_PREDICTION = "function_prediction"
-
-
-@dataclass
-class ToolSpec:
-    """Specification for a tool in the PRIME ecosystem."""
-    name: str
-    category: ToolCategory
-    input_schema: Dict[str, Any]
-    output_schema: Dict[str, Any]
-    dependencies: List[str] = field(default_factory=list)
-    parameters: Dict[str, Any] = field(default_factory=dict)
-    success_criteria: Dict[str, Any] = field(default_factory=dict)
+from ..utils.tool_specs import ToolSpec, ToolCategory
 
 
 @dataclass

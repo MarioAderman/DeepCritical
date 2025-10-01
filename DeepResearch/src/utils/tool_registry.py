@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 import importlib
 import inspect
 
-from ..agents.prime_planner import ToolSpec, ToolCategory
+from .tool_specs import ToolSpec, ToolCategory
 
 
 @dataclass
