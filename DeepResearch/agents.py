@@ -12,32 +12,27 @@ import asyncio
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any, Union, Type, Callable, Tuple
+from typing import Dict, List, Optional, Any
 from enum import Enum
 
-from pydantic import BaseModel, Field, validator
-from pydantic_ai import Agent, RunContext, ModelRetry
+from pydantic_ai import Agent
 
 # Import existing tools and schemas
-from .tools.base import registry, ExecutionResult, ToolRunner
+from .tools.base import registry, ExecutionResult
 from .src.datatypes.rag import (
-    Document, Chunk, RAGQuery, RAGResponse, RAGConfig,
-    BioinformaticsRAGQuery, BioinformaticsRAGResponse
+    RAGQuery, RAGResponse
 )
 from .src.datatypes.bioinformatics import (
-    GOAnnotation, PubMedPaper, GEOSeries, GeneExpressionProfile,
-    DrugTarget, PerturbationProfile, ProteinStructure, ProteinInteraction,
-    FusedDataset, ReasoningTask, DataFusionRequest, EvidenceCode
+    FusedDataset, ReasoningTask, DataFusionRequest
 )
 
 # Import DeepAgent components
-from .src.datatypes.deep_agent_state import DeepAgentState, Todo, TaskStatus
+from .src.datatypes.deep_agent_state import DeepAgentState
 from .src.datatypes.deep_agent_types import (
-    SubAgent, CustomSubAgent, ModelConfig, AgentCapability,
-    TaskRequest, TaskResult, AgentContext, AgentMetrics
+    AgentCapability
 )
 from .src.agents.deep_agent_implementations import (
-    BaseDeepAgent, PlanningAgent, FilesystemAgent, ResearchAgent,
+    PlanningAgent, FilesystemAgent, ResearchAgent,
     TaskOrchestrationAgent, GeneralPurposeAgent, AgentOrchestrator,
     AgentConfig, AgentExecutionResult
 )
