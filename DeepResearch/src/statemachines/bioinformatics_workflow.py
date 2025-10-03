@@ -16,9 +16,6 @@ from ..datatypes.bioinformatics import (
     FusedDataset, ReasoningTask, DataFusionRequest, GOAnnotation,
     PubMedPaper, EvidenceCode
 )
-from ...agents import (
-    BioinformaticsAgent, AgentDependencies, AgentResult, AgentType
-)
 
 
 @dataclass

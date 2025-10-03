@@ -1,17 +1,15 @@
 from __future__ import annotations
 
-import atexit
 import json
 import logging
 import os
-import shlex
 import tempfile
 import uuid
 from dataclasses import dataclass
 from hashlib import md5
 from pathlib import Path
 from time import sleep
-from typing import Any, Dict, Optional, List, ClassVar
+from typing import Any, Dict, Optional, ClassVar
 
 from .base import ToolSpec, ToolRunner, ExecutionResult, registry
 
@@ -152,7 +150,6 @@ class DockerSandboxRunner(ToolRunner):
 
         # Load hydra config if accessible to configure container image and limits
         try:
-            from DeepResearch.src.prompts import PromptLoader  # just to ensure hydra is available
             cfg: Dict[str, Any] = {}
         except Exception:
             cfg = {}

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Type, Callable
+from typing import Any, Dict, List, Optional, Type
 from abc import ABC, abstractmethod
 import importlib
 import inspect
@@ -97,7 +97,7 @@ class MockToolRunner(ToolRunner):
         return ExecutionResult(
             success=True,
             data={
-                "sequences": [f"MKTVRQERLKSIVRILERSKEPVSGAQLAEELSVSRQVIVQDIAYLRSLGYNIVATPRGYVLAGG"],
+                "sequences": ["MKTVRQERLKSIVRILERSKEPVSGAQLAEELSVSRQVIVQDIAYLRSLGYNIVATPRGYVLAGG"],
                 "annotations": {
                     "organism": "Homo sapiens",
                     "function": "Protein function annotation",

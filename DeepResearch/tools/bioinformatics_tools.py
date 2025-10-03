@@ -9,20 +9,16 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Any, Union
+from typing import Dict, List, Optional, Any
 from pydantic import BaseModel, Field
-from pydantic_ai import Agent, RunContext
-from pydantic_ai.tools import ToolDefinition
 # Note: defer decorator is not available in current pydantic-ai version
 
 from .base import ToolSpec, ToolRunner, ExecutionResult, registry
 from ..src.datatypes.bioinformatics import (
-    GOAnnotation, PubMedPaper, GEOSeries, GeneExpressionProfile,
-    DrugTarget, PerturbationProfile, ProteinStructure, ProteinInteraction,
-    FusedDataset, ReasoningTask, DataFusionRequest, EvidenceCode
+    GOAnnotation, PubMedPaper, GEOSeries, DrugTarget, ProteinStructure, FusedDataset, ReasoningTask, DataFusionRequest
 )
 from ..src.agents.bioinformatics_agents import (
-    AgentOrchestrator, BioinformaticsAgentDeps, DataFusionResult, ReasoningResult
+    DataFusionResult, ReasoningResult
 )
 from ..src.statemachines.bioinformatics_workflow import run_bioinformatics_workflow
 

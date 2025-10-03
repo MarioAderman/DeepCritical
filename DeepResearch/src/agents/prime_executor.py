@@ -1,13 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Union
-import asyncio
+from typing import Any, Dict, Optional
 import time
 
-from omegaconf import DictConfig
 
-from .prime_planner import WorkflowDAG, WorkflowStep, ToolSpec
+from .prime_planner import WorkflowDAG, WorkflowStep
 from ..utils.execution_history import ExecutionHistory, ExecutionItem
 from ..utils.execution_status import ExecutionStatus
 from ..utils.tool_registry import ToolRegistry, ExecutionResult
@@ -278,7 +276,7 @@ class ToolExecutor:
     
     def _request_manual_confirmation(self, step: WorkflowStep, parameters: Dict[str, Any]) -> bool:
         """Request manual confirmation for step execution."""
-        print(f"\n=== Manual Confirmation Required ===")
+        print("\n=== Manual Confirmation Required ===")
         print(f"Tool: {step.tool}")
         print(f"Parameters: {parameters}")
         print(f"Success Criteria: {step.success_criteria}")

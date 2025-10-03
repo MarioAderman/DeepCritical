@@ -16,15 +16,15 @@ from enum import Enum
 from pydantic_graph import BaseNode, End, Graph, GraphRunContext, Edge
 from omegaconf import DictConfig
 
-from ..utils.deepsearch_schemas import DeepSearchSchemas, ActionType, EvaluationType
+from ..utils.deepsearch_schemas import ActionType, EvaluationType
 from ..utils.deepsearch_utils import (
-    SearchContext, SearchOrchestrator, KnowledgeManager, DeepSearchEvaluator,
+    SearchContext, SearchOrchestrator, DeepSearchEvaluator,
     create_search_context, create_search_orchestrator, create_deep_search_evaluator
 )
 from ..utils.execution_status import ExecutionStatus
 
 if TYPE_CHECKING:
-    from ...agents import DeepSearchAgent, AgentDependencies, AgentResult, AgentType
+    pass
 
 
 class DeepSearchPhase(str, Enum):

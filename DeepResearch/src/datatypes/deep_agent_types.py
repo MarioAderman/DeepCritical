@@ -7,13 +7,11 @@ types that align with DeepCritical's Pydantic AI architecture.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Union, Callable, Protocol
+from typing import Any, Dict, List, Optional, Protocol
 from pydantic import BaseModel, Field, validator
 from enum import Enum
 
 # Import existing DeepCritical types
-from .rag import Document, Chunk
-from .bioinformatics import GOAnnotation, PubMedPaper, FusedDataset
 
 
 class AgentCapability(str, Enum):

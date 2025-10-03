@@ -6,12 +6,11 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime
 import httpx
 import trafilatura
-import gradio as gr
 from dateutil import parser as dateparser
 from limits import parse
 from limits.aio.storage import MemoryStorage
 from limits.aio.strategies import MovingWindowRateLimiter
-from ..src.utils.analytics import record_request, last_n_days_df, last_n_days_avg_time_df
+from ..src.utils.analytics import record_request
 
 # Configuration
 SERPER_API_KEY_ENV = os.getenv("SERPER_API_KEY")

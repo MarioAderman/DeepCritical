@@ -9,7 +9,6 @@ from .base import ToolSpec, ToolRunner, ExecutionResult, registry
 def _get_cfg() -> Dict[str, Any]:
     try:
         # Lazy import Hydra/OmegaConf if available via app context; fall back to env-less defaults
-        from omegaconf import OmegaConf
         # In this lightweight wrapper, we don't have direct cfg access; return empty
         return {}
     except Exception:

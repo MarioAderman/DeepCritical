@@ -8,13 +8,13 @@ Pydantic AI architecture.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Union, Literal
-from pydantic import BaseModel, Field, validator, root_validator
+from typing import Any, Dict, List, Optional
+from pydantic import BaseModel, Field, validator
 from datetime import datetime
 from enum import Enum
 
 # Import existing DeepCritical types
-from .deep_agent_types import TaskRequest, TaskResult, AgentContext
+from .deep_agent_types import AgentContext
 
 
 class TaskStatus(str, Enum):

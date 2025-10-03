@@ -10,19 +10,17 @@ from __future__ import annotations
 
 import asyncio
 import time
-from typing import Any, Dict, List, Optional, Union, Callable, Type, Sequence
+from typing import Any, Dict, List, Optional, Union
 from pydantic import BaseModel, Field, validator
-from pydantic_ai import Agent, RunContext, ModelRetry
+from pydantic_ai import Agent
 
 # Import existing DeepCritical types
 from ..datatypes.deep_agent_state import DeepAgentState
 from ..datatypes.deep_agent_types import (
-    SubAgent, CustomSubAgent, ModelConfig, AgentCapability, 
-    TaskRequest, TaskResult, AgentOrchestrationConfig
+    SubAgent, CustomSubAgent, AgentOrchestrationConfig
 )
 from ...tools.deep_agent_middleware import (
-    MiddlewarePipeline, create_default_middleware_pipeline,
-    PlanningMiddleware, FilesystemMiddleware, SubAgentMiddleware
+    create_default_middleware_pipeline
 )
 from ...tools.deep_agent_tools import (
     write_todos_tool, list_files_tool, read_file_tool,
@@ -433,7 +431,7 @@ class AgentBuilder:
         # Add subagent information
         if self.config.subagents:
             subagent_descriptions = [f"- {sa.name}: {sa.description}" for sa in self.config.subagents]
-            base_prompt += f"\n\nAvailable subagents:\n" + "\n".join(subagent_descriptions)
+            base_prompt += "\n\nAvailable subagents:\n" + "\n".join(subagent_descriptions)
         
         return base_prompt
     

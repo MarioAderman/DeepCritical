@@ -16,12 +16,11 @@ from pydantic_graph import BaseNode, End, Graph, GraphRunContext, Edge
 from omegaconf import DictConfig
 
 from ..datatypes.rag import (
-    RAGConfig, RAGQuery, RAGResponse, RAGWorkflowState, 
-    Document, SearchResult, SearchType
+    RAGConfig, RAGQuery, RAGResponse, Document, SearchType
 )
 from ..datatypes.vllm_integration import VLLMRAGSystem, VLLMDeployment
 from ..utils.execution_status import ExecutionStatus
-from ...agents import RAGAgent, AgentDependencies, AgentResult, AgentType
+from ...agents import RAGAgent
 
 
 @dataclass
@@ -406,10 +405,10 @@ class GenerateResponse(BaseNode[RAGState]):
     def _format_response(self, rag_response: Optional[RAGResponse], state: RAGState) -> str:
         """Format the final response."""
         response_parts = [
-            f"RAG Analysis Complete",
-            f"",
+            "RAG Analysis Complete",
+            "",
             f"Question: {state.question}",
-            f""
+            ""
         ]
         
         # Handle agent results
@@ -421,7 +420,7 @@ class GenerateResponse(BaseNode[RAGState]):
             response_parts.extend([
                 f"Answer: {answer}",
                 f"Confidence: {confidence:.3f}",
-                f"",
+                "",
                 f"Retrieved Documents ({len(retrieved_docs)}):"
             ])
             
@@ -439,7 +438,7 @@ class GenerateResponse(BaseNode[RAGState]):
         elif rag_response:
             response_parts.extend([
                 f"Answer: {rag_response.generated_answer}",
-                f"",
+                "",
                 f"Retrieved Documents ({len(rag_response.retrieved_documents)}):"
             ])
             
@@ -458,7 +457,7 @@ class GenerateResponse(BaseNode[RAGState]):
         
         if state.errors:
             response_parts.extend([
-                f"",
+                "",
                 f"Errors: {', '.join(state.errors)}"
             ])
         

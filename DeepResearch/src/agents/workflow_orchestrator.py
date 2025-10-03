@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 import time
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union, Callable, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Callable, TYPE_CHECKING
 from dataclasses import dataclass, field
 from omegaconf import DictConfig
 
@@ -19,16 +19,12 @@ from pydantic import BaseModel, Field
 
 from ..datatypes.workflow_orchestration import (
     WorkflowOrchestrationConfig, WorkflowExecution, WorkflowResult, WorkflowStatus,
-    WorkflowType, AgentRole, DataLoaderType, WorkflowComposition, OrchestrationState,
-    HypothesisDataset, HypothesisTestingEnvironment, ReasoningResult
+    WorkflowType, WorkflowComposition, OrchestrationState,
+    HypothesisDataset, HypothesisTestingEnvironment, WorkflowConfig
 )
-from ..datatypes.rag import RAGConfig, RAGResponse, BioinformaticsRAGResponse
-from ..datatypes.bioinformatics import FusedDataset, ReasoningTask, DataFusionRequest
 
 if TYPE_CHECKING:
-    from ..agents.bioinformatics_agents import AgentOrchestrator
-    from ..agents.search_agent import SearchAgent
-    from ..agents.research_agent import ResearchAgent
+    pass
 
 
 class OrchestratorDependencies(BaseModel):

@@ -117,10 +117,11 @@ class CodeSandboxRunner(ToolRunner):
             ]
         )
 
+        previous_section = ('Previous attempts and their errors:\n' + previous_ctx) if previous_attempts else ''
         user_prompt = (
             f"Problem: {problem}\n\n"
             f"Available variables:\n{available_vars}\n\n"
-            f"{('Previous attempts and their errors:\n' + previous_ctx) if previous_attempts else ''}"
+            f"{previous_section}"
             "Respond with ONLY the code body without explanations."
         )
 

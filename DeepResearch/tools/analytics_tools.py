@@ -7,9 +7,8 @@ integrating with the existing tool registry and datatypes.
 
 import json
 from typing import Dict, Any, List, Optional
-from datetime import datetime, timedelta
 from pydantic import BaseModel, Field
-from pydantic_ai import Agent, RunContext
+from pydantic_ai import RunContext
 
 from .base import ToolSpec, ToolRunner, ExecutionResult
 from ..src.utils.analytics import record_request, last_n_days_df, last_n_days_avg_time_df

@@ -9,17 +9,17 @@ from __future__ import annotations
 
 import asyncio
 import time
-from typing import Any, Dict, List, Optional, Union, Callable, Type
+from typing import Any, Dict, List, Optional, Union
 from pydantic import BaseModel, Field, validator
-from pydantic_ai import Agent, RunContext, ModelRetry
+from pydantic_ai import Agent, ModelRetry
 
 # Import existing DeepCritical types
-from ..datatypes.deep_agent_state import DeepAgentState, Todo, TaskStatus
+from ..datatypes.deep_agent_state import DeepAgentState
 from ..datatypes.deep_agent_types import (
-    SubAgent, CustomSubAgent, ModelConfig, AgentCapability,
-    TaskRequest, TaskResult, AgentContext, AgentMetrics
+    AgentCapability,
+    AgentMetrics
 )
-from ..prompts.deep_agent_prompts import get_system_prompt, get_tool_description
+from ..prompts.deep_agent_prompts import get_system_prompt
 from ...tools.deep_agent_tools import (
     write_todos_tool, list_files_tool, read_file_tool,
     write_file_tool, edit_file_tool, task_tool

@@ -9,17 +9,17 @@ DeepCritical's architecture.
 from __future__ import annotations
 
 import uuid
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field, validator
 from pydantic_ai import RunContext
 # Note: defer decorator is not available in current pydantic-ai version
 
 # Import existing DeepCritical types
 from ..src.datatypes.deep_agent_state import (
-    Todo, TaskStatus, FileInfo, DeepAgentState, 
+    TaskStatus, DeepAgentState, 
     create_todo, create_file_info
 )
-from ..src.datatypes.deep_agent_types import TaskRequest, TaskResult
+from ..src.datatypes.deep_agent_types import TaskRequest
 from .base import ToolRunner, ToolSpec, ExecutionResult
 
 
@@ -202,7 +202,7 @@ def list_files_tool(
             files=files,
             count=len(files)
         )
-    except Exception as e:
+    except Exception:
         return ListFilesResponse(
             files=[],
             count=0
@@ -398,7 +398,7 @@ def task_tool(
         task_id = str(uuid.uuid4())
         
         # Create task request
-        task_request = TaskRequest(
+        TaskRequest(
             task_id=task_id,
             description=request.description,
             subagent_type=request.subagent_type,
@@ -460,7 +460,7 @@ class WriteTodosToolRunner(ToolRunner):
     def run(self, params: Dict[str, Any]) -> ExecutionResult:
         try:
             todos_data = params.get("todos", [])
-            request = WriteTodosRequest(todos=todos_data)
+            WriteTodosRequest(todos=todos_data)
             
             # This would normally be called through Pydantic AI
             # For now, return a mock result

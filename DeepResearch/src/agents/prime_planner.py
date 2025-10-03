@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List
 
-from omegaconf import DictConfig
 
 from .prime_parser import StructuredProblem, ScientificIntent
 from ..utils.tool_specs import ToolSpec, ToolCategory

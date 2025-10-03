@@ -7,9 +7,8 @@ workflow with the existing tool registry system.
 
 from __future__ import annotations
 
-import asyncio
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from .base import ToolSpec, ToolRunner, ExecutionResult, registry
 from ..src.statemachines.deepsearch_workflow import run_deepsearch_workflow

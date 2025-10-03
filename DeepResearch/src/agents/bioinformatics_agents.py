@@ -7,17 +7,13 @@ data processing, fusion, and reasoning tasks.
 
 from __future__ import annotations
 
-import asyncio
-from typing import Dict, List, Optional, Any, Union
+from typing import Dict, List, Optional, Any
 from pydantic import BaseModel, Field
-from pydantic_ai import Agent, RunContext
-from pydantic_ai.models.openai import OpenAIModel
+from pydantic_ai import Agent
 from pydantic_ai.models.anthropic import AnthropicModel
 
 from ..datatypes.bioinformatics import (
-    GOAnnotation, PubMedPaper, GEOSeries, GeneExpressionProfile,
-    DrugTarget, PerturbationProfile, ProteinStructure, ProteinInteraction,
-    FusedDataset, ReasoningTask, DataFusionRequest, EvidenceCode
+    GOAnnotation, PubMedPaper, FusedDataset, ReasoningTask, DataFusionRequest
 )
 
 

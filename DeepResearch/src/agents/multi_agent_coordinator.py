@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 import time
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union, Callable, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
 from dataclasses import dataclass, field
 from enum import Enum
 
@@ -18,16 +18,13 @@ from pydantic_ai import Agent, RunContext
 from pydantic import BaseModel, Field
 
 from ..datatypes.workflow_orchestration import (
-    MultiAgentSystemConfig, AgentConfig, AgentRole, WorkflowStatus,
-    JudgeConfig
+    MultiAgentSystemConfig, AgentConfig, AgentRole, WorkflowStatus
 )
 # Note: JudgeEvaluationRequest and JudgeEvaluationResult are defined in workflow_orchestrator.py
 # Import them from there if needed in the future
 
 if TYPE_CHECKING:
-    from ..agents.bioinformatics_agents import AgentOrchestrator
-    from ..agents.search_agent import SearchAgent
-    from ..agents.research_agent import ResearchAgent
+    pass
 
 
 class CoordinationStrategy(str, Enum):

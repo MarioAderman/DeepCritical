@@ -7,11 +7,9 @@ for deep search functionality based on Jina AI DeepResearch patterns.
 
 from __future__ import annotations
 
-import asyncio
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union, Annotated
-from pydantic import BaseModel, Field, validator
+from typing import Any, Dict, Optional
 import re
 
 
@@ -169,7 +167,7 @@ Evaluation: {
         
         # Use AI to detect language (placeholder for now)
         # In a real implementation, this would call an AI model
-        prompt = self.get_language_prompt(query[:100])
+        self.get_language_prompt(query[:100])
         
         # Mock language detection for now
         detected = self._mock_language_detection(query)
@@ -393,7 +391,7 @@ Evaluation: {
                     "properties": {
                         "days_ago": {
                             "type": "number",
-                            "description": f"datetime of the **answer** and relative to current date",
+                            "description": "datetime of the **answer** and relative to current date",
                             "minimum": 0
                         },
                         "max_age_days": {

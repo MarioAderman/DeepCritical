@@ -8,20 +8,18 @@ reflection, and answer generation.
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Union
-from urllib.parse import urlparse, urljoin
-import aiohttp
+from typing import Any, Dict, List, Optional
+from urllib.parse import urlparse
 import requests
 from bs4 import BeautifulSoup
 
 from .base import ToolSpec, ToolRunner, ExecutionResult, registry
 from ..src.utils.deepsearch_schemas import (
-    DeepSearchSchemas, EvaluationType, ActionType, SearchTimeFilter,
+    DeepSearchSchemas, SearchTimeFilter,
     MAX_URLS_PER_STEP, MAX_QUERIES_PER_STEP, MAX_REFLECT_PER_STEP
 )
 

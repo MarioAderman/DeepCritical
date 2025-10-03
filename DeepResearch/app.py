@@ -10,24 +10,20 @@ from omegaconf import DictConfig
 from pydantic_graph import BaseNode, End, Graph, GraphRunContext, Edge
 from .agents import ParserAgent, PlannerAgent, ExecutorAgent, ExecutionHistory
 from .src.agents.orchestrator import Orchestrator  # type: ignore
-from .src.agents.tool_caller import ToolCaller  # type: ignore
-from .src.agents.prime_parser import QueryParser, StructuredProblem, ScientificIntent
-from .src.agents.prime_planner import PlanGenerator, WorkflowDAG, ToolCategory
+from .src.agents.prime_parser import QueryParser, StructuredProblem
+from .src.agents.prime_planner import PlanGenerator, WorkflowDAG
 from .src.agents.prime_executor import ToolExecutor, ExecutionContext
 from .src.agents.workflow_orchestrator import PrimaryWorkflowOrchestrator, WorkflowOrchestrationConfig
-from .src.agents.multi_agent_coordinator import MultiAgentCoordinator, CoordinationStrategy
 from .src.agents.agent_orchestrator import AgentOrchestrator
-from .src.utils.execution_status import ExecutionStatus
-from .src.utils.tool_registry import ToolRegistry, registry as tool_registry
+from .src.utils.tool_registry import ToolRegistry
 from .src.utils.execution_history import ExecutionHistory as PrimeExecutionHistory
 from .src.datatypes.workflow_orchestration import (
-    WorkflowType, WorkflowStatus, AgentRole, DataLoaderType,
-    WorkflowComposition, OrchestrationState, HypothesisDataset,
+    WorkflowType, AgentRole, DataLoaderType,
+    OrchestrationState, HypothesisDataset,
     HypothesisTestingEnvironment, ReasoningResult, AppMode, AppConfiguration,
     AgentOrchestratorConfig, NestedReactConfig, SubgraphConfig, BreakCondition,
     MultiStateMachineMode, SubgraphType, LossFunctionType
 )
-from .tools import registry  # ensure import path
 from .tools import mock_tools  # noqa: F401 ensure registration
 from .tools import workflow_tools  # noqa: F401 ensure registration
 from .tools import pyd_ai_tools  # noqa: F401 ensure registration
@@ -286,23 +282,23 @@ class PrimaryREACTWorkflow(BaseNode[ResearchState]):
     ) -> str:
         """Generate comprehensive output from orchestration results."""
         output_parts = [
-            f"# Primary REACT Workflow Orchestration Results",
-            f"",
+            "# Primary REACT Workflow Orchestration Results",
+            "",
             f"**Question:** {question}",
-            f"",
-            f"## Execution Summary",
+            "",
+            "## Execution Summary",
             f"- **Status:** {'Success' if result['success'] else 'Failed'}",
             f"- **Workflows Spawned:** {len(orchestration_state.active_executions) + len(orchestration_state.completed_executions)}",
             f"- **Active Executions:** {len(orchestration_state.active_executions)}",
             f"- **Completed Executions:** {len(orchestration_state.completed_executions)}",
-            f""
+            ""
         ]
         
         # Add workflow results
         if orchestration_state.completed_executions:
             output_parts.extend([
-                f"## Workflow Results",
-                f""
+                "## Workflow Results",
+                ""
             ])
             
             for execution in orchestration_state.completed_executions:
@@ -311,35 +307,35 @@ class PrimaryREACTWorkflow(BaseNode[ResearchState]):
                     f"- **Status:** {execution.status.value}",
                     f"- **Execution Time:** {execution.execution_time:.2f}s",
                     f"- **Quality Score:** {execution.quality_score or 'N/A'}",
-                    f""
+                    ""
                 ])
                 
                 if execution.output_data:
                     output_parts.extend([
-                        f"**Output:**",
-                        f"```json",
+                        "**Output:**",
+                        "```json",
                         f"{execution.output_data}",
-                        f"```",
-                        f""
+                        "```",
+                        ""
                     ])
         
         # Add multi-agent results
         if result.get("result"):
             output_parts.extend([
-                f"## Multi-Agent Coordination Results",
-                f"",
-                f"**Primary Agent Result:**",
-                f"```json",
+                "## Multi-Agent Coordination Results",
+                "",
+                "**Primary Agent Result:**",
+                "```json",
                 f"{result['result']}",
-                f"```",
-                f""
+                "```",
+                ""
             ])
         
         # Add system metrics
         if orchestration_state.system_metrics:
             output_parts.extend([
-                f"## System Metrics",
-                f""
+                "## System Metrics",
+                ""
             ])
             
             for metric, value in orchestration_state.system_metrics.items():
@@ -350,8 +346,8 @@ class PrimaryREACTWorkflow(BaseNode[ResearchState]):
         # Add execution metadata
         if result.get("execution_metadata"):
             output_parts.extend([
-                f"## Execution Metadata",
-                f""
+                "## Execution Metadata",
+                ""
             ])
             
             for key, value in result["execution_metadata"].items():
@@ -523,62 +519,62 @@ class EnhancedREACTWorkflow(BaseNode[ResearchState]):
     ) -> str:
         """Generate enhanced output from orchestration results."""
         output_parts = [
-            f"# Enhanced REACT Workflow Results",
-            f"",
+            "# Enhanced REACT Workflow Results",
+            "",
             f"**Question:** {question}",
             f"**Mode:** {app_config.mode.value}",
-            f"",
-            f"## Execution Summary",
+            "",
+            "## Execution Summary",
             f"- **Status:** {'Success' if result.success else 'Failed'}",
             f"- **Nested Loops Spawned:** {len(result.nested_loops_spawned)}",
             f"- **Subgraphs Executed:** {len(result.subgraphs_executed)}",
             f"- **Total Iterations:** {result.total_iterations}",
-            f""
+            ""
         ]
         
         # Add nested loops results
         if result.nested_loops_spawned:
             output_parts.extend([
-                f"## Nested Loops",
-                f""
+                "## Nested Loops",
+                ""
             ])
             
             for loop_id in result.nested_loops_spawned:
                 output_parts.extend([
                     f"### {loop_id}",
-                    f"- **Status:** Completed",
-                    f"- **Type:** Nested REACT Loop",
-                    f""
+                    "- **Status:** Completed",
+                    "- **Type:** Nested REACT Loop",
+                    ""
                 ])
         
         # Add subgraph results
         if result.subgraphs_executed:
             output_parts.extend([
-                f"## Subgraphs",
-                f""
+                "## Subgraphs",
+                ""
             ])
             
             for subgraph_id in result.subgraphs_executed:
                 output_parts.extend([
                     f"### {subgraph_id}",
-                    f"- **Status:** Executed",
-                    f"- **Type:** Subgraph",
-                    f""
+                    "- **Status:** Executed",
+                    "- **Type:** Subgraph",
+                    ""
                 ])
         
         # Add final answer
         output_parts.extend([
-            f"## Final Answer",
-            f"",
+            "## Final Answer",
+            "",
             f"{result.final_answer}",
-            f""
+            ""
         ])
         
         # Add execution metadata
         if result.execution_metadata:
             output_parts.extend([
-                f"## Execution Metadata",
-                f""
+                "## Execution Metadata",
+                ""
             ])
             
             for key, value in result.execution_metadata.items():

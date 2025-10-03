@@ -7,14 +7,11 @@ integrating with the existing tool registry and datatypes.
 
 import asyncio
 import json
-from typing import Dict, Any, List, Optional, Union
+from typing import Dict, Any, List, Optional
 from pydantic import BaseModel, Field
-from pydantic_ai import Agent, RunContext
+from pydantic_ai import RunContext
 
 from .base import ToolSpec, ToolRunner, ExecutionResult
-from ..src.datatypes.rag import Document, Chunk
-from ..src.datatypes.chunk_dataclass import Chunk as ChunkDataclass
-from ..src.datatypes.document_dataclass import Document as DocumentDataclass
 from .websearch_cleaned import search_web, search_and_chunk
 
 

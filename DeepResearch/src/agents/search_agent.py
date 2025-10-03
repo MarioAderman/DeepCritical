@@ -5,9 +5,9 @@ This agent demonstrates how to use the websearch and analytics tools with Pydant
 for intelligent search and retrieval operations.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 from pydantic import BaseModel, Field
-from pydantic_ai import Agent, RunContext
+from pydantic_ai import Agent
 
 from ..tools.websearch_tools import web_search_tool, chunked_search_tool
 from ..tools.analytics_tools import record_request_tool, get_analytics_data_tool

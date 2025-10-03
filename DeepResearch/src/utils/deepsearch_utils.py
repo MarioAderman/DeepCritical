@@ -7,15 +7,10 @@ including context tracking, knowledge management, and search orchestration.
 
 from __future__ import annotations
 
-import asyncio
-import json
 import logging
 import time
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Set, Union
-from datetime import datetime, timedelta
-from enum import Enum
-import hashlib
+from typing import Any, Dict, List, Optional, Set
+from datetime import datetime
 
 from .deepsearch_schemas import DeepSearchSchemas, EvaluationType, ActionType
 from .execution_status import ExecutionStatus
@@ -442,7 +437,7 @@ class DeepSearchEvaluator:
         evaluation_type: EvaluationType
     ) -> Dict[str, Any]:
         """Evaluate the quality of an answer."""
-        schema = self.schemas.get_evaluator_schema(evaluation_type)
+        self.schemas.get_evaluator_schema(evaluation_type)
         
         # Mock evaluation - in real implementation, this would use AI
         if evaluation_type == EvaluationType.DEFINITIVE:

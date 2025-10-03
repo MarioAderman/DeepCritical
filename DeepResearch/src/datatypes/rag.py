@@ -11,8 +11,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union, AsyncGenerator, TYPE_CHECKING
-from pydantic import BaseModel, Field, HttpUrl, validator, model_validator
-import asyncio
+from pydantic import BaseModel, Field, HttpUrl, model_validator
 
 # Import existing dataclasses for alignment
 from .chunk_dataclass import Chunk, generate_id
@@ -120,8 +119,7 @@ class Document(BaseModel):
     def from_bioinformatics_data(cls, data: Any, **kwargs) -> "Document":
         """Create Document from bioinformatics data types."""
         from .bioinformatics import (
-            GOAnnotation, PubMedPaper, GEOSeries, GeneExpressionProfile,
-            DrugTarget, PerturbationProfile, ProteinStructure, ProteinInteraction
+            GOAnnotation, PubMedPaper, GEOSeries
         )
         
         if isinstance(data, GOAnnotation):

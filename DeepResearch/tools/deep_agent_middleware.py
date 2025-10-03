@@ -8,18 +8,17 @@ DeepCritical's architecture.
 
 from __future__ import annotations
 
-import asyncio
 import time
-from typing import Any, Dict, List, Optional, Union, Callable, Type
-from pydantic import BaseModel, Field, validator
-from pydantic_ai import Agent, RunContext, ModelRetry
+from typing import Any, Dict, List, Optional, Union, Callable
+from pydantic import BaseModel, Field
+from pydantic_ai import Agent, RunContext
 
 # Import existing DeepCritical types
 from ..src.datatypes.deep_agent_state import (
-    DeepAgentState, PlanningState, FilesystemState, Todo, TaskStatus
+    DeepAgentState
 )
 from ..src.datatypes.deep_agent_types import (
-    SubAgent, CustomSubAgent, ModelConfig, AgentCapability, TaskRequest, TaskResult
+    SubAgent, CustomSubAgent, TaskRequest, TaskResult
 )
 from .deep_agent_tools import (
     write_todos_tool, list_files_tool, read_file_tool, 
@@ -271,7 +270,7 @@ class SubAgentMiddleware(BaseMiddleware):
         start_time = time.time()
         try:
             # Get the subagent
-            subagent = self._agent_registry[subagent_name]
+            self._agent_registry[subagent_name]
             
             # Execute the task (simplified implementation)
             # In practice, this would involve proper agent execution
@@ -396,7 +395,7 @@ class PromptCachingMiddleware(BaseMiddleware):
         
         if cache_key in self._cache:
             # Use cached result
-            cached_result = self._cache[cache_key]
+            self._cache[cache_key]
             return {
                 "modified_state": False,
                 "metadata": {

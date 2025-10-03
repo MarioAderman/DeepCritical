@@ -5,19 +5,16 @@ This module provides comprehensive search capabilities that integrate websearch,
 analytics tracking, and RAG datatypes for a complete search and retrieval system.
 """
 
-import asyncio
 import json
-from typing import Dict, Any, List, Optional, Union
+from typing import Dict, Any, List, Optional
 from datetime import datetime
 from pydantic import BaseModel, Field
-from pydantic_ai import Agent, RunContext
+from pydantic_ai import RunContext
 
 from .base import ToolSpec, ToolRunner, ExecutionResult
-from .websearch_tools import WebSearchTool, ChunkedSearchTool
+from .websearch_tools import ChunkedSearchTool
 from .analytics_tools import RecordRequestTool
-from ..src.datatypes.rag import Document, Chunk, SearchResult, RAGQuery, RAGResponse
-from ..src.datatypes.chunk_dataclass import Chunk as ChunkDataclass
-from ..src.datatypes.document_dataclass import Document as DocumentDataclass
+from ..src.datatypes.rag import Document, Chunk, RAGQuery
 
 
 class IntegratedSearchRequest(BaseModel):

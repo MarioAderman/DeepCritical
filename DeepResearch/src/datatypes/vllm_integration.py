@@ -9,16 +9,13 @@ from __future__ import annotations
 
 import asyncio
 import json
-import time
 from typing import Any, Dict, List, Optional, AsyncGenerator
-import httpx
 import aiohttp
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field
 
 from .rag import (
     Embeddings, EmbeddingsConfig, EmbeddingModelType,
-    LLMProvider, VLLMConfig, LLMModelType,
-    Document, SearchResult, SearchType
+    LLMProvider, VLLMConfig, LLMModelType
 )
 
 

@@ -12,7 +12,7 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union, Callable, Protocol
+from typing import Any, Dict, List, Optional, Union, Protocol
 from datetime import datetime
 
 
@@ -358,7 +358,7 @@ class Collection:
         """Peek at documents in collection."""
         return self.get(limit=limit)
     
-    def count(self) -> int:
+    def get_count(self) -> int:
         """Get document count in collection."""
         # This would be implemented by the actual Chroma client
         return self.count

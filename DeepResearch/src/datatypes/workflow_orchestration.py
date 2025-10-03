@@ -9,14 +9,12 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union, Callable, TYPE_CHECKING
-from pydantic import BaseModel, Field, validator, root_validator
-import asyncio
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
+from pydantic import BaseModel, Field, validator
 import uuid
 
 if TYPE_CHECKING:
-    from .rag import RAGConfig, RAGResponse, BioinformaticsRAGResponse
-    from .bioinformatics import FusedDataset, ReasoningTask, DataFusionRequest
+    pass
 
 
 class WorkflowType(str, Enum):
