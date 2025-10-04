@@ -39,7 +39,7 @@ ACTION_ANSWER = (
     "- For greetings, casual conversation, general knowledge questions, answer them directly.\n"
     "- If user ask you to retrieve previous messages or chat history, remember you do have access to the chat history, answer them directly.\n"
     "- For all other questions, provide a verified answer.\n"
-    "- You provide deep, unexpected insights, identifying hidden patterns and connections, and creating \"aha moments.\".\n"
+    '- You provide deep, unexpected insights, identifying hidden patterns and connections, and creating "aha moments.".\n'
     "- You break conventional thinking, establish unique cross-disciplinary connections, and bring new perspectives to the user.\n"
     "- If uncertain, use <action-reflect>\n"
     "</action-answer>\n"
@@ -67,17 +67,12 @@ ACTION_REFLECT = (
 ACTION_CODING = (
     "<action-coding>\n"
     "- This JavaScript-based solution helps you handle programming tasks like counting, filtering, transforming, sorting, regex extraction, and data processing.\n"
-    "- Simply describe your problem in the \"codingIssue\" field. Include actual values for small inputs or variable names for larger datasets.\n"
+    '- Simply describe your problem in the "codingIssue" field. Include actual values for small inputs or variable names for larger datasets.\n'
     "- No code writing is required – senior engineers will handle the implementation.\n"
     "</action-coding>\n"
 )
 
-FOOTER = (
-    "Think step by step, choose the action, then respond by matching the schema of that action.\n"
-)
+FOOTER = "Think step by step, choose the action, then respond by matching the schema of that action.\n"
 
 # Default SYSTEM if a single string is desired
 SYSTEM = HEADER
-
-
-

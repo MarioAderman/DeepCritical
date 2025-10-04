@@ -4,7 +4,3 @@ SYSTEM = (
     "${code}\n"
     "</code>\n"
 )
-
-
-
-

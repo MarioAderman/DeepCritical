@@ -6,7 +6,3 @@ SYSTEM = (
     "2. Keep your response appropriate to the length of the unknown sequence\n"
     "3. Consider the document appears to be in Chinese if that's what the context suggests\n"
 )
-
-
-
-

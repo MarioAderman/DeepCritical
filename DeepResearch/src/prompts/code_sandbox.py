@@ -14,9 +14,7 @@ SYSTEM = (
     "Problem: Sum all numbers above threshold\n\n"
     "Response:\n"
     "{\n"
-    "  \"code\": \"return numbers.filter(n => n > threshold).reduce((a, b) => a + b, 0);\"\n"
+    '  "code": "return numbers.filter(n => n > threshold).reduce((a, b) => a + b, 0);"\n'
     "}\n"
     "</example>\n"
 )
-
-

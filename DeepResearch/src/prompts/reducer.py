@@ -33,7 +33,3 @@ SYSTEM = (
     "Do not add your own commentary or analysis\n"
     "Do not change technical terms, names, or specific details\n"
 )
-
-
-
-

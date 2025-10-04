@@ -9,6 +9,7 @@ from enum import Enum
 
 class ToolCategory(Enum):
     """Tool categories in the PRIME ecosystem."""
+
     KNOWLEDGE_QUERY = "knowledge_query"
     SEQUENCE_ANALYSIS = "sequence_analysis"
     STRUCTURE_PREDICTION = "structure_prediction"
@@ -20,6 +21,7 @@ class ToolCategory(Enum):
 @dataclass
 class ToolSpec:
     """Specification for a tool in the PRIME ecosystem."""
+
     name: str
     category: ToolCategory
     input_schema: Dict[str, Any]

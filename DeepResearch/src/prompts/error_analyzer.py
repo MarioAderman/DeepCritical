@@ -13,7 +13,3 @@ SYSTEM = (
     "- In the improvement: Provide actionable suggestions that could have led to a better outcome\n"
     "</rules>\n"
 )
-
-
-
-

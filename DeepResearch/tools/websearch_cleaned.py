@@ -21,12 +21,13 @@ SERPER_NEWS_ENDPOINT = "https://google.serper.dev/news"
 
 def _get_serper_api_key() -> Optional[str]:
     """Return the currently active Serper API key (override wins, else env)."""
-    return (SERPER_API_KEY_OVERRIDE or SERPER_API_KEY_ENV or None)
+    return SERPER_API_KEY_OVERRIDE or SERPER_API_KEY_ENV or None
 
 
 def _get_headers() -> Dict[str, str]:
     api_key = _get_serper_api_key()
     return {"X-API-KEY": api_key or "", "Content-Type": "application/json"}
+
 
 # Rate limiting
 storage = MemoryStorage()
@@ -36,7 +37,7 @@ rate_limit = parse("360/hour")
 
 async def search_web(
     query: str, search_type: str = "search", num_results: Optional[int] = 4
-    ) -> str:
+) -> str:
     """
     Search the web for information or fresh news, returning extracted content.
 
@@ -234,9 +235,9 @@ async def search_and_chunk(
 
     if not _get_serper_api_key():
         await record_request(None, num_results)
-        return json.dumps([
-            {"error": "SERPER_API_KEY not set", "hint": "Set env or paste in the UI"}
-        ])
+        return json.dumps(
+            [{"error": "SERPER_API_KEY not set", "hint": "Set env or paste in the UI"}]
+        )
 
     # Normalize inputs
     if num_results is None:
@@ -250,9 +251,7 @@ async def search_and_chunk(
         if not await limiter.hit(rate_limit, "global"):
             duration = time.time() - start_time
             await record_request(duration, num_results)
-            return json.dumps([
-                {"error": "rate_limited", "limit": "360/hour"}
-            ])
+            return json.dumps([{"error": "rate_limited", "limit": "360/hour"}])
 
         endpoint = (
             SERPER_NEWS_ENDPOINT if search_type == "news" else SERPER_SEARCH_ENDPOINT
@@ -268,9 +267,7 @@ async def search_and_chunk(
         if resp.status_code != 200:
             duration = time.time() - start_time
             await record_request(duration, num_results)
-            return json.dumps([
-                {"error": "bad_status", "status": resp.status_code}
-            ])
+            return json.dumps([{"error": "bad_status", "status": resp.status_code}])
 
         results = resp.json().get("news" if search_type == "news" else "organic", [])
         if not results:
@@ -281,7 +278,9 @@ async def search_and_chunk(
         # Fetch pages concurrently
         urls = [r.get("link") for r in results]
         async with httpx.AsyncClient(timeout=20, follow_redirects=True) as client:
-            responses = await asyncio.gather(*[client.get(u) for u in urls], return_exceptions=True)
+            responses = await asyncio.gather(
+                *[client.get(u) for u in urls], return_exceptions=True
+            )
 
         all_chunks: List[Dict[str, Any]] = []
 
@@ -301,7 +300,9 @@ async def search_and_chunk(
                 try:
                     date_str = meta.get("date", "")
                     date_iso = (
-                        dateparser.parse(date_str, fuzzy=True).strftime("%Y-%m-%d") if date_str else "Unknown"
+                        dateparser.parse(date_str, fuzzy=True).strftime("%Y-%m-%d")
+                        if date_str
+                        else "Unknown"
                     )
                 except Exception:
                     date_iso = "Unknown"
@@ -312,7 +313,11 @@ async def search_and_chunk(
                     f"{extracted.strip()}\n"
                 )
             else:
-                domain = (meta.get("link", "").split("/")[2].replace("www.", "") if meta.get("link") else "")
+                domain = (
+                    meta.get("link", "").split("/")[2].replace("www.", "")
+                    if meta.get("link")
+                    else ""
+                )
                 markdown_doc = (
                     f"# {meta.get('title', 'Untitled')}\n\n"
                     f"**Domain:** {domain}\n\n"
@@ -352,7 +357,9 @@ async def search_and_chunk(
         await record_request(duration, num_results)
         return json.dumps([{"error": str(e)}])
 
+
 # -------- Markdown chunk helper (from chonkie) --------
+
 
 def _run_markdown_chunker(
     markdown_text: str,
@@ -389,14 +396,16 @@ def _run_markdown_chunker(
         except Exception:
             from chonkie.chunker.markdown import MarkdownChunker  # type: ignore
     except Exception as exc:
-        return [{
-            "error": "chonkie not installed",
-            "detail": "Install chonkie from the feat/markdown-chunker branch",
-            "exception": str(exc),
-        }]
+        return [
+            {
+                "error": "chonkie not installed",
+                "detail": "Install chonkie from the feat/markdown-chunker branch",
+                "exception": str(exc),
+            }
+        ]
 
     # Prefer MarkdownParser if available and it yields dicts
-    if 'MarkdownParser' in globals() and MarkdownParser is not None:
+    if "MarkdownParser" in globals() and MarkdownParser is not None:
         try:
             parser = MarkdownParser(
                 tokenizer_or_token_counter=tokenizer_or_token_counter,
@@ -407,7 +416,11 @@ def _run_markdown_chunker(
                 max_characters_per_section=int(max_characters_per_section),
                 clean_text=bool(clean_text),
             )
-            result = parser.parse(markdown_text) if hasattr(parser, 'parse') else parser(markdown_text)  # type: ignore
+            result = (
+                parser.parse(markdown_text)
+                if hasattr(parser, "parse")
+                else parser(markdown_text)
+            )  # type: ignore
             # If the parser returns list of dicts already, pass-through
             if isinstance(result, list) and (not result or isinstance(result[0], dict)):
                 return result  # type: ignore
@@ -430,9 +443,9 @@ def _run_markdown_chunker(
             max_characters_per_section=int(max_characters_per_section),
             clean_text=bool(clean_text),
         )
-        if hasattr(chunker, 'chunk'):
+        if hasattr(chunker, "chunk"):
             chunks = chunker.chunk(markdown_text)  # type: ignore
-        elif hasattr(chunker, 'split_text'):
+        elif hasattr(chunker, "split_text"):
             chunks = chunker.split_text(markdown_text)  # type: ignore
         elif callable(chunker):
             chunks = chunker(markdown_text)  # type: ignore
@@ -441,12 +454,19 @@ def _run_markdown_chunker(
 
     # Normalize chunks to list of dicts
     normalized: List[Dict[str, Any]] = []
-    for c in (chunks or []):
+    for c in chunks or []:
         if isinstance(c, dict):
             normalized.append(c)
             continue
         item: Dict[str, Any] = {}
-        for field in ("text", "start_index", "end_index", "token_count", "heading", "metadata"):
+        for field in (
+            "text",
+            "start_index",
+            "end_index",
+            "token_count",
+            "heading",
+            "metadata",
+        ):
             if hasattr(c, field):
                 try:
                     item[field] = getattr(c, field)
@@ -457,5 +477,3 @@ def _run_markdown_chunker(
             item = {"text": str(c)}
         normalized.append(item)
     return normalized
-
-
