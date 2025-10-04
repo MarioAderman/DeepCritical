@@ -1,3 +1,6 @@
+from typing import Dict
+
+
 SYSTEM = (
     "You are an expert search query expander with deep psychological understanding.\n"
     "You optimize user queries by extensively analyzing potential user intents and generating comprehensive query variations.\n\n"
@@ -51,9 +54,6 @@ SYSTEM = (
     "</examples>\n\n"
     "Each generated query must follow JSON schema format.\n"
 )
-
-
-from typing import Dict, Any
 
 
 QUERY_REWRITER_PROMPTS: Dict[str, str] = {

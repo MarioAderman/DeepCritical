@@ -11,6 +11,8 @@ from limits import parse
 from limits.aio.storage import MemoryStorage
 from limits.aio.strategies import MovingWindowRateLimiter
 from ..utils.analytics import record_request
+from .base import ToolSpec, ToolRunner, ExecutionResult, registry
+from dataclasses import dataclass
 
 # Configuration
 SERPER_API_KEY_ENV = os.getenv("SERPER_API_KEY")
@@ -477,10 +479,6 @@ def _run_markdown_chunker(
             item = {"text": str(c)}
         normalized.append(item)
     return normalized
-
-
-from .base import ToolSpec, ToolRunner, ExecutionResult, registry
-from dataclasses import dataclass
 
 
 @dataclass

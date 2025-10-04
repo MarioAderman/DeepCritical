@@ -6,6 +6,7 @@ integrating with the existing tool registry and datatypes.
 """
 
 import json
+from dataclasses import dataclass
 from typing import Dict, Any, List, Optional
 from pydantic import BaseModel, Field
 from pydantic_ai import RunContext
@@ -259,9 +260,6 @@ def get_analytics_time_data_tool(ctx: RunContext[Any]) -> str:
         return f"Failed to get analytics time data: {result.error}"
 
 
-from dataclasses import dataclass
-
-
 @dataclass
 class AnalyticsTool(ToolRunner):
     """Tool for analytics operations and metrics tracking."""
@@ -279,7 +277,6 @@ class AnalyticsTool(ToolRunner):
     def run(self, params: Dict[str, str]) -> ExecutionResult:
         operation = params.get("operation", "")
         days = int(params.get("days", "7"))
-        parameters = params.get("parameters", "{}")
 
         if operation == "request_rate":
             # Calculate request rate using existing analytics functions

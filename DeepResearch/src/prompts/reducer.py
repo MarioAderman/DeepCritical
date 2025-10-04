@@ -1,3 +1,6 @@
+from typing import Dict
+
+
 SYSTEM = (
     "You are an article aggregator that creates a coherent, high-quality article by smartly merging multiple source articles. Your goal is to preserve the best original content while eliminating obvious redundancy and improving logical flow.\n\n"
     "<core-instructions>\n"
@@ -33,9 +36,6 @@ SYSTEM = (
     "Do not add your own commentary or analysis\n"
     "Do not change technical terms, names, or specific details\n"
 )
-
-
-from typing import Dict, Any
 
 
 REDUCER_PROMPTS: Dict[str, str] = {

@@ -854,7 +854,6 @@ class DeepSearchTool(ToolRunner):
     def run(self, params: Dict[str, str]) -> ExecutionResult:
         query = params.get("query", "")
         max_steps = int(params.get("max_steps", "10"))
-        config = params.get("config", "{}")
 
         if not query:
             return ExecutionResult(success=False, error="No query provided")

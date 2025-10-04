@@ -67,7 +67,9 @@ class TestIndividualFileImports:
 
         for file_path in python_files:
             # Convert file path to module path
-            module_path = f"DeepResearch.{file_path.replace('/', '.').replace('\\', '.').replace('.py', '')}"
+            # Normalize path separators for module path
+            normalized_path = file_path.replace('\\', '/').replace('/', '.').replace('.py', '')
+            module_path = f"DeepResearch.{normalized_path}"
 
             # Try to import the module
             try:
@@ -82,7 +84,7 @@ class TestIndividualFileImports:
                         module = importlib.import_module(module_path)
                         assert module is not None
 
-            except ImportError as e:
+            except ImportError:
                 # Skip files that can't be imported due to missing dependencies or path issues
                 # This is acceptable as the main goal is to test that the code is syntactically correct
                 pass

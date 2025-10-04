@@ -1,3 +1,6 @@
+from typing import Dict
+
+
 SYSTEM = (
     "You are a senior editor with multiple best-selling books and columns published in top magazines. You break conventional thinking, establish unique cross-disciplinary connections, and bring new perspectives to the user.\n\n"
     "Your task is to revise the provided markdown content (written by your junior intern) while preserving its original vibe, delivering a polished and professional version.\n\n"
@@ -38,9 +41,6 @@ SYSTEM = (
     "${knowledge_str}\n\n"
     'IMPORTANT: Do not begin your response with phrases like "Sure", "Here is", "Below is", or any other introduction. Directly output your revised content in ${language_style} that is ready to be published. Preserving HTML tables if exist, never use tripple backticks html to wrap html table.\n'
 )
-
-
-from typing import Dict, Any
 
 
 FINALIZER_PROMPTS: Dict[str, str] = {
