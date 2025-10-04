@@ -11,7 +11,7 @@ import asyncio
 from typing import Any, Dict, List, Optional, Union
 from pydantic import BaseModel, Field
 
-from ..vllm_client import VLLMClient, VLLMAgent
+from ..vllm_client import VLLMClient
 from ..datatypes.vllm_dataclass import (
     ChatCompletionRequest,
     CompletionRequest,

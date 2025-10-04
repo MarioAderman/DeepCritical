@@ -18,10 +18,8 @@ from __future__ import annotations
 import asyncio
 import argparse
 from typing import Optional
-from pydantic import BaseModel
 
-from src.vllm_client import VLLMClient
-from src.agents.vllm_agent import VLLMAgent, VLLMAgentConfig, VLLMAgentDependencies
+from src.agents.vllm_agent import VLLMAgent, VLLMAgentConfig
 
 
 class VLLMAgentCLI:
@@ -177,7 +175,7 @@ class VLLMAgentCLI:
 
         health = await self.agent.client.health()
         print(f"Server status: {health.status}")
-        print(f"Uptime: {health.uptime".1f"}s")
+        print(f"Uptime: {health.uptime:.1f}s")
         print(f"Version: {health.version}")
         return health
 

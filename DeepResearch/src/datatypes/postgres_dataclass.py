@@ -878,6 +878,8 @@ __all__ = [
     # Error structures
     "PostgRESTError",
     "PostgRESTException",
+    # Document structures
+    "PostgresDocument",
     # Utility functions
     "create_client",
     "create_filter",
@@ -885,3 +887,21 @@ __all__ = [
     "create_pagination",
     "create_embedding",
 ]
+
+
+@dataclass
+class PostgresDocument:
+    """Document structure for PostgreSQL storage."""
+
+    id: str
+    content: str
+    metadata: Optional[Dict[str, Any]] = None
+    embedding: Optional[List[float]] = None
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+    def __post_init__(self):
+        if self.metadata is None:
+            self.metadata = {}
+        if self.created_at is None:
+            self.created_at = str(uuid.uuid4())

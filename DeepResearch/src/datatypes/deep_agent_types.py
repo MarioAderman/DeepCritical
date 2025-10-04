@@ -14,6 +14,15 @@ from enum import Enum
 # Import existing DeepCritical types
 
 
+class DeepAgentType(str, Enum):
+    """Types of DeepAgent implementations."""
+
+    BASIC = "basic"
+    ADVANCED = "advanced"
+    SPECIALIZED = "specialized"
+    CUSTOM = "custom"
+
+
 class AgentCapability(str, Enum):
     """Capabilities that agents can have."""
 

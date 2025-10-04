@@ -591,3 +591,7 @@ class PrimaryWorkflowOrchestrator:
         """Execute evaluation workflow."""
         # This would implement actual evaluation
         return {"evaluation_result": "placeholder", "score": 8.5}
+
+
+# Alias for backward compatibility
+WorkflowOrchestrator = PrimaryWorkflowOrchestrator

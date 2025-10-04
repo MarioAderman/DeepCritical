@@ -1,3 +1,6 @@
+from typing import Dict, Any
+
+
 SYSTEM = (
     "You are an expert JavaScript programmer. Your task is to generate JavaScript code to solve the given problem.\n\n"
     "<rules>\n"
@@ -18,3 +21,16 @@ SYSTEM = (
     "}\n"
     "</example>\n"
 )
+
+
+CODE_SANDBOX_PROMPTS: Dict[str, str] = {
+    "system": SYSTEM,
+    "generate_code": "Generate JavaScript code for the following problem with available variables: {available_vars}",
+}
+
+
+class CodeSandboxPrompts:
+    """Prompt templates for code sandbox."""
+
+    SYSTEM = SYSTEM
+    PROMPTS = CODE_SANDBOX_PROMPTS

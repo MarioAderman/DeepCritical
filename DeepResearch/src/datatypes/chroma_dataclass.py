@@ -630,4 +630,10 @@ __all__ = [
     # Utility functions
     "create_client",
     "create_embedding_function",
+    # Aliases
+    "ChromaDocument",
 ]
+
+
+# Aliases for backward compatibility
+ChromaDocument = Document

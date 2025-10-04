@@ -7,7 +7,7 @@ for deep search functionality based on Jina AI DeepResearch patterns.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, Optional, List
 import re

@@ -104,3 +104,18 @@ class AgentPrompts:
             'coding': self.action_coding,
         }
         return actions.get(action_name.lower(), "")
+
+
+# Prompt constants dictionary for easy access
+AGENT_PROMPTS = {
+    'header': HEADER,
+    'actions_wrapper': ACTIONS_WRAPPER,
+    'action_visit': ACTION_VISIT,
+    'action_search': ACTION_SEARCH,
+    'action_answer': ACTION_ANSWER,
+    'action_beast': ACTION_BEAST,
+    'action_reflect': ACTION_REFLECT,
+    'action_coding': ACTION_CODING,
+    'footer': FOOTER,
+    'system': SYSTEM,
+}

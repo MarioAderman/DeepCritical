@@ -16,22 +16,16 @@ from pydantic import BaseModel, Field
 from .datatypes.vllm_dataclass import (
     # Core configurations
     VllmConfig, ModelConfig, CacheConfig, ParallelConfig, SchedulerConfig,
-    DeviceConfig, ObservabilityConfig, LoRAConfig, SpeculativeConfig,
-
-    # Request/Response models
-    ChatCompletionRequest, ChatCompletionResponse, ChatCompletionChoice, ChatMessage,
+    DeviceConfig, ObservabilityConfig, ChatCompletionRequest, ChatCompletionResponse, ChatCompletionChoice, ChatMessage,
     CompletionRequest, CompletionResponse, CompletionChoice,
     EmbeddingRequest, EmbeddingResponse, EmbeddingData,
     UsageStats, ModelInfo, ModelListResponse, HealthCheck,
     BatchRequest, BatchResponse,
 
     # Sampling parameters
-    SamplingParams,
-
-    # Enums
-    QuantizationMethod, DeviceType, ModelType, AttentionBackend,
+    QuantizationMethod,
 )
-from .datatypes.rag import EmbeddingsConfig, VLLMConfig as RAGVLLMConfig
+from .datatypes.rag import VLLMConfig as RAGVLLMConfig
 
 
 class VLLMClientError(Exception):
@@ -747,7 +741,7 @@ async def example_batch_processing():
     print(f"Processed {batch_response.total_requests} requests")
     print(f"Successful: {batch_response.successful_requests}")
     print(f"Failed: {batch_response.failed_requests}")
-    print(f"Processing time: {batch_response.processing_time".2f"}s")
+    print(f"Processing time: {batch_response.processing_time:.2f}s")
 
     await client.close()
 

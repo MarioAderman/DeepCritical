@@ -215,7 +215,7 @@ class TestAgentsComplexImportChains:
         try:
             from DeepResearch.src.agents.research_agent import ResearchAgent
             from DeepResearch.src.prompts import PromptLoader
-            from DeepResearch.tools.pyd_ai_tools import _build_builtin_tools
+            from DeepResearch.src.tools.pyd_ai_tools import _build_builtin_tools
             from DeepResearch.src.datatypes import Document
 
             # If all imports succeed, the chain is working

@@ -575,4 +575,21 @@ __all__ = [
     "create_simple_agent",
     "create_deep_agent",
     "create_async_deep_agent",
+    # Prompt constants and classes
+    "DEEP_AGENT_GRAPH_PROMPTS",
+    "DeepAgentGraphPrompts",
 ]
+
+
+# Prompt constants for DeepAgent Graph operations
+DEEP_AGENT_GRAPH_PROMPTS = {
+    "system": "You are a DeepAgent Graph orchestrator for complex multi-agent workflows.",
+    "build_graph": "Build a graph for the following agent workflow: {workflow_description}",
+    "execute_graph": "Execute the graph with the following state: {state}",
+}
+
+
+class DeepAgentGraphPrompts:
+    """Prompt templates for DeepAgent Graph operations."""
+
+    PROMPTS = DEEP_AGENT_GRAPH_PROMPTS

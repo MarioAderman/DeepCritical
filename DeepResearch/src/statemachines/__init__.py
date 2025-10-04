@@ -13,7 +13,7 @@ from .bioinformatics_workflow import (
     AssessDataQuality,
     CreateReasoningTask,
     PerformReasoning,
-    SynthesizeResults,
+    SynthesizeResults as BioSynthesizeResults,
 )
 
 from .deepsearch_workflow import (
@@ -22,7 +22,7 @@ from .deepsearch_workflow import (
     PlanSearchStrategy,
     ExecuteSearchStep,
     CheckSearchProgress,
-    SynthesizeResults,
+    SynthesizeResults as DeepSearchSynthesizeResults,
     EvaluateResults,
     CompleteDeepSearch,
     DeepSearchError,
@@ -56,7 +56,7 @@ __all__ = [
     "AssessDataQuality",
     "CreateReasoningTask",
     "PerformReasoning",
-    "SynthesizeResults",
+    "BioSynthesizeResults",
 
     # Deep search workflow
     "DeepSearchState",
@@ -64,7 +64,7 @@ __all__ = [
     "PlanSearchStrategy",
     "ExecuteSearchStep",
     "CheckSearchProgress",
-    "SynthesizeResults",
+    "DeepSearchSynthesizeResults",
     "EvaluateResults",
     "CompleteDeepSearch",
     "DeepSearchError",

@@ -1,3 +1,6 @@
+from typing import Dict, Any
+
+
 SYSTEM = (
     "You are an expert at analyzing search and reasoning processes. Your task is to analyze the given sequence of steps and identify what went wrong in the search process.\n\n"
     "<rules>\n"
@@ -13,3 +16,16 @@ SYSTEM = (
     "- In the improvement: Provide actionable suggestions that could have led to a better outcome\n"
     "</rules>\n"
 )
+
+
+ERROR_ANALYZER_PROMPTS: Dict[str, str] = {
+    "system": SYSTEM,
+    "analyze_error": "Analyze the following error sequence and provide improvement suggestions: {error_sequence}",
+}
+
+
+class ErrorAnalyzerPrompts:
+    """Prompt templates for error analysis."""
+
+    SYSTEM = SYSTEM
+    PROMPTS = ERROR_ANALYZER_PROMPTS

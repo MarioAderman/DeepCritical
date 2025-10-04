@@ -12,7 +12,6 @@ from pydantic_graph import Graph, BaseNode, End
 from ..tools.integrated_search_tools import IntegratedSearchTool
 from ..datatypes.rag import Document, Chunk
 from ..utils.execution_status import ExecutionStatus
-from ..agents import SearchAgent
 
 
 class SearchWorkflowState(BaseModel):
@@ -102,6 +101,9 @@ class PerformWebSearch(BaseNode[SearchWorkflowState]):
     async def run(self, state: SearchWorkflowState) -> Any:
         """Execute web search operation using SearchAgent."""
         try:
+            # Import here to avoid circular import
+            from ..agents import SearchAgent
+
             # Create SearchAgent
             search_agent = SearchAgent()
             await search_agent.initialize()

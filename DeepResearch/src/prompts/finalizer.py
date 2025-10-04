@@ -38,3 +38,20 @@ SYSTEM = (
     "${knowledge_str}\n\n"
     'IMPORTANT: Do not begin your response with phrases like "Sure", "Here is", "Below is", or any other introduction. Directly output your revised content in ${language_style} that is ready to be published. Preserving HTML tables if exist, never use tripple backticks html to wrap html table.\n'
 )
+
+
+from typing import Dict, Any
+
+
+FINALIZER_PROMPTS: Dict[str, str] = {
+    "system": SYSTEM,
+    "finalize_content": "Finalize the following content: {content}",
+    "revise_content": "Revise the following content with professional polish: {content}",
+}
+
+
+class FinalizerPrompts:
+    """Prompt templates for content finalization."""
+
+    SYSTEM = SYSTEM
+    PROMPTS = FINALIZER_PROMPTS

@@ -12,6 +12,7 @@ class ToolCategory(Enum):
 
     KNOWLEDGE_QUERY = "knowledge_query"
     SEARCH = "search"
+    ANALYSIS = "analysis"
     SEQUENCE_ANALYSIS = "sequence_analysis"
     STRUCTURE_PREDICTION = "structure_prediction"
     MOLECULAR_DOCKING = "molecular_docking"

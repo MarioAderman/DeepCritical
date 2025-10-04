@@ -18,7 +18,6 @@ from omegaconf import DictConfig
 from ..datatypes.rag import RAGConfig, RAGQuery, RAGResponse, Document, SearchType
 from ..datatypes.vllm_integration import VLLMRAGSystem, VLLMDeployment
 from ..utils.execution_status import ExecutionStatus
-from ..agents import RAGAgent
 
 
 @dataclass
@@ -343,6 +342,9 @@ class QueryRAG(BaseNode[RAGState]):
     async def run(self, ctx: GraphRunContext[RAGState]) -> GenerateResponse:
         """Execute RAG query using RAGAgent."""
         try:
+            # Import here to avoid circular import
+            from ..agents import RAGAgent
+
             # Create RAGAgent
             rag_agent = RAGAgent()
             await rag_agent.initialize()

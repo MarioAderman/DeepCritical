@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import time
+from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Union
 from pydantic import BaseModel, Field, validator
 from pydantic_ai import Agent, ModelRetry
@@ -17,7 +18,7 @@ from pydantic_ai import Agent, ModelRetry
 from ..datatypes.deep_agent_state import DeepAgentState
 from ..datatypes.deep_agent_types import AgentCapability, AgentMetrics
 from ..prompts.deep_agent_prompts import get_system_prompt
-from ...tools.deep_agent_tools import (
+from ..tools.deep_agent_tools import (
     write_todos_tool,
     list_files_tool,
     read_file_tool,
@@ -25,7 +26,7 @@ from ...tools.deep_agent_tools import (
     edit_file_tool,
     task_tool,
 )
-from ...tools.deep_agent_middleware import (
+from ..tools.deep_agent_middleware import (
     MiddlewarePipeline,
     create_default_middleware_pipeline,
 )
@@ -527,4 +528,42 @@ __all__ = [
     "create_task_orchestration_agent",
     "create_general_purpose_agent",
     "create_agent_orchestrator",
+    # Main implementation class
+    "DeepAgentImplementation",
 ]
+
+
+@dataclass
+class DeepAgentImplementation:
+    """Main DeepAgent implementation that coordinates multiple specialized agents."""
+
+    config: AgentConfig
+    agents: Dict[str, BaseDeepAgent] = field(default_factory=dict)
+    orchestrator: Optional[AgentOrchestrator] = None
+
+    def __post_init__(self):
+        """Initialize the DeepAgent implementation."""
+        self._initialize_agents()
+        self._initialize_orchestrator()
+
+    def _initialize_agents(self):
+        """Initialize all specialized agents."""
+        self.agents = {
+            "planning": create_planning_agent(self.config),
+            "filesystem": create_filesystem_agent(self.config),
+            "research": create_research_agent(self.config),
+            "task_orchestration": create_task_orchestration_agent(self.config),
+            "general_purpose": create_general_purpose_agent(self.config),
+        }
+
+    def _initialize_orchestrator(self):
+        """Initialize the agent orchestrator."""
+        self.orchestrator = create_agent_orchestrator(self.config, self.agents)
+
+    async def execute_task(self, task: str) -> AgentExecutionResult:
+        """Execute a task using the appropriate agent."""
+        return await self.orchestrator.execute_task(task) if self.orchestrator else AgentExecutionResult(success=False, error="Orchestrator not initialized")
+
+    def get_agent(self, agent_type: str) -> Optional[BaseDeepAgent]:
+        """Get a specific agent by type."""
+        return self.agents.get(agent_type)
