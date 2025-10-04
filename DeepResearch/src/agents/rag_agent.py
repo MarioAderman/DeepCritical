@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-from DeepResearch.src.datatypes.rag import RAGQuery, RAGResponse, Document
+from ..datatypes.rag import RAGQuery, RAGResponse, Document
 from .research_agent import ResearchAgent, ResearchOutcome, StepResult
 
 

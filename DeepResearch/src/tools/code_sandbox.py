@@ -103,7 +103,7 @@ class CodeSandboxRunner(ToolRunner):
     ) -> str:
         # Load prompt from Hydra via PromptLoader; fall back to a minimal system
         try:
-            from DeepResearch.src.prompts import PromptLoader  # type: ignore
+            from ..prompts import PromptLoader  # type: ignore
 
             cfg: Dict[str, Any] = {}
             loader = PromptLoader(cfg)  # type: ignore

@@ -10,7 +10,7 @@ except Exception:  # pragma: no cover
 
 from omegaconf import DictConfig
 
-from DeepResearch.src.prompts import PromptLoader
+from ..prompts import PromptLoader
 from ..tools.pyd_ai_tools import (
     _build_builtin_tools,
     _build_toolsets,
