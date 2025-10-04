@@ -14,8 +14,8 @@ from pydantic import BaseModel, Field
 from pydantic_ai import Agent, RunContext
 
 # Import existing DeepCritical types
-from ..src.datatypes.deep_agent_state import DeepAgentState
-from ..src.datatypes.deep_agent_types import (
+from ..datatypes.deep_agent_state import DeepAgentState
+from ..datatypes.deep_agent_types import (
     SubAgent,
     CustomSubAgent,
     TaskRequest,

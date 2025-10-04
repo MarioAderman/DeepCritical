@@ -19,6 +19,8 @@ from .planner import Planner
 from .pyd_ai_toolsets import PydAIToolsetBuilder
 from .research_agent import ResearchAgent, ResearchOutcome, StepResult, run
 from .tool_caller import ToolCaller
+from .rag_agent import RAGAgent
+from .search_agent import SearchAgent, SearchAgentConfig, SearchQuery, SearchResult
 
 __all__ = [
     "QueryParser",
@@ -43,4 +45,9 @@ __all__ = [
     "StepResult",
     "run",
     "ToolCaller",
+    "RAGAgent",
+    "SearchAgent",
+    "SearchAgentConfig",
+    "SearchQuery",
+    "SearchResult",
 ]

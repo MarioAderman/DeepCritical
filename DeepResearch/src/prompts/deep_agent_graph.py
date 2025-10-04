@@ -21,8 +21,8 @@ from ..datatypes.deep_agent_types import (
     CustomSubAgent,
     AgentOrchestrationConfig,
 )
-from ...tools.deep_agent_middleware import create_default_middleware_pipeline
-from ...tools.deep_agent_tools import (
+from ..tools.deep_agent_middleware import create_default_middleware_pipeline
+from ..tools.deep_agent_tools import (
     write_todos_tool,
     list_files_tool,
     read_file_tool,

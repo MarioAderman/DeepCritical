@@ -76,3 +76,31 @@ FOOTER = "Think step by step, choose the action, then respond by matching the sc
 
 # Default SYSTEM if a single string is desired
 SYSTEM = HEADER
+
+
+class AgentPrompts:
+    """Container class for agent prompt templates."""
+
+    def __init__(self):
+        self.header = HEADER
+        self.actions_wrapper = ACTIONS_WRAPPER
+        self.action_visit = ACTION_VISIT
+        self.action_search = ACTION_SEARCH
+        self.action_answer = ACTION_ANSWER
+        self.action_beast = ACTION_BEAST
+        self.action_reflect = ACTION_REFLECT
+        self.action_coding = ACTION_CODING
+        self.footer = FOOTER
+        self.system = SYSTEM
+
+    def get_action_section(self, action_name: str) -> str:
+        """Get a specific action section by name."""
+        actions = {
+            'visit': self.action_visit,
+            'search': self.action_search,
+            'answer': self.action_answer,
+            'beast': self.action_beast,
+            'reflect': self.action_reflect,
+            'coding': self.action_coding,
+        }
+        return actions.get(action_name.lower(), "")

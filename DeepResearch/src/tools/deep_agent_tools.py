@@ -15,13 +15,13 @@ from pydantic_ai import RunContext
 # Note: defer decorator is not available in current pydantic-ai version
 
 # Import existing DeepCritical types
-from ..src.datatypes.deep_agent_state import (
+from ..datatypes.deep_agent_state import (
     TaskStatus,
     DeepAgentState,
     create_todo,
     create_file_info,
 )
-from ..src.datatypes.deep_agent_types import TaskRequest
+from ..datatypes.deep_agent_types import TaskRequest
 from .base import ToolRunner, ToolSpec, ExecutionResult
 
 

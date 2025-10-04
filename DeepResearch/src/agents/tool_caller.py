@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict, List
 
-from ...tools.base import registry, ExecutionResult
+from ..tools.base import registry, ExecutionResult
 
 
 @dataclass

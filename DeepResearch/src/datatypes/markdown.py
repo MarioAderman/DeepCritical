@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
 
-from .document import Document
+from .document_dataclass import Document
 
 
 @dataclass

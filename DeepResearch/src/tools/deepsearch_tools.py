@@ -18,7 +18,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from .base import ToolSpec, ToolRunner, ExecutionResult, registry
-from ..src.utils.deepsearch_schemas import (
+from ..utils.deepsearch_schemas import (
     DeepSearchSchemas,
     SearchTimeFilter,
     MAX_URLS_PER_STEP,

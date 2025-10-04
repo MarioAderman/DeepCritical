@@ -10,7 +10,7 @@ from dateutil import parser as dateparser
 from limits import parse
 from limits.aio.storage import MemoryStorage
 from limits.aio.strategies import MovingWindowRateLimiter
-from ..src.utils.analytics import record_request
+from ..utils.analytics import record_request
 
 # Configuration
 SERPER_API_KEY_ENV = os.getenv("SERPER_API_KEY")

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Annotated
 
 from pydantic_graph import BaseNode, End, Graph, GraphRunContext, Edge
@@ -18,7 +18,7 @@ from omegaconf import DictConfig
 from ..datatypes.rag import RAGConfig, RAGQuery, RAGResponse, Document, SearchType
 from ..datatypes.vllm_integration import VLLMRAGSystem, VLLMDeployment
 from ..utils.execution_status import ExecutionStatus
-from ...agents import RAGAgent
+from ..agents import RAGAgent
 
 
 @dataclass
@@ -27,11 +27,11 @@ class RAGState:
 
     question: str
     rag_config: Optional[RAGConfig] = None
-    documents: List[Document] = []
+    documents: List[Document] = field(default_factory=list)
     rag_response: Optional[RAGResponse] = None
     rag_result: Optional[Dict[str, Any]] = None  # For agent results
-    processing_steps: List[str] = []
-    errors: List[str] = []
+    processing_steps: List[str] = field(default_factory=list)
+    errors: List[str] = field(default_factory=list)
     config: Optional[DictConfig] = None
     execution_status: ExecutionStatus = ExecutionStatus.PENDING
 
