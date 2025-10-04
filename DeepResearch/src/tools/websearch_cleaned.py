@@ -477,3 +477,47 @@ def _run_markdown_chunker(
             item = {"text": str(c)}
         normalized.append(item)
     return normalized
+
+
+from .base import ToolSpec, ToolRunner, ExecutionResult, registry
+from dataclasses import dataclass
+
+
+@dataclass
+class WebSearchCleanedTool(ToolRunner):
+    """Tool for performing cleaned web searches with content extraction."""
+
+    def __init__(self):
+        super().__init__(
+            ToolSpec(
+                name="web_search_cleaned",
+                description="Perform web search with cleaned content extraction",
+                inputs={"query": "TEXT", "search_type": "TEXT", "num_results": "NUMBER"},
+                outputs={"results": "TEXT", "cleaned_content": "TEXT"},
+            )
+        )
+
+    def run(self, params: Dict[str, str]) -> ExecutionResult:
+        query = params.get("query", "")
+        search_type = params.get("search_type", "search")
+        num_results = int(params.get("num_results", "4"))
+
+        if not query:
+            return ExecutionResult(success=False, error="No query provided")
+
+        # Use the existing search_web function
+        try:
+            import asyncio
+            result = asyncio.run(search_web(query, search_type, num_results))
+
+            return ExecutionResult(
+                success=True,
+                data={"results": result, "cleaned_content": f"Cleaned search results for: {query}"},
+                metrics={"search_type": search_type, "num_results": num_results}
+            )
+        except Exception as e:
+            return ExecutionResult(success=False, error=f"Search failed: {str(e)}")
+
+
+# Register tool
+registry.register("web_search_cleaned", WebSearchCleanedTool)

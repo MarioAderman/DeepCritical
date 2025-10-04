@@ -30,3 +30,20 @@ SYSTEM = (
     'Do not include any text like (this subproblem is about ...) in the subproblems, use second person to describe the subproblems. Do not use the word "subproblem" or refer to other subproblems in the problem statement\n'
     "Now proceed with decomposing and assigning the research topic.\n"
 )
+
+
+from typing import Dict, Any
+
+
+RESEARCH_PLANNER_PROMPTS: Dict[str, str] = {
+    "system": SYSTEM,
+    "plan_research": "Plan research for the following topic: {topic}",
+    "decompose_problem": "Decompose the research problem into focused subproblems: {problem}",
+}
+
+
+class ResearchPlannerPrompts:
+    """Prompt templates for research planning operations."""
+
+    SYSTEM = SYSTEM
+    PROMPTS = RESEARCH_PLANNER_PROMPTS

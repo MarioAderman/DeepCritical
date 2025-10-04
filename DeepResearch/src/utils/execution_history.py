@@ -240,3 +240,39 @@ class ExecutionTracker:
         failure_modes = list(self.metrics["error_frequency"].items())
         failure_modes.sort(key=lambda x: x[1], reverse=True)
         return failure_modes
+
+
+@dataclass
+class ExecutionMetrics:
+    """Metrics for execution performance tracking."""
+
+    total_steps: int = 0
+    successful_steps: int = 0
+    failed_steps: int = 0
+    total_duration: float = 0.0
+    avg_step_duration: float = 0.0
+    tool_usage_count: Dict[str, int] = field(default_factory=dict)
+    error_frequency: Dict[str, int] = field(default_factory=dict)
+
+    def add_step_result(self, step_name: str, success: bool, duration: float) -> None:
+        """Add a step result to the metrics."""
+        self.total_steps += 1
+        if success:
+            self.successful_steps += 1
+        else:
+            self.failed_steps += 1
+
+        self.total_duration += duration
+        if self.total_steps > 0:
+            self.avg_step_duration = self.total_duration / self.total_steps
+
+        # Track tool usage
+        if step_name not in self.tool_usage_count:
+            self.tool_usage_count[step_name] = 0
+        self.tool_usage_count[step_name] += 1
+
+    def add_error(self, error_type: str) -> None:
+        """Add an error occurrence."""
+        if error_type not in self.error_frequency:
+            self.error_frequency[error_type] = 0
+        self.error_frequency[error_type] += 1

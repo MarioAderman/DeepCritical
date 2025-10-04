@@ -593,3 +593,67 @@ def create_deep_search_evaluator() -> DeepSearchEvaluator:
     """Create a new deep search evaluator."""
     schemas = DeepSearchSchemas()
     return DeepSearchEvaluator(schemas)
+
+
+class SearchResultProcessor:
+    """Processor for search results and content extraction."""
+
+    def __init__(self, schemas: DeepSearchSchemas):
+        self.schemas = schemas
+
+    def process_search_results(self, results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Process and clean search results."""
+        processed = []
+        for result in results:
+            processed_result = {
+                "title": result.get("title", ""),
+                "url": result.get("url", ""),
+                "snippet": result.get("snippet", ""),
+                "score": result.get("score", 0.0),
+                "processed": True
+            }
+            processed.append(processed_result)
+        return processed
+
+    def extract_relevant_content(self, results: List[Dict[str, Any]], query: str) -> str:
+        """Extract relevant content from search results."""
+        if not results:
+            return "No relevant content found."
+
+        content_parts = []
+        for result in results[:3]:  # Top 3 results
+            content_parts.append(f"Title: {result.get('title', '')}")
+            content_parts.append(f"Content: {result.get('snippet', '')}")
+            content_parts.append("")
+
+        return "\n".join(content_parts)
+
+
+class DeepSearchUtils:
+    """Utility class for deep search operations."""
+
+    @staticmethod
+    def create_search_context(question: str, config: Optional[Dict[str, Any]] = None) -> SearchContext:
+        """Create a new search context."""
+        return SearchContext(question, config)
+
+    @staticmethod
+    def create_search_orchestrator(schemas: DeepSearchSchemas) -> SearchOrchestrator:
+        """Create a new search orchestrator."""
+        return SearchOrchestrator(schemas)
+
+    @staticmethod
+    def create_search_evaluator(schemas: DeepSearchSchemas) -> DeepSearchEvaluator:
+        """Create a new search evaluator."""
+        return DeepSearchEvaluator(schemas)
+
+    @staticmethod
+    def create_result_processor(schemas: DeepSearchSchemas) -> SearchResultProcessor:
+        """Create a new search result processor."""
+        return SearchResultProcessor(schemas)
+
+    @staticmethod
+    def validate_search_config(config: Dict[str, Any]) -> bool:
+        """Validate search configuration."""
+        required_keys = ["max_steps", "token_budget"]
+        return all(key in config for key in required_keys)

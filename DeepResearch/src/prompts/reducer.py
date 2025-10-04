@@ -33,3 +33,20 @@ SYSTEM = (
     "Do not add your own commentary or analysis\n"
     "Do not change technical terms, names, or specific details\n"
 )
+
+
+from typing import Dict, Any
+
+
+REDUCER_PROMPTS: Dict[str, str] = {
+    "system": SYSTEM,
+    "reduce_content": "Reduce and merge the following content: {content}",
+    "aggregate_articles": "Aggregate multiple articles into a coherent piece: {articles}",
+}
+
+
+class ReducerPrompts:
+    """Prompt templates for content reduction operations."""
+
+    SYSTEM = SYSTEM
+    PROMPTS = REDUCER_PROMPTS

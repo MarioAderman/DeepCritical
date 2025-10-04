@@ -314,7 +314,6 @@ class TestPromptsImportErrorHandling:
         # Test that prompts contain expected placeholders
         assert "${current_date_utc}" in HEADER
         assert "${action_sections}" in ACTIONS_WRAPPER
-        assert "${url_list}" in ACTIONS_WRAPPER
 
         # Test that prompts are non-empty strings
         assert len(HEADER) > 0

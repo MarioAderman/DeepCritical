@@ -51,3 +51,20 @@ SYSTEM = (
     "</examples>\n\n"
     "Each generated query must follow JSON schema format.\n"
 )
+
+
+from typing import Dict, Any
+
+
+QUERY_REWRITER_PROMPTS: Dict[str, str] = {
+    "system": SYSTEM,
+    "rewrite_query": "Rewrite the following query with enhanced intent analysis: {query}",
+    "expand_query": "Expand the query to cover multiple cognitive perspectives: {query}",
+}
+
+
+class QueryRewriterPrompts:
+    """Prompt templates for query rewriting operations."""
+
+    SYSTEM = SYSTEM
+    PROMPTS = QUERY_REWRITER_PROMPTS

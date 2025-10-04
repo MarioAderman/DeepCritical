@@ -52,5 +52,72 @@ class SummarizeTool(ToolRunner):
         return ExecutionResult(success=True, data={"summary": f"Summary: {s[:60]}..."})
 
 
+@dataclass
+class MockTool(ToolRunner):
+    """Base mock tool for testing purposes."""
+
+    def __init__(self, name: str = "mock", description: str = "Mock tool for testing"):
+        super().__init__(
+            ToolSpec(
+                name=name,
+                description=description,
+                inputs={"input": "TEXT"},
+                outputs={"output": "TEXT"},
+            )
+        )
+
+    def run(self, params: Dict[str, str]) -> ExecutionResult:
+        return ExecutionResult(success=True, data={"output": f"Mock result for: {params.get('input', '')}"})
+
+
+@dataclass
+class MockWebSearchTool(ToolRunner):
+    """Mock web search tool for testing."""
+
+    def __init__(self):
+        super().__init__(
+            ToolSpec(
+                name="mock_web_search",
+                description="Mock web search tool for testing",
+                inputs={"query": "TEXT"},
+                outputs={"results": "TEXT"},
+            )
+        )
+
+    def run(self, params: Dict[str, str]) -> ExecutionResult:
+        query = params.get("query", "")
+        return ExecutionResult(
+            success=True,
+            data={"results": f"Mock search results for: {query}"},
+            metrics={"hits": 5}
+        )
+
+
+@dataclass
+class MockBioinformaticsTool(ToolRunner):
+    """Mock bioinformatics tool for testing."""
+
+    def __init__(self):
+        super().__init__(
+            ToolSpec(
+                name="mock_bioinformatics",
+                description="Mock bioinformatics tool for testing",
+                inputs={"sequence": "TEXT"},
+                outputs={"analysis": "TEXT"},
+            )
+        )
+
+    def run(self, params: Dict[str, str]) -> ExecutionResult:
+        sequence = params.get("sequence", "")
+        return ExecutionResult(
+            success=True,
+            data={"analysis": f"Mock bioinformatics analysis for: {sequence[:50]}..."},
+            metrics={"length": len(sequence)}
+        )
+
+
 registry.register("search", SearchTool)
 registry.register("summarize", SummarizeTool)
+registry.register("mock", MockTool)
+registry.register("mock_web_search", MockWebSearchTool)
+registry.register("mock_bioinformatics", MockBioinformaticsTool)

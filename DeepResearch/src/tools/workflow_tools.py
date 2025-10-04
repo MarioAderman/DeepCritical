@@ -217,6 +217,54 @@ class ReducerTool(ToolRunner):
 
 # Register all tools
 registry.register("rewrite", RewriteTool)
+@dataclass
+class WorkflowTool(ToolRunner):
+    """Tool for managing workflow execution."""
+
+    def __init__(self):
+        super().__init__(
+            ToolSpec(
+                name="workflow",
+                description="Execute workflow operations",
+                inputs={"workflow": "TEXT", "parameters": "TEXT"},
+                outputs={"result": "TEXT"},
+            )
+        )
+
+    def run(self, params: Dict[str, str]) -> ExecutionResult:
+        workflow = params.get("workflow", "")
+        parameters = params.get("parameters", "")
+        return ExecutionResult(
+            success=True,
+            data={"result": f"Workflow '{workflow}' executed with parameters: {parameters}"},
+            metrics={"steps": 3}
+        )
+
+
+@dataclass
+class WorkflowStepTool(ToolRunner):
+    """Tool for executing individual workflow steps."""
+
+    def __init__(self):
+        super().__init__(
+            ToolSpec(
+                name="workflow_step",
+                description="Execute a single workflow step",
+                inputs={"step": "TEXT", "context": "TEXT"},
+                outputs={"result": "TEXT"},
+            )
+        )
+
+    def run(self, params: Dict[str, str]) -> ExecutionResult:
+        step = params.get("step", "")
+        context = params.get("context", "")
+        return ExecutionResult(
+            success=True,
+            data={"result": f"Step '{step}' completed with context: {context}"},
+            metrics={"duration": 1.2}
+        )
+
+
 registry.register("web_search", WebSearchTool)
 registry.register("read", ReadTool)
 registry.register("finalize", FinalizeTool)
@@ -224,3 +272,5 @@ registry.register("references", ReferencesTool)
 registry.register("evaluator", EvaluatorTool)
 registry.register("error_analyzer", ErrorAnalyzerTool)
 registry.register("reducer", ReducerTool)
+registry.register("workflow", WorkflowTool)
+registry.register("workflow_step", WorkflowStepTool)

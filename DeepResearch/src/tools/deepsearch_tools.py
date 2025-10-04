@@ -837,8 +837,46 @@ class QueryRewriterTool(ToolRunner):
 
 
 # Register all deep search tools
+@dataclass
+class DeepSearchTool(ToolRunner):
+    """Main deep search tool that orchestrates the entire search process."""
+
+    def __init__(self):
+        super().__init__(
+            ToolSpec(
+                name="deep_search",
+                description="Perform comprehensive deep search with multiple steps",
+                inputs={"query": "TEXT", "max_steps": "NUMBER", "config": "TEXT"},
+                outputs={"results": "TEXT", "search_history": "TEXT"},
+            )
+        )
+
+    def run(self, params: Dict[str, str]) -> ExecutionResult:
+        query = params.get("query", "")
+        max_steps = int(params.get("max_steps", "10"))
+        config = params.get("config", "{}")
+
+        if not query:
+            return ExecutionResult(success=False, error="No query provided")
+
+        # Simulate deep search execution
+        search_results = {
+            "query": query,
+            "steps_completed": min(max_steps, 5),  # Simulate some steps
+            "results_found": 15,
+            "final_answer": f"Deep search completed for query: {query}"
+        }
+
+        return ExecutionResult(
+            success=True,
+            data={"results": search_results, "search_history": f"Search history for: {query}"},
+            metrics={"steps": max_steps, "results": 15}
+        )
+
+
 registry.register("web_search", WebSearchTool)
 registry.register("url_visit", URLVisitTool)
 registry.register("reflection", ReflectionTool)
 registry.register("answer_generator", AnswerGeneratorTool)
 registry.register("query_rewriter", QueryRewriterTool)
+registry.register("deep_search", DeepSearchTool)

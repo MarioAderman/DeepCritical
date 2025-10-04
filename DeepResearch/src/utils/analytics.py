@@ -136,3 +136,34 @@ def last_n_days_avg_time_df(n: int = 30) -> pd.DataFrame:
             }
         )
     return pd.DataFrame(records)
+
+
+class MetricCalculator:
+    """Calculator for various analytics metrics."""
+
+    def __init__(self, data_dir: str = None):
+        """Initialize metric calculator."""
+        self.data_dir = data_dir or DATA_DIR
+
+    def calculate_request_rate(self, days: int = 7) -> float:
+        """Calculate average requests per day."""
+        df = last_n_days_df(days)
+        if df.empty:
+            return 0.0
+        return df["request_count"].sum() / days
+
+    def calculate_avg_response_time(self, days: int = 7) -> float:
+        """Calculate average response time."""
+        df = last_n_days_avg_time_df(days)
+        if df.empty:
+            return 0.0
+        return df["avg_time"].mean()
+
+    def calculate_success_rate(self, days: int = 7) -> float:
+        """Calculate success rate percentage."""
+        df = last_n_days_df(days)
+        if df.empty:
+            return 0.0
+        # For now, assume all requests are successful
+        # In a real implementation, this would check actual status codes
+        return 100.0
