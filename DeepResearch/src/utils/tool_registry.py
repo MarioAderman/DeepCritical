@@ -10,6 +10,17 @@ from .tool_specs import ToolSpec, ToolCategory
 
 
 @dataclass
+class ToolMetadata:
+    """Metadata for registered tools."""
+
+    name: str
+    category: ToolCategory
+    description: str
+    version: str = "1.0.0"
+    tags: List[str] = field(default_factory=list)
+
+
+@dataclass
 class ExecutionResult:
     """Result of tool execution."""
 

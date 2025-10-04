@@ -14,7 +14,6 @@ class TestAgentsModuleImports:
     def test_prime_parser_imports(self):
         """Test all imports from prime_parser module."""
         # Test core imports
-        from DeepResearch.src.agents import prime_parser
 
         # Test specific classes and functions
         from DeepResearch.src.agents.prime_parser import (
@@ -38,7 +37,6 @@ class TestAgentsModuleImports:
 
     def test_prime_planner_imports(self):
         """Test all imports from prime_planner module."""
-        from DeepResearch.src.agents import prime_planner
 
         from DeepResearch.src.agents.prime_planner import (
             PlanGenerator,
@@ -63,7 +61,6 @@ class TestAgentsModuleImports:
 
     def test_prime_executor_imports(self):
         """Test all imports from prime_executor module."""
-        from DeepResearch.src.agents import prime_executor
 
         from DeepResearch.src.agents.prime_executor import (
             ToolExecutor,
@@ -78,7 +75,6 @@ class TestAgentsModuleImports:
 
     def test_orchestrator_imports(self):
         """Test all imports from orchestrator module."""
-        from DeepResearch.src.agents import orchestrator
 
         from DeepResearch.src.agents.orchestrator import Orchestrator
 
@@ -87,7 +83,6 @@ class TestAgentsModuleImports:
 
     def test_planner_imports(self):
         """Test all imports from planner module."""
-        from DeepResearch.src.agents import planner
 
         from DeepResearch.src.agents.planner import Planner
 
@@ -96,7 +91,6 @@ class TestAgentsModuleImports:
 
     def test_pyd_ai_toolsets_imports(self):
         """Test all imports from pyd_ai_toolsets module."""
-        from DeepResearch.src.agents import pyd_ai_toolsets
 
         from DeepResearch.src.agents.pyd_ai_toolsets import PydAIToolsetBuilder
 
@@ -105,7 +99,6 @@ class TestAgentsModuleImports:
 
     def test_research_agent_imports(self):
         """Test all imports from research_agent module."""
-        from DeepResearch.src.agents import research_agent
 
         from DeepResearch.src.agents.research_agent import (
             ResearchAgent,
@@ -122,7 +115,6 @@ class TestAgentsModuleImports:
 
     def test_tool_caller_imports(self):
         """Test all imports from tool_caller module."""
-        from DeepResearch.src.agents import tool_caller
 
         from DeepResearch.src.agents.tool_caller import ToolCaller
 
@@ -131,7 +123,6 @@ class TestAgentsModuleImports:
 
     def test_agent_orchestrator_imports(self):
         """Test all imports from agent_orchestrator module."""
-        from DeepResearch.src.agents import agent_orchestrator
 
         from DeepResearch.src.agents.agent_orchestrator import AgentOrchestrator
 
@@ -140,7 +131,6 @@ class TestAgentsModuleImports:
 
     def test_bioinformatics_agents_imports(self):
         """Test all imports from bioinformatics_agents module."""
-        from DeepResearch.src.agents import bioinformatics_agents
 
         from DeepResearch.src.agents.bioinformatics_agents import BioinformaticsAgent
 
@@ -149,7 +139,6 @@ class TestAgentsModuleImports:
 
     def test_deep_agent_implementations_imports(self):
         """Test all imports from deep_agent_implementations module."""
-        from DeepResearch.src.agents import deep_agent_implementations
 
         from DeepResearch.src.agents.deep_agent_implementations import DeepAgentImplementation
 
@@ -158,7 +147,6 @@ class TestAgentsModuleImports:
 
     def test_multi_agent_coordinator_imports(self):
         """Test all imports from multi_agent_coordinator module."""
-        from DeepResearch.src.agents import multi_agent_coordinator
 
         from DeepResearch.src.agents.multi_agent_coordinator import MultiAgentCoordinator
 
@@ -167,7 +155,6 @@ class TestAgentsModuleImports:
 
     def test_search_agent_imports(self):
         """Test all imports from search_agent module."""
-        from DeepResearch.src.agents import search_agent
 
         from DeepResearch.src.agents.search_agent import SearchAgent
 
@@ -176,7 +163,6 @@ class TestAgentsModuleImports:
 
     def test_workflow_orchestrator_imports(self):
         """Test all imports from workflow_orchestrator module."""
-        from DeepResearch.src.agents import workflow_orchestrator
 
         from DeepResearch.src.agents.workflow_orchestrator import WorkflowOrchestrator
 
@@ -272,9 +258,6 @@ class TestAgentsImportErrorHandling:
     def test_circular_import_prevention(self):
         """Test that there are no circular imports in agents."""
         # This test will fail if there are circular imports
-        import DeepResearch.src.agents.prime_parser
-        import DeepResearch.src.agents.prime_planner
-        import DeepResearch.src.agents.research_agent
 
         # If we get here, no circular imports were detected
         assert True

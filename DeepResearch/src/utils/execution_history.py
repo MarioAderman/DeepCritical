@@ -24,6 +24,17 @@ class ExecutionItem:
 
 
 @dataclass
+class ExecutionStep:
+    """Individual step in execution history."""
+
+    step_id: str
+    status: str
+    start_time: Optional[float] = None
+    end_time: Optional[float] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
 class ExecutionHistory:
     """History of workflow execution for adaptive re-planning."""
 

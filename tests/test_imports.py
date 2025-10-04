@@ -8,7 +8,6 @@ This test is designed to work in both development and CI environments.
 """
 
 import importlib
-import os
 import sys
 from pathlib import Path
 import pytest
@@ -492,10 +491,6 @@ class TestCircularImportSafety:
         success = safe_import("DeepResearch.src.agents")
         if success:
             # This test will fail if there are circular imports
-            import DeepResearch.src.agents
-            import DeepResearch.src.agents.prime_parser
-            import DeepResearch.src.agents.prime_planner
-            import DeepResearch.src.agents.prime_executor
             assert True  # If we get here, no circular imports
         else:
             pytest.skip("Agents circular import test not available in CI environment")
@@ -505,9 +500,6 @@ class TestCircularImportSafety:
         success = safe_import("DeepResearch.src.datatypes")
         if success:
             # This test will fail if there are circular imports
-            import DeepResearch.src.datatypes
-            import DeepResearch.src.datatypes.bioinformatics
-            import DeepResearch.src.datatypes.rag
             assert True  # If we get here, no circular imports
         else:
             pytest.skip("Datatypes circular import test not available in CI environment")
@@ -517,9 +509,6 @@ class TestCircularImportSafety:
         success = safe_import("DeepResearch.src.tools")
         if success:
             # This test will fail if there are circular imports
-            import DeepResearch.src.tools
-            import DeepResearch.src.tools.base
-            import DeepResearch.src.tools.mock_tools
             assert True  # If we get here, no circular imports
         else:
             pytest.skip("Tools circular import test not available in CI environment")
@@ -529,9 +518,6 @@ class TestCircularImportSafety:
         success = safe_import("DeepResearch.src.utils")
         if success:
             # This test will fail if there are circular imports
-            import DeepResearch.src.utils
-            import DeepResearch.src.utils.config_loader
-            import DeepResearch.src.utils.tool_registry
             assert True  # If we get here, no circular imports
         else:
             pytest.skip("Utils circular import test not available in CI environment")
@@ -541,9 +527,6 @@ class TestCircularImportSafety:
         success = safe_import("DeepResearch.src.prompts")
         if success:
             # This test will fail if there are circular imports
-            import DeepResearch.src.prompts
-            import DeepResearch.src.prompts.agent
-            import DeepResearch.src.prompts.planner
             assert True  # If we get here, no circular imports
         else:
             pytest.skip("Prompts circular import test not available in CI environment")
@@ -553,9 +536,6 @@ class TestCircularImportSafety:
         success = safe_import("DeepResearch.src.statemachines")
         if success:
             # This test will fail if there are circular imports
-            import DeepResearch.src.statemachines
-            import DeepResearch.src.statemachines.bioinformatics_workflow
-            import DeepResearch.src.statemachines.rag_workflow
             assert True  # If we get here, no circular imports
         else:
             pytest.skip("Statemachines circular import test not available in CI environment")

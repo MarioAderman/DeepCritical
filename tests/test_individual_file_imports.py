@@ -36,8 +36,8 @@ class TestIndividualFileImports:
         """Test that all expected Python files exist."""
         expected_files = self.get_all_python_files()
 
-        # List of files we expect to find
-        expected_patterns = [
+        # Expected subdirectories
+        _expected_patterns = [
             'agents/',
             'datatypes/',
             'prompts/',
@@ -84,7 +84,7 @@ class TestIndividualFileImports:
 
             except ImportError as e:
                 pytest.fail(f"Failed to import {file_path}: {e}")
-            except Exception as e:
+            except Exception:
                 # Some files might have runtime dependencies that aren't available
                 # This is acceptable as long as the import structure is correct
                 pass
@@ -141,7 +141,7 @@ class TestIndividualFileImports:
                 pytest.fail(f"Syntax error in {file_path}: {e}")
             except UnicodeDecodeError as e:
                 pytest.fail(f"Encoding error in {file_path}: {e}")
-            except Exception as e:
+            except Exception:
                 # Other errors might be due to missing dependencies or file access issues
                 # This is acceptable for this test
                 pass

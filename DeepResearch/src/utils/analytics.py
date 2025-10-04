@@ -25,6 +25,29 @@ TIMES_FILE = os.path.join(DATA_DIR, "request_times.json")
 LOCK_FILE = os.path.join(DATA_DIR, "analytics.lock")
 
 
+class AnalyticsEngine:
+    """Main analytics engine for tracking request metrics."""
+
+    def __init__(self, data_dir: str = None):
+        """Initialize analytics engine."""
+        self.data_dir = data_dir or DATA_DIR
+        self.counts_file = os.path.join(self.data_dir, "request_counts.json")
+        self.times_file = os.path.join(self.data_dir, "request_times.json")
+        self.lock_file = os.path.join(self.data_dir, "analytics.lock")
+
+    def record_request(self, endpoint: str, status_code: int, duration: float):
+        """Record a request for analytics."""
+        return record_request(endpoint, status_code, duration)
+
+    def get_last_n_days_df(self, days: int):
+        """Get analytics data for last N days."""
+        return last_n_days_df(days)
+
+    def get_avg_time_df(self, days: int):
+        """Get average time analytics."""
+        return last_n_days_avg_time_df(days)
+
+
 def _load() -> dict:
     if not os.path.exists(COUNTS_FILE):
         return {}

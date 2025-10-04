@@ -13,7 +13,6 @@ class TestDatatypesModuleImports:
 
     def test_bioinformatics_imports(self):
         """Test all imports from bioinformatics module."""
-        from DeepResearch.src.datatypes import bioinformatics
 
         from DeepResearch.src.datatypes.bioinformatics import (
             EvidenceCode,
@@ -54,7 +53,6 @@ class TestDatatypesModuleImports:
 
     def test_rag_imports(self):
         """Test all imports from rag module."""
-        from DeepResearch.src.datatypes import rag
 
         from DeepResearch.src.datatypes.rag import (
             SearchType,
@@ -101,7 +99,6 @@ class TestDatatypesModuleImports:
 
     def test_vllm_integration_imports(self):
         """Test all imports from vllm_integration module."""
-        from DeepResearch.src.datatypes import vllm_integration
 
         from DeepResearch.src.datatypes.vllm_integration import (
             VLLMEmbeddings,
@@ -122,7 +119,6 @@ class TestDatatypesModuleImports:
 
     def test_chunk_dataclass_imports(self):
         """Test all imports from chunk_dataclass module."""
-        from DeepResearch.src.datatypes import chunk_dataclass
 
         from DeepResearch.src.datatypes.chunk_dataclass import Chunk
 
@@ -131,7 +127,6 @@ class TestDatatypesModuleImports:
 
     def test_document_dataclass_imports(self):
         """Test all imports from document_dataclass module."""
-        from DeepResearch.src.datatypes import document_dataclass
 
         from DeepResearch.src.datatypes.document_dataclass import Document
 
@@ -140,7 +135,6 @@ class TestDatatypesModuleImports:
 
     def test_chroma_dataclass_imports(self):
         """Test all imports from chroma_dataclass module."""
-        from DeepResearch.src.datatypes import chroma_dataclass
 
         from DeepResearch.src.datatypes.chroma_dataclass import ChromaDocument
 
@@ -149,7 +143,6 @@ class TestDatatypesModuleImports:
 
     def test_postgres_dataclass_imports(self):
         """Test all imports from postgres_dataclass module."""
-        from DeepResearch.src.datatypes import postgres_dataclass
 
         from DeepResearch.src.datatypes.postgres_dataclass import PostgresDocument
 
@@ -158,7 +151,6 @@ class TestDatatypesModuleImports:
 
     def test_vllm_dataclass_imports(self):
         """Test all imports from vllm_dataclass module."""
-        from DeepResearch.src.datatypes import vllm_dataclass
 
         from DeepResearch.src.datatypes.vllm_dataclass import VLLMDocument
 
@@ -167,7 +159,6 @@ class TestDatatypesModuleImports:
 
     def test_markdown_imports(self):
         """Test all imports from markdown module."""
-        from DeepResearch.src.datatypes import markdown
 
         from DeepResearch.src.datatypes.markdown import MarkdownDocument
 
@@ -176,7 +167,6 @@ class TestDatatypesModuleImports:
 
     def test_deep_agent_state_imports(self):
         """Test all imports from deep_agent_state module."""
-        from DeepResearch.src.datatypes import deep_agent_state
 
         from DeepResearch.src.datatypes.deep_agent_state import DeepAgentState
 
@@ -185,7 +175,6 @@ class TestDatatypesModuleImports:
 
     def test_deep_agent_types_imports(self):
         """Test all imports from deep_agent_types module."""
-        from DeepResearch.src.datatypes import deep_agent_types
 
         from DeepResearch.src.datatypes.deep_agent_types import DeepAgentType
 
@@ -194,7 +183,6 @@ class TestDatatypesModuleImports:
 
     def test_workflow_orchestration_imports(self):
         """Test all imports from workflow_orchestration module."""
-        from DeepResearch.src.datatypes import workflow_orchestration
 
         from DeepResearch.src.datatypes.workflow_orchestration import WorkflowOrchestrationState
 
@@ -291,9 +279,6 @@ class TestDatatypesImportErrorHandling:
     def test_circular_import_prevention(self):
         """Test that there are no circular imports in datatypes."""
         # This test will fail if there are circular imports
-        import DeepResearch.src.datatypes.bioinformatics
-        import DeepResearch.src.datatypes.rag
-        import DeepResearch.src.datatypes.vllm_integration
 
         # If we get here, no circular imports were detected
         assert True

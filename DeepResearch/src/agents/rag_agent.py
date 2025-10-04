@@ -8,10 +8,10 @@ that integrates with the existing DeepCritical agent system.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import List
 
 from ..datatypes.rag import RAGQuery, RAGResponse, Document
-from .research_agent import ResearchAgent, ResearchOutcome, StepResult
+from .research_agent import ResearchAgent
 
 
 @dataclass

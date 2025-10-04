@@ -13,7 +13,6 @@ class TestUtilsModuleImports:
 
     def test_config_loader_imports(self):
         """Test all imports from config_loader module."""
-        from DeepResearch.src.utils import config_loader
 
         from DeepResearch.src.utils.config_loader import (
             BioinformaticsConfigLoader,
@@ -24,7 +23,6 @@ class TestUtilsModuleImports:
 
     def test_execution_history_imports(self):
         """Test all imports from execution_history module."""
-        from DeepResearch.src.utils import execution_history
 
         from DeepResearch.src.utils.execution_history import (
             ExecutionHistory,
@@ -39,7 +37,6 @@ class TestUtilsModuleImports:
 
     def test_execution_status_imports(self):
         """Test all imports from execution_status module."""
-        from DeepResearch.src.utils import execution_status
 
         from DeepResearch.src.utils.execution_status import (
             ExecutionStatus,
@@ -56,7 +53,6 @@ class TestUtilsModuleImports:
 
     def test_tool_registry_imports(self):
         """Test all imports from tool_registry module."""
-        from DeepResearch.src.utils import tool_registry
 
         from DeepResearch.src.utils.tool_registry import (
             ToolRegistry,
@@ -69,7 +65,6 @@ class TestUtilsModuleImports:
 
     def test_tool_specs_imports(self):
         """Test all imports from tool_specs module."""
-        from DeepResearch.src.utils import tool_specs
 
         from DeepResearch.src.utils.tool_specs import (
             ToolSpec,
@@ -84,7 +79,6 @@ class TestUtilsModuleImports:
 
     def test_analytics_imports(self):
         """Test all imports from analytics module."""
-        from DeepResearch.src.utils import analytics
 
         from DeepResearch.src.utils.analytics import (
             AnalyticsEngine,
@@ -97,7 +91,6 @@ class TestUtilsModuleImports:
 
     def test_deepsearch_schemas_imports(self):
         """Test all imports from deepsearch_schemas module."""
-        from DeepResearch.src.utils import deepsearch_schemas
 
         from DeepResearch.src.utils.deepsearch_schemas import (
             DeepSearchQuery,
@@ -112,7 +105,6 @@ class TestUtilsModuleImports:
 
     def test_deepsearch_utils_imports(self):
         """Test all imports from deepsearch_utils module."""
-        from DeepResearch.src.utils import deepsearch_utils
 
         from DeepResearch.src.utils.deepsearch_utils import (
             DeepSearchUtils,
@@ -210,9 +202,6 @@ class TestUtilsImportErrorHandling:
     def test_circular_import_prevention(self):
         """Test that there are no circular imports in utils."""
         # This test will fail if there are circular imports
-        import DeepResearch.src.utils.config_loader
-        import DeepResearch.src.utils.execution_history
-        import DeepResearch.src.utils.tool_registry
 
         # If we get here, no circular imports were detected
         assert True

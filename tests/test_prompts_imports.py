@@ -13,7 +13,6 @@ class TestPromptsModuleImports:
 
     def test_agent_imports(self):
         """Test all imports from agent module."""
-        from DeepResearch.src.prompts import agent
 
         from DeepResearch.src.prompts.agent import (
             HEADER,
@@ -45,7 +44,6 @@ class TestPromptsModuleImports:
 
     def test_broken_ch_fixer_imports(self):
         """Test all imports from broken_ch_fixer module."""
-        from DeepResearch.src.prompts import broken_ch_fixer
 
         from DeepResearch.src.prompts.broken_ch_fixer import (
             BROKEN_CH_FIXER_PROMPTS,
@@ -58,7 +56,6 @@ class TestPromptsModuleImports:
 
     def test_code_exec_imports(self):
         """Test all imports from code_exec module."""
-        from DeepResearch.src.prompts import code_exec
 
         from DeepResearch.src.prompts.code_exec import (
             CODE_EXEC_PROMPTS,
@@ -71,7 +68,6 @@ class TestPromptsModuleImports:
 
     def test_code_sandbox_imports(self):
         """Test all imports from code_sandbox module."""
-        from DeepResearch.src.prompts import code_sandbox
 
         from DeepResearch.src.prompts.code_sandbox import (
             CODE_SANDBOX_PROMPTS,
@@ -84,7 +80,6 @@ class TestPromptsModuleImports:
 
     def test_deep_agent_graph_imports(self):
         """Test all imports from deep_agent_graph module."""
-        from DeepResearch.src.prompts import deep_agent_graph
 
         from DeepResearch.src.prompts.deep_agent_graph import (
             DEEP_AGENT_GRAPH_PROMPTS,
@@ -97,7 +92,6 @@ class TestPromptsModuleImports:
 
     def test_deep_agent_prompts_imports(self):
         """Test all imports from deep_agent_prompts module."""
-        from DeepResearch.src.prompts import deep_agent_prompts
 
         from DeepResearch.src.prompts.deep_agent_prompts import (
             DEEP_AGENT_PROMPTS,
@@ -110,7 +104,6 @@ class TestPromptsModuleImports:
 
     def test_error_analyzer_imports(self):
         """Test all imports from error_analyzer module."""
-        from DeepResearch.src.prompts import error_analyzer
 
         from DeepResearch.src.prompts.error_analyzer import (
             ERROR_ANALYZER_PROMPTS,
@@ -123,7 +116,6 @@ class TestPromptsModuleImports:
 
     def test_evaluator_imports(self):
         """Test all imports from evaluator module."""
-        from DeepResearch.src.prompts import evaluator
 
         from DeepResearch.src.prompts.evaluator import (
             EVALUATOR_PROMPTS,
@@ -136,7 +128,6 @@ class TestPromptsModuleImports:
 
     def test_finalizer_imports(self):
         """Test all imports from finalizer module."""
-        from DeepResearch.src.prompts import finalizer
 
         from DeepResearch.src.prompts.finalizer import (
             FINALIZER_PROMPTS,
@@ -149,7 +140,6 @@ class TestPromptsModuleImports:
 
     def test_orchestrator_imports(self):
         """Test all imports from orchestrator module."""
-        from DeepResearch.src.prompts import orchestrator
 
         from DeepResearch.src.prompts.orchestrator import (
             ORCHESTRATOR_PROMPTS,
@@ -162,7 +152,6 @@ class TestPromptsModuleImports:
 
     def test_planner_imports(self):
         """Test all imports from planner module."""
-        from DeepResearch.src.prompts import planner
 
         from DeepResearch.src.prompts.planner import (
             PLANNER_PROMPTS,
@@ -175,7 +164,6 @@ class TestPromptsModuleImports:
 
     def test_query_rewriter_imports(self):
         """Test all imports from query_rewriter module."""
-        from DeepResearch.src.prompts import query_rewriter
 
         from DeepResearch.src.prompts.query_rewriter import (
             QUERY_REWRITER_PROMPTS,
@@ -188,7 +176,6 @@ class TestPromptsModuleImports:
 
     def test_reducer_imports(self):
         """Test all imports from reducer module."""
-        from DeepResearch.src.prompts import reducer
 
         from DeepResearch.src.prompts.reducer import (
             REDUCER_PROMPTS,
@@ -201,7 +188,6 @@ class TestPromptsModuleImports:
 
     def test_research_planner_imports(self):
         """Test all imports from research_planner module."""
-        from DeepResearch.src.prompts import research_planner
 
         from DeepResearch.src.prompts.research_planner import (
             RESEARCH_PLANNER_PROMPTS,
@@ -214,7 +200,6 @@ class TestPromptsModuleImports:
 
     def test_serp_cluster_imports(self):
         """Test all imports from serp_cluster module."""
-        from DeepResearch.src.prompts import serp_cluster
 
         from DeepResearch.src.prompts.serp_cluster import (
             SERP_CLUSTER_PROMPTS,
@@ -318,9 +303,6 @@ class TestPromptsImportErrorHandling:
     def test_circular_import_prevention(self):
         """Test that there are no circular imports in prompts."""
         # This test will fail if there are circular imports
-        import DeepResearch.src.prompts.agent
-        import DeepResearch.src.prompts.planner
-        import DeepResearch.src.prompts.evaluator
 
         # If we get here, no circular imports were detected
         assert True

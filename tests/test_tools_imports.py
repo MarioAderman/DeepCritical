@@ -13,7 +13,6 @@ class TestToolsModuleImports:
 
     def test_base_imports(self):
         """Test all imports from base module."""
-        from DeepResearch.src.tools import base
 
         from DeepResearch.src.tools.base import (
             ToolSpec,
@@ -34,7 +33,6 @@ class TestToolsModuleImports:
 
     def test_mock_tools_imports(self):
         """Test all imports from mock_tools module."""
-        from DeepResearch.src.tools import mock_tools
 
         from DeepResearch.src.tools.mock_tools import (
             MockTool,
@@ -49,7 +47,6 @@ class TestToolsModuleImports:
 
     def test_workflow_tools_imports(self):
         """Test all imports from workflow_tools module."""
-        from DeepResearch.src.tools import workflow_tools
 
         from DeepResearch.src.tools.workflow_tools import (
             WorkflowTool,
@@ -62,7 +59,6 @@ class TestToolsModuleImports:
 
     def test_pyd_ai_tools_imports(self):
         """Test all imports from pyd_ai_tools module."""
-        from DeepResearch.src.tools import pyd_ai_tools
 
         from DeepResearch.src.tools.pyd_ai_tools import (
             _build_builtin_tools,
@@ -77,7 +73,6 @@ class TestToolsModuleImports:
 
     def test_code_sandbox_imports(self):
         """Test all imports from code_sandbox module."""
-        from DeepResearch.src.tools import code_sandbox
 
         from DeepResearch.src.tools.code_sandbox import CodeSandboxTool
 
@@ -86,7 +81,6 @@ class TestToolsModuleImports:
 
     def test_docker_sandbox_imports(self):
         """Test all imports from docker_sandbox module."""
-        from DeepResearch.src.tools import docker_sandbox
 
         from DeepResearch.src.tools.docker_sandbox import DockerSandboxTool
 
@@ -95,7 +89,6 @@ class TestToolsModuleImports:
 
     def test_deepsearch_tools_imports(self):
         """Test all imports from deepsearch_tools module."""
-        from DeepResearch.src.tools import deepsearch_tools
 
         from DeepResearch.src.tools.deepsearch_tools import DeepSearchTool
 
@@ -104,7 +97,6 @@ class TestToolsModuleImports:
 
     def test_deepsearch_workflow_tool_imports(self):
         """Test all imports from deepsearch_workflow_tool module."""
-        from DeepResearch.src.tools import deepsearch_workflow_tool
 
         from DeepResearch.src.tools.deepsearch_workflow_tool import DeepSearchWorkflowTool
 
@@ -113,7 +105,6 @@ class TestToolsModuleImports:
 
     def test_websearch_tools_imports(self):
         """Test all imports from websearch_tools module."""
-        from DeepResearch.src.tools import websearch_tools
 
         from DeepResearch.src.tools.websearch_tools import WebSearchTool
 
@@ -122,7 +113,6 @@ class TestToolsModuleImports:
 
     def test_websearch_cleaned_imports(self):
         """Test all imports from websearch_cleaned module."""
-        from DeepResearch.src.tools import websearch_cleaned
 
         from DeepResearch.src.tools.websearch_cleaned import WebSearchCleanedTool
 
@@ -131,7 +121,6 @@ class TestToolsModuleImports:
 
     def test_analytics_tools_imports(self):
         """Test all imports from analytics_tools module."""
-        from DeepResearch.src.tools import analytics_tools
 
         from DeepResearch.src.tools.analytics_tools import AnalyticsTool
 
@@ -140,7 +129,6 @@ class TestToolsModuleImports:
 
     def test_integrated_search_tools_imports(self):
         """Test all imports from integrated_search_tools module."""
-        from DeepResearch.src.tools import integrated_search_tools
 
         from DeepResearch.src.tools.integrated_search_tools import IntegratedSearchTool
 
@@ -232,9 +220,6 @@ class TestToolsImportErrorHandling:
     def test_circular_import_prevention(self):
         """Test that there are no circular imports in tools."""
         # This test will fail if there are circular imports
-        import DeepResearch.src.tools.base
-        import DeepResearch.src.tools.mock_tools
-        import DeepResearch.src.tools.websearch_tools
 
         # If we get here, no circular imports were detected
         assert True
