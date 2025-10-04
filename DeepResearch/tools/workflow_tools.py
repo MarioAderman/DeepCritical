@@ -12,12 +12,14 @@ from .base import ToolSpec, ToolRunner, ExecutionResult, registry
 @dataclass
 class RewriteTool(ToolRunner):
     def __init__(self):
-        super().__init__(ToolSpec(
-            name="rewrite",
-            description="Rewrite a raw question into an optimized search query (placeholder).",
-            inputs={"query": "TEXT"},
-            outputs={"queries": "TEXT"},
-        ))
+        super().__init__(
+            ToolSpec(
+                name="rewrite",
+                description="Rewrite a raw question into an optimized search query (placeholder).",
+                inputs={"query": "TEXT"},
+                outputs={"queries": "TEXT"},
+            )
+        )
 
     def run(self, params: Dict[str, str]) -> ExecutionResult:
         ok, err = self.validate(params)
@@ -33,12 +35,14 @@ class RewriteTool(ToolRunner):
 @dataclass
 class WebSearchTool(ToolRunner):
     def __init__(self):
-        super().__init__(ToolSpec(
-            name="web_search",
-            description="Perform a web search and return synthetic snippets (placeholder).",
-            inputs={"query": "TEXT"},
-            outputs={"results": "TEXT"},
-        ))
+        super().__init__(
+            ToolSpec(
+                name="web_search",
+                description="Perform a web search and return synthetic snippets (placeholder).",
+                inputs={"query": "TEXT"},
+                outputs={"results": "TEXT"},
+            )
+        )
 
     def run(self, params: Dict[str, str]) -> ExecutionResult:
         ok, err = self.validate(params)
@@ -48,18 +52,25 @@ class WebSearchTool(ToolRunner):
         if not q:
             return ExecutionResult(success=False, error="Empty query")
         # Return a deterministic synthetic result
-        return ExecutionResult(success=True, data={"results": f"Top 3 snippets for: {q}. [1] Snippet A. [2] Snippet B. [3] Snippet C."})
+        return ExecutionResult(
+            success=True,
+            data={
+                "results": f"Top 3 snippets for: {q}. [1] Snippet A. [2] Snippet B. [3] Snippet C."
+            },
+        )
 
 
 @dataclass
 class ReadTool(ToolRunner):
     def __init__(self):
-        super().__init__(ToolSpec(
-            name="read",
-            description="Read a URL and return text content (placeholder).",
-            inputs={"url": "TEXT"},
-            outputs={"content": "TEXT"},
-        ))
+        super().__init__(
+            ToolSpec(
+                name="read",
+                description="Read a URL and return text content (placeholder).",
+                inputs={"url": "TEXT"},
+                outputs={"content": "TEXT"},
+            )
+        )
 
     def run(self, params: Dict[str, str]) -> ExecutionResult:
         ok, err = self.validate(params)
@@ -74,12 +85,14 @@ class ReadTool(ToolRunner):
 @dataclass
 class FinalizeTool(ToolRunner):
     def __init__(self):
-        super().__init__(ToolSpec(
-            name="finalize",
-            description="Polish a draft answer into a final version (placeholder).",
-            inputs={"draft": "TEXT"},
-            outputs={"final": "TEXT"},
-        ))
+        super().__init__(
+            ToolSpec(
+                name="finalize",
+                description="Polish a draft answer into a final version (placeholder).",
+                inputs={"draft": "TEXT"},
+                outputs={"final": "TEXT"},
+            )
+        )
 
     def run(self, params: Dict[str, str]) -> ExecutionResult:
         ok, err = self.validate(params)
@@ -95,12 +108,14 @@ class FinalizeTool(ToolRunner):
 @dataclass
 class ReferencesTool(ToolRunner):
     def __init__(self):
-        super().__init__(ToolSpec(
-            name="references",
-            description="Attach simple reference markers to an answer using provided web text (placeholder).",
-            inputs={"answer": "TEXT", "web": "TEXT"},
-            outputs={"answer_with_refs": "TEXT"},
-        ))
+        super().__init__(
+            ToolSpec(
+                name="references",
+                description="Attach simple reference markers to an answer using provided web text (placeholder).",
+                inputs={"answer": "TEXT", "web": "TEXT"},
+                outputs={"answer_with_refs": "TEXT"},
+            )
+        )
 
     def run(self, params: Dict[str, str]) -> ExecutionResult:
         ok, err = self.validate(params)
@@ -117,34 +132,45 @@ class ReferencesTool(ToolRunner):
 @dataclass
 class EvaluatorTool(ToolRunner):
     def __init__(self):
-        super().__init__(ToolSpec(
-            name="evaluator",
-            description="Evaluate an answer for definitiveness (placeholder).",
-            inputs={"question": "TEXT", "answer": "TEXT"},
-            outputs={"pass": "TEXT", "feedback": "TEXT"},
-        ))
+        super().__init__(
+            ToolSpec(
+                name="evaluator",
+                description="Evaluate an answer for definitiveness (placeholder).",
+                inputs={"question": "TEXT", "answer": "TEXT"},
+                outputs={"pass": "TEXT", "feedback": "TEXT"},
+            )
+        )
 
     def run(self, params: Dict[str, str]) -> ExecutionResult:
         ok, err = self.validate(params)
         if not ok:
             return ExecutionResult(success=False, error=err)
         answer = params.get("answer", "")
-        is_definitive = all(x not in answer.lower() for x in ["i don't know", "not sure", "unable"])
-        return ExecutionResult(success=True, data={
-            "pass": "true" if is_definitive else "false",
-            "feedback": "Looks clear." if is_definitive else "Avoid uncertainty language."
-        })
+        is_definitive = all(
+            x not in answer.lower() for x in ["i don't know", "not sure", "unable"]
+        )
+        return ExecutionResult(
+            success=True,
+            data={
+                "pass": "true" if is_definitive else "false",
+                "feedback": "Looks clear."
+                if is_definitive
+                else "Avoid uncertainty language.",
+            },
+        )
 
 
 @dataclass
 class ErrorAnalyzerTool(ToolRunner):
     def __init__(self):
-        super().__init__(ToolSpec(
-            name="error_analyzer",
-            description="Analyze a sequence of steps and suggest improvements (placeholder).",
-            inputs={"steps": "TEXT"},
-            outputs={"recap": "TEXT", "blame": "TEXT", "improvement": "TEXT"},
-        ))
+        super().__init__(
+            ToolSpec(
+                name="error_analyzer",
+                description="Analyze a sequence of steps and suggest improvements (placeholder).",
+                inputs={"steps": "TEXT"},
+                outputs={"recap": "TEXT", "blame": "TEXT", "improvement": "TEXT"},
+            )
+        )
 
     def run(self, params: Dict[str, str]) -> ExecutionResult:
         ok, err = self.validate(params)
@@ -153,22 +179,27 @@ class ErrorAnalyzerTool(ToolRunner):
         steps = params.get("steps", "").strip()
         if not steps:
             return ExecutionResult(success=False, error="Empty steps")
-        return ExecutionResult(success=True, data={
-            "recap": "Reviewed steps.",
-            "blame": "Repetitive search pattern.",
-            "improvement": "Diversify queries and visit authoritative sources.",
-        })
+        return ExecutionResult(
+            success=True,
+            data={
+                "recap": "Reviewed steps.",
+                "blame": "Repetitive search pattern.",
+                "improvement": "Diversify queries and visit authoritative sources.",
+            },
+        )
 
 
 @dataclass
 class ReducerTool(ToolRunner):
     def __init__(self):
-        super().__init__(ToolSpec(
-            name="reducer",
-            description="Merge multiple candidate answers into a coherent article (placeholder).",
-            inputs={"answers": "TEXT"},
-            outputs={"reduced": "TEXT"},
-        ))
+        super().__init__(
+            ToolSpec(
+                name="reducer",
+                description="Merge multiple candidate answers into a coherent article (placeholder).",
+                inputs={"answers": "TEXT"},
+                outputs={"reduced": "TEXT"},
+            )
+        )
 
     def run(self, params: Dict[str, str]) -> ExecutionResult:
         ok, err = self.validate(params)
@@ -178,7 +209,9 @@ class ReducerTool(ToolRunner):
         if not answers:
             return ExecutionResult(success=False, error="Empty answers")
         # Simple merge: collapse duplicate whitespace and join
-        reduced = " ".join(part.strip() for part in answers.split("\n\n") if part.strip())
+        reduced = " ".join(
+            part.strip() for part in answers.split("\n\n") if part.strip()
+        )
         return ExecutionResult(success=True, data={"reduced": reduced})
 
 
@@ -191,5 +224,3 @@ registry.register("references", ReferencesTool)
 registry.register("evaluator", EvaluatorTool)
 registry.register("error_analyzer", ErrorAnalyzerTool)
 registry.register("reducer", ReducerTool)
-
-

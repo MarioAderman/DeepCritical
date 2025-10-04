@@ -9,12 +9,14 @@ from .base import ToolSpec, ToolRunner, ExecutionResult, registry
 @dataclass
 class SearchTool(ToolRunner):
     def __init__(self):
-        super().__init__(ToolSpec(
-            name="search",
-            description="Retrieve snippets for a query (placeholder).",
-            inputs={"query": "TEXT"},
-            outputs={"snippets": "TEXT"}
-        ))
+        super().__init__(
+            ToolSpec(
+                name="search",
+                description="Retrieve snippets for a query (placeholder).",
+                inputs={"query": "TEXT"},
+                outputs={"snippets": "TEXT"},
+            )
+        )
 
     def run(self, params: Dict[str, str]) -> ExecutionResult:
         ok, err = self.validate(params)
@@ -23,18 +25,22 @@ class SearchTool(ToolRunner):
         q = params["query"].strip()
         if not q:
             return ExecutionResult(success=False, error="Empty query")
-        return ExecutionResult(success=True, data={"snippets": f"Results for: {q}"}, metrics={"hits": 3})
+        return ExecutionResult(
+            success=True, data={"snippets": f"Results for: {q}"}, metrics={"hits": 3}
+        )
 
 
 @dataclass
 class SummarizeTool(ToolRunner):
     def __init__(self):
-        super().__init__(ToolSpec(
-            name="summarize",
-            description="Summarize provided snippets (placeholder).",
-            inputs={"snippets": "TEXT"},
-            outputs={"summary": "TEXT"}
-        ))
+        super().__init__(
+            ToolSpec(
+                name="summarize",
+                description="Summarize provided snippets (placeholder).",
+                inputs={"snippets": "TEXT"},
+                outputs={"summary": "TEXT"},
+            )
+        )
 
     def run(self, params: Dict[str, str]) -> ExecutionResult:
         ok, err = self.validate(params)
@@ -48,8 +54,3 @@ class SummarizeTool(ToolRunner):
 
 registry.register("search", SearchTool)
 registry.register("summarize", SummarizeTool)
-
-
-
-
-
