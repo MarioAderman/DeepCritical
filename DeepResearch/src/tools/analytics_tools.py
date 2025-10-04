@@ -284,8 +284,11 @@ class AnalyticsTool(ToolRunner):
             rate = df["request_count"].sum() / days if not df.empty else 0.0
             return ExecutionResult(
                 success=True,
-                data={"result": f"Average requests per day: {rate:.2f}", "data": f"Rate: {rate}"},
-                metrics={"days": days, "rate": rate}
+                data={
+                    "result": f"Average requests per day: {rate:.2f}",
+                    "data": f"Rate: {rate}",
+                },
+                metrics={"days": days, "rate": rate},
             )
         elif operation == "response_time":
             # Calculate average response time
@@ -293,11 +296,16 @@ class AnalyticsTool(ToolRunner):
             avg_time = df["avg_time"].mean() if not df.empty else 0.0
             return ExecutionResult(
                 success=True,
-                data={"result": f"Average response time: {avg_time:.2f}s", "data": f"Avg time: {avg_time}"},
-                metrics={"days": days, "avg_time": avg_time}
+                data={
+                    "result": f"Average response time: {avg_time:.2f}s",
+                    "data": f"Avg time: {avg_time}",
+                },
+                metrics={"days": days, "avg_time": avg_time},
             )
         else:
-            return ExecutionResult(success=False, error=f"Unknown analytics operation: {operation}")
+            return ExecutionResult(
+                success=False, error=f"Unknown analytics operation: {operation}"
+            )
 
 
 # Register tools with the global registry

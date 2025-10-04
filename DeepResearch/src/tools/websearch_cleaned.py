@@ -490,7 +490,11 @@ class WebSearchCleanedTool(ToolRunner):
             ToolSpec(
                 name="web_search_cleaned",
                 description="Perform web search with cleaned content extraction",
-                inputs={"query": "TEXT", "search_type": "TEXT", "num_results": "NUMBER"},
+                inputs={
+                    "query": "TEXT",
+                    "search_type": "TEXT",
+                    "num_results": "NUMBER",
+                },
                 outputs={"results": "TEXT", "cleaned_content": "TEXT"},
             )
         )
@@ -506,12 +510,16 @@ class WebSearchCleanedTool(ToolRunner):
         # Use the existing search_web function
         try:
             import asyncio
+
             result = asyncio.run(search_web(query, search_type, num_results))
 
             return ExecutionResult(
                 success=True,
-                data={"results": result, "cleaned_content": f"Cleaned search results for: {query}"},
-                metrics={"search_type": search_type, "num_results": num_results}
+                data={
+                    "results": result,
+                    "cleaned_content": f"Cleaned search results for: {query}",
+                },
+                metrics={"search_type": search_type, "num_results": num_results},
             )
         except Exception as e:
             return ExecutionResult(success=False, error=f"Search failed: {str(e)}")

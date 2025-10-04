@@ -33,7 +33,7 @@ class VLLMAgentCLI:
         embedding_model: Optional[str] = None,
         temperature: float = 0.7,
         max_tokens: int = 512,
-        **kwargs
+        **kwargs,
     ):
         self.model_name = model_name
         self.base_url = base_url
@@ -46,13 +46,13 @@ class VLLMAgentCLI:
                 "base_url": base_url,
                 "api_key": api_key,
                 "timeout": 60.0,
-                **kwargs
+                **kwargs,
             },
             default_model=model_name,
             embedding_model=embedding_model,
             temperature=temperature,
             max_tokens=max_tokens,
-            system_prompt="You are a helpful AI assistant powered by VLLM. You can perform various tasks including text generation, conversation, and analysis."
+            system_prompt="You are a helpful AI assistant powered by VLLM. You can perform various tasks including text generation, conversation, and analysis.",
         )
 
         self.agent: Optional[VLLMAgent] = None
@@ -88,11 +88,11 @@ class VLLMAgentCLI:
             try:
                 user_input = input("\nYou: ").strip()
 
-                if user_input.lower() in ['quit', 'exit', 'q']:
+                if user_input.lower() in ["quit", "exit", "q"]:
                     print("Goodbye! 👋")
                     break
 
-                if user_input.lower() == 'stream':
+                if user_input.lower() == "stream":
                     streaming = not streaming
                     mode = "enabled" if streaming else "disabled"
                     print(f"Streaming mode {mode}")
@@ -153,7 +153,7 @@ class VLLMAgentCLI:
             embeddings = await self.agent.embed(texts)
             print(f"Generated {len(embeddings)} embeddings")
             for i, emb in enumerate(embeddings):
-                print(f"Text {i+1}: {len(emb)}-dimensional embedding")
+                print(f"Text {i + 1}: {len(emb)}-dimensional embedding")
         else:
             print("No embedding model configured")
 
@@ -204,12 +204,13 @@ async def create_pydantic_ai_agent():
 # CLI Interface Functions
 # ============================================================================
 
+
 async def chat_with_vllm(
     messages: list,
     model: Optional[str] = None,
     temperature: float = 0.7,
     max_tokens: int = 512,
-    **kwargs
+    **kwargs,
 ) -> str:
     """Chat completion function for Pydantic AI."""
     agent = get_vllm_agent()
@@ -227,7 +228,7 @@ async def complete_with_vllm(
     model: Optional[str] = None,
     temperature: float = 0.7,
     max_tokens: int = 512,
-    **kwargs
+    **kwargs,
 ) -> str:
     """Text completion function for Pydantic AI."""
     agent = get_vllm_agent()
@@ -239,11 +240,7 @@ async def complete_with_vllm(
     return await agent.agent.complete(prompt, **kwargs)
 
 
-async def embed_with_vllm(
-    texts,
-    model: Optional[str] = None,
-    **kwargs
-) -> list:
+async def embed_with_vllm(texts, model: Optional[str] = None, **kwargs) -> list:
     """Embedding generation function for Pydantic AI."""
     agent = get_vllm_agent()
 
@@ -258,6 +255,7 @@ async def embed_with_vllm(
 # Main CLI Entry Point
 # ============================================================================
 
+
 async def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(description="VLLM Agent CLI")
@@ -265,66 +263,36 @@ async def main():
         "--model",
         type=str,
         default="microsoft/DialoGPT-medium",
-        help="Model name to use"
+        help="Model name to use",
     )
     parser.add_argument(
         "--base-url",
         type=str,
         default="http://localhost:8000",
-        help="VLLM server base URL"
+        help="VLLM server base URL",
+    )
+    parser.add_argument("--api-key", type=str, help="API key for authentication")
+    parser.add_argument("--embedding-model", type=str, help="Embedding model name")
+    parser.add_argument(
+        "--temperature", type=float, default=0.7, help="Sampling temperature"
     )
     parser.add_argument(
-        "--api-key",
-        type=str,
-        help="API key for authentication"
+        "--max-tokens", type=int, default=512, help="Maximum tokens to generate"
     )
     parser.add_argument(
-        "--embedding-model",
-        type=str,
-        help="Embedding model name"
+        "--query", type=str, help="Single query to run (non-interactive mode)"
+    )
+    parser.add_argument("--completion", type=str, help="Text completion prompt")
+    parser.add_argument(
+        "--embeddings", nargs="+", help="Generate embeddings for these texts"
     )
     parser.add_argument(
-        "--temperature",
-        type=float,
-        default=0.7,
-        help="Sampling temperature"
+        "--list-models", action="store_true", help="List available models"
     )
     parser.add_argument(
-        "--max-tokens",
-        type=int,
-        default=512,
-        help="Maximum tokens to generate"
+        "--health-check", action="store_true", help="Check server health"
     )
-    parser.add_argument(
-        "--query",
-        type=str,
-        help="Single query to run (non-interactive mode)"
-    )
-    parser.add_argument(
-        "--completion",
-        type=str,
-        help="Text completion prompt"
-    )
-    parser.add_argument(
-        "--embeddings",
-        nargs="+",
-        help="Generate embeddings for these texts"
-    )
-    parser.add_argument(
-        "--list-models",
-        action="store_true",
-        help="List available models"
-    )
-    parser.add_argument(
-        "--health-check",
-        action="store_true",
-        help="Check server health"
-    )
-    parser.add_argument(
-        "--stream",
-        action="store_true",
-        help="Enable streaming output"
-    )
+    parser.add_argument("--stream", action="store_true", help="Enable streaming output")
 
     args = parser.parse_args()
 
@@ -335,7 +303,7 @@ async def main():
         api_key=args.api_key,
         embedding_model=args.embedding_model,
         temperature=args.temperature,
-        max_tokens=args.max_tokens
+        max_tokens=args.max_tokens,
     )
 
     try:
@@ -364,6 +332,6 @@ async def main():
 
 if __name__ == "__main__":
     import sys
+
     result = asyncio.run(main())
     sys.exit(result)
-

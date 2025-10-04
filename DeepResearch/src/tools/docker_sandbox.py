@@ -368,8 +368,11 @@ class DockerSandboxTool(ToolRunner):
         else:
             return ExecutionResult(
                 success=True,
-                data={"result": f"Docker execution for {language}: {code[:50]}...", "success": True},
-                metrics={"language": language, "timeout": timeout}
+                data={
+                    "result": f"Docker execution for {language}: {code[:50]}...",
+                    "success": True,
+                },
+                metrics={"language": language, "timeout": timeout},
             )
 
 

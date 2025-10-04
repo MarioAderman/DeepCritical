@@ -48,8 +48,8 @@ class TestUtilsModuleImports:
         assert StatusType is not None
 
         # Test enum values exist
-        assert hasattr(StatusType, 'PENDING')
-        assert hasattr(StatusType, 'RUNNING')
+        assert hasattr(StatusType, "PENDING")
+        assert hasattr(StatusType, "RUNNING")
 
     def test_tool_registry_imports(self):
         """Test all imports from tool_registry module."""
@@ -173,8 +173,14 @@ class TestUtilsComplexImportChains:
     def test_execution_tracking_chain(self):
         """Test the complete import chain for execution tracking."""
         try:
-            from DeepResearch.src.utils.execution_history import ExecutionHistory, ExecutionStep
-            from DeepResearch.src.utils.execution_status import ExecutionStatus, StatusType
+            from DeepResearch.src.utils.execution_history import (
+                ExecutionHistory,
+                ExecutionStep,
+            )
+            from DeepResearch.src.utils.execution_status import (
+                ExecutionStatus,
+                StatusType,
+            )
             from DeepResearch.src.utils.analytics import AnalyticsEngine
 
             # If all imports succeed, the chain is working
@@ -230,7 +236,7 @@ class TestUtilsImportErrorHandling:
                 status="pending",
                 start_time=None,
                 end_time=None,
-                metadata={}
+                metadata={},
             )
             assert step is not None
             assert step.step_id == "test"

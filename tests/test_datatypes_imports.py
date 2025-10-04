@@ -48,8 +48,8 @@ class TestDatatypesModuleImports:
         assert DataFusionRequest is not None
 
         # Test enum values exist
-        assert hasattr(EvidenceCode, 'IDA')
-        assert hasattr(EvidenceCode, 'IEA')
+        assert hasattr(EvidenceCode, "IDA")
+        assert hasattr(EvidenceCode, "IEA")
 
     def test_rag_imports(self):
         """Test all imports from rag module."""
@@ -94,8 +94,8 @@ class TestDatatypesModuleImports:
         assert RAGWorkflowState is not None
 
         # Test enum values exist
-        assert hasattr(SearchType, 'SEMANTIC')
-        assert hasattr(VectorStoreType, 'CHROMA')
+        assert hasattr(SearchType, "SEMANTIC")
+        assert hasattr(VectorStoreType, "CHROMA")
 
     def test_vllm_integration_imports(self):
         """Test all imports from vllm_integration module."""
@@ -184,7 +184,9 @@ class TestDatatypesModuleImports:
     def test_workflow_orchestration_imports(self):
         """Test all imports from workflow_orchestration module."""
 
-        from DeepResearch.src.datatypes.workflow_orchestration import WorkflowOrchestrationState
+        from DeepResearch.src.datatypes.workflow_orchestration import (
+            WorkflowOrchestrationState,
+        )
 
         # Verify they are all accessible and not None
         assert WorkflowOrchestrationState is not None
@@ -209,8 +211,8 @@ class TestDatatypesCrossModuleImports:
         from DeepResearch.src.datatypes.rag import Document
 
         # Test that they are proper Pydantic models
-        assert hasattr(GOTerm, '__fields__') or hasattr(GOTerm, 'model_fields')
-        assert hasattr(Document, '__fields__') or hasattr(Document, 'model_fields')
+        assert hasattr(GOTerm, "__fields__") or hasattr(GOTerm, "model_fields")
+        assert hasattr(Document, "__fields__") or hasattr(Document, "model_fields")
 
     def test_enum_definitions(self):
         """Test that enum classes are properly defined."""
@@ -229,10 +231,16 @@ class TestDatatypesComplexImportChains:
         """Test the complete import chain for datatype initialization."""
         try:
             from DeepResearch.src.datatypes.bioinformatics import (
-                EvidenceCode, GOTerm, GOAnnotation, PubMedPaper
+                EvidenceCode,
+                GOTerm,
+                GOAnnotation,
+                PubMedPaper,
             )
             from DeepResearch.src.datatypes.rag import (
-                SearchType, Document, SearchResult, RAGQuery
+                SearchType,
+                Document,
+                SearchResult,
+                RAGQuery,
             )
             from DeepResearch.src.datatypes.vllm_integration import VLLMEmbeddings
 
@@ -272,6 +280,7 @@ class TestDatatypesImportErrorHandling:
         """Test that Pydantic is available for datatype models."""
         try:
             from pydantic import BaseModel
+
             assert BaseModel is not None
         except ImportError:
             pytest.fail("Pydantic not available for datatype models")

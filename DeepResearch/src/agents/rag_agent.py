@@ -31,7 +31,7 @@ class RAGAgent(ResearchAgent):
             answer="RAG functionality not yet implemented",
             documents=[],
             confidence=0.5,
-            metadata={"status": "placeholder"}
+            metadata={"status": "placeholder"},
         )
         return response
 

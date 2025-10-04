@@ -29,6 +29,7 @@ class TestToolsModuleImports:
 
         # Test that registry is accessible from tools module
         from DeepResearch.src.tools import registry
+
         assert registry is not None
 
     def test_mock_tools_imports(self):
@@ -98,7 +99,9 @@ class TestToolsModuleImports:
     def test_deepsearch_workflow_tool_imports(self):
         """Test all imports from deepsearch_workflow_tool module."""
 
-        from DeepResearch.src.tools.deepsearch_workflow_tool import DeepSearchWorkflowTool
+        from DeepResearch.src.tools.deepsearch_workflow_tool import (
+            DeepSearchWorkflowTool,
+        )
 
         # Verify they are all accessible and not None
         assert DeepSearchWorkflowTool is not None
@@ -232,8 +235,8 @@ class TestToolsImportErrorHandling:
 
         # Test that registry can be instantiated and used
         assert registry is not None
-        assert hasattr(registry, 'register')
-        assert hasattr(registry, 'make')
+        assert hasattr(registry, "register")
+        assert hasattr(registry, "make")
 
     def test_tool_spec_validation(self):
         """Test that ToolSpec works correctly."""
@@ -243,7 +246,7 @@ class TestToolsImportErrorHandling:
             name="test_tool",
             description="Test tool",
             inputs={"param": "TEXT"},
-            outputs={"result": "TEXT"}
+            outputs={"result": "TEXT"},
         )
 
         # Test that ToolSpec can be created and used

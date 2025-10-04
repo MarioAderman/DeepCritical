@@ -217,6 +217,8 @@ class ReducerTool(ToolRunner):
 
 # Register all tools
 registry.register("rewrite", RewriteTool)
+
+
 @dataclass
 class WorkflowTool(ToolRunner):
     """Tool for managing workflow execution."""
@@ -236,8 +238,10 @@ class WorkflowTool(ToolRunner):
         parameters = params.get("parameters", "")
         return ExecutionResult(
             success=True,
-            data={"result": f"Workflow '{workflow}' executed with parameters: {parameters}"},
-            metrics={"steps": 3}
+            data={
+                "result": f"Workflow '{workflow}' executed with parameters: {parameters}"
+            },
+            metrics={"steps": 3},
         )
 
 
@@ -261,7 +265,7 @@ class WorkflowStepTool(ToolRunner):
         return ExecutionResult(
             success=True,
             data={"result": f"Step '{step}' completed with context: {context}"},
-            metrics={"duration": 1.2}
+            metrics={"duration": 1.2},
         )
 
 

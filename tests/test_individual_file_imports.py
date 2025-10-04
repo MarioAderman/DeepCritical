@@ -22,13 +22,13 @@ class TestIndividualFileImports:
 
         for root, dirs, files in os.walk(src_path):
             # Skip __pycache__ directories
-            dirs[:] = [d for d in dirs if not d.startswith('__pycache__')]
+            dirs[:] = [d for d in dirs if not d.startswith("__pycache__")]
 
             for file in files:
-                if file.endswith('.py') and not file.startswith('__'):
+                if file.endswith(".py") and not file.startswith("__"):
                     file_path = Path(root) / file
                     rel_path = file_path.relative_to(src_path.parent)
-                    python_files.append(str(rel_path).replace('\\', '/'))
+                    python_files.append(str(rel_path).replace("\\", "/"))
 
         return sorted(python_files)
 
@@ -38,21 +38,21 @@ class TestIndividualFileImports:
 
         # Expected subdirectories
         _expected_patterns = [
-            'agents/',
-            'datatypes/',
-            'prompts/',
-            'statemachines/',
-            'tools/',
-            'utils/',
+            "agents/",
+            "datatypes/",
+            "prompts/",
+            "statemachines/",
+            "tools/",
+            "utils/",
         ]
 
         # Check that we have files in each subdirectory
-        agents_files = [f for f in expected_files if 'agents' in f]
-        datatypes_files = [f for f in expected_files if 'datatypes' in f]
-        prompts_files = [f for f in expected_files if 'prompts' in f]
-        statemachines_files = [f for f in expected_files if 'statemachines' in f]
-        tools_files = [f for f in expected_files if 'tools' in f]
-        utils_files = [f for f in expected_files if 'utils' in f]
+        agents_files = [f for f in expected_files if "agents" in f]
+        datatypes_files = [f for f in expected_files if "datatypes" in f]
+        prompts_files = [f for f in expected_files if "prompts" in f]
+        statemachines_files = [f for f in expected_files if "statemachines" in f]
+        tools_files = [f for f in expected_files if "tools" in f]
+        utils_files = [f for f in expected_files if "utils" in f]
 
         assert len(agents_files) > 0, "No agent files found"
         assert len(datatypes_files) > 0, "No datatype files found"
@@ -68,19 +68,21 @@ class TestIndividualFileImports:
         for file_path in python_files:
             # Convert file path to module path
             # Normalize path separators for module path
-            normalized_path = file_path.replace('\\', '/').replace('/', '.').replace('.py', '')
+            normalized_path = (
+                file_path.replace("\\", "/").replace("/", ".").replace(".py", "")
+            )
             module_path = f"DeepResearch.{normalized_path}"
 
             # Try to import the module
             try:
-                if module_path.startswith('DeepResearch.src.'):
+                if module_path.startswith("DeepResearch.src."):
                     # Remove the DeepResearch.src. prefix for importing
-                    clean_module_path = module_path.replace('DeepResearch.src.', '')
+                    clean_module_path = module_path.replace("DeepResearch.src.", "")
                     module = importlib.import_module(clean_module_path)
                     assert module is not None
                 else:
                     # Handle files in the root of src
-                    if '.' in module_path:
+                    if "." in module_path:
                         module = importlib.import_module(module_path)
                         assert module is not None
 
@@ -98,9 +100,16 @@ class TestIndividualFileImports:
         src_path = Path("DeepResearch/src")
 
         # Check main directories
-        main_dirs = ['agents', 'datatypes', 'prompts', 'statemachines', 'tools', 'utils']
+        main_dirs = [
+            "agents",
+            "datatypes",
+            "prompts",
+            "statemachines",
+            "tools",
+            "utils",
+        ]
         for dir_name in main_dirs:
-            init_file = src_path / dir_name / '__init__.py'
+            init_file = src_path / dir_name / "__init__.py"
             assert init_file.exists(), f"Missing __init__.py in {dir_name}"
 
     def test_module_has_content(self):
@@ -109,16 +118,20 @@ class TestIndividualFileImports:
 
         for file_path in python_files[:5]:  # Test first 5 files to avoid being too slow
             # Convert file path to module path
-            module_path = file_path.replace('/', '.').replace('.py', '')
+            module_path = file_path.replace("/", ".").replace(".py", "")
 
             try:
-                if module_path.startswith('DeepResearch.src.'):
-                    clean_module_path = module_path.replace('DeepResearch.src.', '')
+                if module_path.startswith("DeepResearch.src."):
+                    clean_module_path = module_path.replace("DeepResearch.src.", "")
                     module = importlib.import_module(clean_module_path)
 
                     # Check that module has some attributes (classes, functions, variables)
-                    attributes = [attr for attr in dir(module) if not attr.startswith('_')]
-                    assert len(attributes) > 0, f"Module {module_path} appears to be empty"
+                    attributes = [
+                        attr for attr in dir(module) if not attr.startswith("_")
+                    ]
+                    assert len(attributes) > 0, (
+                        f"Module {module_path} appears to be empty"
+                    )
 
             except ImportError:
                 # Skip modules that can't be imported due to missing dependencies
@@ -136,10 +149,10 @@ class TestIndividualFileImports:
 
             try:
                 # Try to compile the file
-                with open(full_path, 'r', encoding='utf-8') as f:
+                with open(full_path, "r", encoding="utf-8") as f:
                     source = f.read()
 
-                compile(source, str(full_path), 'exec')
+                compile(source, str(full_path), "exec")
 
             except SyntaxError as e:
                 pytest.fail(f"Syntax error in {file_path}: {e}")
@@ -154,10 +167,10 @@ class TestIndividualFileImports:
         """Test that we can use importlib to inspect modules."""
         # Test a few key modules
         test_modules = [
-            'DeepResearch.src.agents.prime_parser',
-            'DeepResearch.src.datatypes.bioinformatics',
-            'DeepResearch.src.tools.base',
-            'DeepResearch.src.utils.config_loader',
+            "DeepResearch.src.agents.prime_parser",
+            "DeepResearch.src.datatypes.bioinformatics",
+            "DeepResearch.src.tools.base",
+            "DeepResearch.src.utils.config_loader",
         ]
 
         for module_name in test_modules:
@@ -166,13 +179,13 @@ class TestIndividualFileImports:
                 module = importlib.import_module(module_name)
 
                 # Check that it's a proper module
-                assert hasattr(module, '__name__')
+                assert hasattr(module, "__name__")
                 assert module.__name__ == module_name
 
                 # Check that it has a file path
-                if hasattr(module, '__file__'):
+                if hasattr(module, "__file__"):
                     assert module.__file__ is not None
-                    assert 'DeepResearch/src' in module.__file__.replace('\\', '/')
+                    assert "DeepResearch/src" in module.__file__.replace("\\", "/")
 
             except ImportError as e:
                 pytest.fail(f"Failed to import {module_name}: {e}")
@@ -181,9 +194,9 @@ class TestIndividualFileImports:
         """Test that modules can be inspected for their structure."""
         # Test a few key modules for introspection
         test_modules = [
-            ('DeepResearch.src.agents.prime_parser', ['ScientificIntent', 'DataType']),
-            ('DeepResearch.src.datatypes.bioinformatics', ['EvidenceCode', 'GOTerm']),
-            ('DeepResearch.src.tools.base', ['ToolSpec', 'ToolRunner']),
+            ("DeepResearch.src.agents.prime_parser", ["ScientificIntent", "DataType"]),
+            ("DeepResearch.src.datatypes.bioinformatics", ["EvidenceCode", "GOTerm"]),
+            ("DeepResearch.src.tools.base", ["ToolSpec", "ToolRunner"]),
         ]
 
         for module_name, expected_classes in test_modules:
@@ -192,12 +205,16 @@ class TestIndividualFileImports:
 
                 # Check that expected classes exist
                 for class_name in expected_classes:
-                    assert hasattr(module, class_name), f"Missing {class_name} in {module_name}"
+                    assert hasattr(module, class_name), (
+                        f"Missing {class_name} in {module_name}"
+                    )
                     cls = getattr(module, class_name)
                     assert cls is not None
 
                     # Check that it's actually a class
-                    assert inspect.isclass(cls), f"{class_name} is not a class in {module_name}"
+                    assert inspect.isclass(cls), (
+                        f"{class_name} is not a class in {module_name}"
+                    )
 
             except ImportError as e:
                 pytest.fail(f"Failed to import {module_name}: {e}")
@@ -215,7 +232,14 @@ class TestFileExistenceValidation:
     def test_subdirectories_exist(self):
         """Test that all expected subdirectories exist."""
         src_path = Path("DeepResearch/src")
-        expected_dirs = ['agents', 'datatypes', 'prompts', 'statemachines', 'tools', 'utils']
+        expected_dirs = [
+            "agents",
+            "datatypes",
+            "prompts",
+            "statemachines",
+            "tools",
+            "utils",
+        ]
 
         for dir_name in expected_dirs:
             dir_path = src_path / dir_name
@@ -228,10 +252,10 @@ class TestFileExistenceValidation:
 
         for root, dirs, files in os.walk(src_path):
             # Skip __pycache__ directories
-            dirs[:] = [d for d in dirs if not d.startswith('__pycache__')]
+            dirs[:] = [d for d in dirs if not d.startswith("__pycache__")]
 
             for file in files:
-                if file.endswith('.py'):
+                if file.endswith(".py"):
                     file_path = Path(root) / file
                     assert file_path.is_file(), f"{file_path} is not a file"
 
@@ -242,14 +266,16 @@ class TestFileExistenceValidation:
 
         for root, dirs, files in os.walk(src_path):
             # Skip __pycache__ directories
-            dirs[:] = [d for d in dirs if not d.startswith('__pycache__')]
+            dirs[:] = [d for d in dirs if not d.startswith("__pycache__")]
 
             current_dir = Path(root)
             if current_dir not in dir_files:
                 dir_files[current_dir] = set()
 
             for file in files:
-                if file.endswith('.py') and not file.startswith('__'):
+                if file.endswith(".py") and not file.startswith("__"):
                     if file in dir_files[current_dir]:
-                        pytest.fail(f"Duplicate file name found in {current_dir}: {file}")
+                        pytest.fail(
+                            f"Duplicate file name found in {current_dir}: {file}"
+                        )
                     dir_files[current_dir].add(file)

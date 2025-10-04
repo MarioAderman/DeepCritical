@@ -110,7 +110,9 @@ class TestStatemachinesCrossModuleImports:
     def test_statemachines_internal_dependencies(self):
         """Test that statemachine modules can import from each other correctly."""
         # Test that modules can import shared patterns
-        from DeepResearch.src.statemachines.bioinformatics_workflow import BioinformaticsState
+        from DeepResearch.src.statemachines.bioinformatics_workflow import (
+            BioinformaticsState,
+        )
         from DeepResearch.src.statemachines.rag_workflow import RAGState
 
         # This should work without circular imports
@@ -120,7 +122,9 @@ class TestStatemachinesCrossModuleImports:
     def test_datatypes_integration_imports(self):
         """Test that statemachines can import from datatypes module."""
         # This tests the import chain: statemachines -> datatypes
-        from DeepResearch.src.statemachines.bioinformatics_workflow import BioinformaticsState
+        from DeepResearch.src.statemachines.bioinformatics_workflow import (
+            BioinformaticsState,
+        )
         from DeepResearch.src.datatypes.bioinformatics import FusedDataset
 
         # If we get here without ImportError, the import chain works
@@ -130,7 +134,9 @@ class TestStatemachinesCrossModuleImports:
     def test_agents_integration_imports(self):
         """Test that statemachines can import from agents module."""
         # This tests the import chain: statemachines -> agents
-        from DeepResearch.src.statemachines.bioinformatics_workflow import ParseBioinformaticsQuery
+        from DeepResearch.src.statemachines.bioinformatics_workflow import (
+            ParseBioinformaticsQuery,
+        )
         from DeepResearch.src.agents.bioinformatics_agents import BioinformaticsAgent
 
         # If we get here without ImportError, the import chain works
@@ -153,16 +159,22 @@ class TestStatemachinesComplexImportChains:
         """Test the complete import chain for statemachines initialization."""
         try:
             from DeepResearch.src.statemachines.bioinformatics_workflow import (
-                BioinformaticsState, ParseBioinformaticsQuery, FuseDataSources
+                BioinformaticsState,
+                ParseBioinformaticsQuery,
+                FuseDataSources,
             )
             from DeepResearch.src.statemachines.rag_workflow import (
-                RAGState, InitializeRAG
+                RAGState,
+                InitializeRAG,
             )
             from DeepResearch.src.statemachines.search_workflow import (
-                SearchWorkflowState, InitializeSearch
+                SearchWorkflowState,
+                InitializeSearch,
             )
             from DeepResearch.src.datatypes.bioinformatics import FusedDataset
-            from DeepResearch.src.agents.bioinformatics_agents import BioinformaticsAgent
+            from DeepResearch.src.agents.bioinformatics_agents import (
+                BioinformaticsAgent,
+            )
 
             # If all imports succeed, the chain is working
             assert BioinformaticsState is not None
@@ -181,10 +193,16 @@ class TestStatemachinesComplexImportChains:
     def test_workflow_execution_chain(self):
         """Test the complete import chain for workflow execution."""
         try:
-            from DeepResearch.src.statemachines.bioinformatics_workflow import SynthesizeResults
-            from DeepResearch.src.statemachines.deepsearch_workflow import CompleteDeepSearch
+            from DeepResearch.src.statemachines.bioinformatics_workflow import (
+                SynthesizeResults,
+            )
+            from DeepResearch.src.statemachines.deepsearch_workflow import (
+                CompleteDeepSearch,
+            )
             from DeepResearch.src.statemachines.rag_workflow import GenerateResponse
-            from DeepResearch.src.statemachines.search_workflow import GenerateFinalResponse
+            from DeepResearch.src.statemachines.search_workflow import (
+                GenerateFinalResponse,
+            )
 
             # If all imports succeed, the chain is working
             assert SynthesizeResults is not None
@@ -216,7 +234,9 @@ class TestStatemachinesImportErrorHandling:
 
     def test_state_class_instantiation(self):
         """Test that state classes can be instantiated."""
-        from DeepResearch.src.statemachines.bioinformatics_workflow import BioinformaticsState
+        from DeepResearch.src.statemachines.bioinformatics_workflow import (
+            BioinformaticsState,
+        )
 
         # Test that we can create instances (basic functionality)
         try:
@@ -230,7 +250,9 @@ class TestStatemachinesImportErrorHandling:
 
     def test_node_class_instantiation(self):
         """Test that node classes can be instantiated."""
-        from DeepResearch.src.statemachines.bioinformatics_workflow import ParseBioinformaticsQuery
+        from DeepResearch.src.statemachines.bioinformatics_workflow import (
+            ParseBioinformaticsQuery,
+        )
 
         # Test that we can create instances (basic functionality)
         try:
@@ -248,6 +270,6 @@ class TestStatemachinesImportErrorHandling:
 
         # Test that common pydantic_graph attributes are available
         # (these might not exist if pydantic_graph is not installed)
-        if hasattr(BaseNode, '__annotations__'):
-            annotations = getattr(BaseNode, '__annotations__')
+        if hasattr(BaseNode, "__annotations__"):
+            annotations = getattr(BaseNode, "__annotations__")
             assert isinstance(annotations, dict)

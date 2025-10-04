@@ -562,7 +562,13 @@ class DeepAgentImplementation:
 
     async def execute_task(self, task: str) -> AgentExecutionResult:
         """Execute a task using the appropriate agent."""
-        return await self.orchestrator.execute_task(task) if self.orchestrator else AgentExecutionResult(success=False, error="Orchestrator not initialized")
+        return (
+            await self.orchestrator.execute_task(task)
+            if self.orchestrator
+            else AgentExecutionResult(
+                success=False, error="Orchestrator not initialized"
+            )
+        )
 
     def get_agent(self, agent_type: str) -> Optional[BaseDeepAgent]:
         """Get a specific agent by type."""

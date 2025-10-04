@@ -246,8 +246,11 @@ class CodeSandboxTool(ToolRunner):
         else:
             return ExecutionResult(
                 success=True,
-                data={"result": f"Code executed in {language}: {code[:50]}...", "success": True},
-                metrics={"language": language}
+                data={
+                    "result": f"Code executed in {language}: {code[:50]}...",
+                    "success": True,
+                },
+                metrics={"language": language},
             )
 
 

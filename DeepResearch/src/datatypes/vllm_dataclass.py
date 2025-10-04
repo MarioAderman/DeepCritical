@@ -2053,15 +2053,20 @@ class VLLMDocument(BaseModel):
 
     id: str = Field(..., description="Unique document identifier")
     content: str = Field(..., description="Document content")
-    metadata: Dict[str, Any] = Field(default_factory=dict, description="Document metadata")
-    embedding: Optional[List[float]] = Field(None, description="Document embedding vector")
+    metadata: Dict[str, Any] = Field(
+        default_factory=dict, description="Document metadata"
+    )
+    embedding: Optional[List[float]] = Field(
+        None, description="Document embedding vector"
+    )
     created_at: Optional[str] = Field(None, description="Creation timestamp")
     updated_at: Optional[str] = Field(None, description="Last update timestamp")
     model_name: Optional[str] = Field(None, description="Model used for processing")
-    chunk_size: Optional[int] = Field(None, description="Chunk size if document was split")
+    chunk_size: Optional[int] = Field(
+        None, description="Chunk size if document was split"
+    )
 
     class Config:
         """Pydantic configuration."""
-        json_encoders = {
-            datetime: lambda v: v.isoformat() if v else None
-        }
+
+        json_encoders = {datetime: lambda v: v.isoformat() if v else None}

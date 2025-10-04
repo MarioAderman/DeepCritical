@@ -32,8 +32,8 @@ class TestAgentsModuleImports:
         assert parse_query is not None
 
         # Test enum values exist
-        assert hasattr(ScientificIntent, 'PROTEIN_DESIGN')
-        assert hasattr(DataType, 'SEQUENCE')
+        assert hasattr(ScientificIntent, "PROTEIN_DESIGN")
+        assert hasattr(DataType, "SEQUENCE")
 
     def test_prime_planner_imports(self):
         """Test all imports from prime_planner module."""
@@ -56,8 +56,8 @@ class TestAgentsModuleImports:
         assert generate_plan is not None
 
         # Test enum values exist
-        assert hasattr(ToolCategory, 'SEARCH')
-        assert hasattr(ToolCategory, 'ANALYSIS')
+        assert hasattr(ToolCategory, "SEARCH")
+        assert hasattr(ToolCategory, "ANALYSIS")
 
     def test_prime_executor_imports(self):
         """Test all imports from prime_executor module."""
@@ -140,7 +140,9 @@ class TestAgentsModuleImports:
     def test_deep_agent_implementations_imports(self):
         """Test all imports from deep_agent_implementations module."""
 
-        from DeepResearch.src.agents.deep_agent_implementations import DeepAgentImplementation
+        from DeepResearch.src.agents.deep_agent_implementations import (
+            DeepAgentImplementation,
+        )
 
         # Verify they are all accessible and not None
         assert DeepAgentImplementation is not None
@@ -148,7 +150,9 @@ class TestAgentsModuleImports:
     def test_multi_agent_coordinator_imports(self):
         """Test all imports from multi_agent_coordinator module."""
 
-        from DeepResearch.src.agents.multi_agent_coordinator import MultiAgentCoordinator
+        from DeepResearch.src.agents.multi_agent_coordinator import (
+            MultiAgentCoordinator,
+        )
 
         # Verify they are all accessible and not None
         assert MultiAgentCoordinator is not None

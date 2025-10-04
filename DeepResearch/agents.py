@@ -18,7 +18,7 @@ from enum import Enum
 from pydantic_ai import Agent
 
 # Import existing tools and schemas
-from .tools.base import registry, ExecutionResult
+from .src.tools.base import registry, ExecutionResult
 from .src.datatypes.rag import RAGQuery, RAGResponse
 from .src.datatypes.bioinformatics import FusedDataset, ReasoningTask, DataFusionRequest
 

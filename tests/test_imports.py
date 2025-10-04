@@ -82,6 +82,7 @@ class TestMainSrcImports:
                 run,
                 ToolCaller,
             )
+
             # Verify they are all accessible
             assert QueryParser is not None
             assert StructuredProblem is not None
@@ -156,6 +157,7 @@ class TestMainSrcImports:
                 VLLMDeployment,
                 VLLMRAGSystem,
             )
+
             # Verify they are all accessible
             assert EvidenceCode is not None
             assert GOTerm is not None
@@ -203,8 +205,9 @@ class TestMainSrcImports:
         success = safe_import("DeepResearch.src.tools")
         if success:
             from DeepResearch.src import tools
+
             # Test that the registry is accessible
-            assert hasattr(tools, 'registry')
+            assert hasattr(tools, "registry")
             assert tools.registry is not None
         else:
             pytest.skip("Tools module not available in CI environment")
@@ -214,6 +217,7 @@ class TestMainSrcImports:
         success = safe_import("DeepResearch.src.utils")
         if success:
             from DeepResearch.src import utils
+
             # Test that utils module is accessible
             assert utils is not None
         else:
@@ -224,6 +228,7 @@ class TestMainSrcImports:
         success = safe_import("DeepResearch.src.prompts")
         if success:
             from DeepResearch.src import prompts
+
             # Test that prompts module is accessible
             assert prompts is not None
         else:
@@ -234,6 +239,7 @@ class TestMainSrcImports:
         success = safe_import("DeepResearch.src.statemachines")
         if success:
             from DeepResearch.src import statemachines
+
             # Test that statemachines module is accessible
             assert statemachines is not None
         else:
@@ -258,6 +264,7 @@ class TestSubmoduleImports:
                 research_agent,
                 tool_caller,
             )
+
             # Verify they are all accessible
             assert prime_parser is not None
             assert prime_planner is not None
@@ -288,6 +295,7 @@ class TestSubmoduleImports:
                 deep_agent_types,
                 workflow_orchestration,
             )
+
             # Verify they are all accessible
             assert bioinformatics is not None
             assert rag is not None
@@ -321,6 +329,7 @@ class TestSubmoduleImports:
                 analytics_tools,
                 integrated_search_tools,
             )
+
             # Verify they are all accessible
             assert base is not None
             assert mock_tools is not None
@@ -350,6 +359,7 @@ class TestSubmoduleImports:
                 deepsearch_schemas,
                 deepsearch_utils,
             )
+
             # Verify they are all accessible
             assert config_loader is not None
             assert execution_history is not None
@@ -383,6 +393,7 @@ class TestSubmoduleImports:
                 research_planner,
                 serp_cluster,
             )
+
             # Verify they are all accessible
             assert agent is not None
             assert broken_ch_fixer is not None
@@ -412,6 +423,7 @@ class TestSubmoduleImports:
                 rag_workflow,
                 search_workflow,
             )
+
             # Verify they are all accessible
             assert bioinformatics_workflow is not None
             assert deepsearch_workflow is not None
@@ -433,6 +445,7 @@ class TestDeepImportChains:
                 QueryParser,
                 StructuredProblem,
             )
+
             assert QueryParser is not None
             assert StructuredProblem is not None
         else:
@@ -447,6 +460,7 @@ class TestDeepImportChains:
                 EvidenceCode,
                 GOTerm,
             )
+
             assert EvidenceCode is not None
             assert GOTerm is not None
         else:
@@ -458,6 +472,7 @@ class TestDeepImportChains:
         if success:
             # Test that base tools can be imported
             from DeepResearch.src.tools.base import registry
+
             assert registry is not None
         else:
             pytest.skip("Tool internal imports not available in CI environment")
@@ -468,6 +483,7 @@ class TestDeepImportChains:
         if success:
             # Test that config_loader can be imported
             from DeepResearch.src.utils.config_loader import BioinformaticsConfigLoader
+
             assert BioinformaticsConfigLoader is not None
         else:
             pytest.skip("Utils internal imports not available in CI environment")
@@ -478,6 +494,7 @@ class TestDeepImportChains:
         if success:
             # Test that agent prompts can be imported
             from DeepResearch.src.prompts.agent import AgentPrompts
+
             assert AgentPrompts is not None
         else:
             pytest.skip("Prompts internal imports not available in CI environment")
@@ -502,7 +519,9 @@ class TestCircularImportSafety:
             # This test will fail if there are circular imports
             assert True  # If we get here, no circular imports
         else:
-            pytest.skip("Datatypes circular import test not available in CI environment")
+            pytest.skip(
+                "Datatypes circular import test not available in CI environment"
+            )
 
     def test_no_circular_imports_in_tools(self):
         """Test that importing tools doesn't cause circular imports."""
@@ -538,4 +557,6 @@ class TestCircularImportSafety:
             # This test will fail if there are circular imports
             assert True  # If we get here, no circular imports
         else:
-            pytest.skip("Statemachines circular import test not available in CI environment")
+            pytest.skip(
+                "Statemachines circular import test not available in CI environment"
+            )

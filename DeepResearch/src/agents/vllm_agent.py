@@ -25,7 +25,9 @@ class VLLMAgentDependencies(BaseModel):
     """Dependencies for VLLM agent."""
 
     vllm_client: VLLMClient = Field(..., description="VLLM client instance")
-    default_model: str = Field("microsoft/DialoGPT-medium", description="Default model name")
+    default_model: str = Field(
+        "microsoft/DialoGPT-medium", description="Default model name"
+    )
     embedding_model: Optional[str] = Field(None, description="Embedding model name")
 
     class Config:
@@ -35,12 +37,14 @@ class VLLMAgentDependencies(BaseModel):
 class VLLMAgentConfig(BaseModel):
     """Configuration for VLLM agent."""
 
-    client_config: Dict[str, Any] = Field(default_factory=dict, description="VLLM client configuration")
+    client_config: Dict[str, Any] = Field(
+        default_factory=dict, description="VLLM client configuration"
+    )
     default_model: str = Field("microsoft/DialoGPT-medium", description="Default model")
     embedding_model: Optional[str] = Field(None, description="Embedding model")
     system_prompt: str = Field(
         "You are a helpful AI assistant powered by VLLM. You can perform various tasks including text generation, conversation, and analysis.",
-        description="System prompt for the agent"
+        description="System prompt for the agent",
     )
     max_tokens: int = Field(512, description="Maximum tokens for generation")
     temperature: float = Field(0.7, description="Sampling temperature")
@@ -56,7 +60,7 @@ class VLLMAgent:
         self.dependencies = VLLMAgentDependencies(
             vllm_client=self.client,
             default_model=config.default_model,
-            embedding_model=config.embedding_model
+            embedding_model=config.embedding_model,
         )
 
     async def initialize(self):
@@ -70,10 +74,7 @@ class VLLMAgent:
             raise
 
     async def chat(
-        self,
-        messages: List[Dict[str, str]],
-        model: Optional[str] = None,
-        **kwargs
+        self, messages: List[Dict[str, str]], model: Optional[str] = None, **kwargs
     ) -> str:
         """Chat with the VLLM model."""
         model = model or self.config.default_model
@@ -84,18 +85,13 @@ class VLLMAgent:
             max_tokens=kwargs.get("max_tokens", self.config.max_tokens),
             temperature=kwargs.get("temperature", self.config.temperature),
             top_p=kwargs.get("top_p", self.config.top_p),
-            **kwargs
+            **kwargs,
         )
 
         response = await self.client.chat_completions(request)
         return response.choices[0].message.content
 
-    async def complete(
-        self,
-        prompt: str,
-        model: Optional[str] = None,
-        **kwargs
-    ) -> str:
+    async def complete(self, prompt: str, model: Optional[str] = None, **kwargs) -> str:
         """Complete text with the VLLM model."""
         model = model or self.config.default_model
 
@@ -105,38 +101,30 @@ class VLLMAgent:
             max_tokens=kwargs.get("max_tokens", self.config.max_tokens),
             temperature=kwargs.get("temperature", self.config.temperature),
             top_p=kwargs.get("top_p", self.config.top_p),
-            **kwargs
+            **kwargs,
         )
 
         response = await self.client.completions(request)
         return response.choices[0].text
 
     async def embed(
-        self,
-        texts: Union[str, List[str]],
-        model: Optional[str] = None,
-        **kwargs
+        self, texts: Union[str, List[str]], model: Optional[str] = None, **kwargs
     ) -> List[List[float]]:
         """Generate embeddings for texts."""
         if isinstance(texts, str):
             texts = [texts]
 
-        embedding_model = model or self.config.embedding_model or self.config.default_model
-
-        request = EmbeddingRequest(
-            model=embedding_model,
-            input=texts,
-            **kwargs
+        embedding_model = (
+            model or self.config.embedding_model or self.config.default_model
         )
+
+        request = EmbeddingRequest(model=embedding_model, input=texts, **kwargs)
 
         response = await self.client.embeddings(request)
         return [item.embedding for item in response.data]
 
     async def chat_stream(
-        self,
-        messages: List[Dict[str, str]],
-        model: Optional[str] = None,
-        **kwargs
+        self, messages: List[Dict[str, str]], model: Optional[str] = None, **kwargs
     ) -> str:
         """Stream chat completion."""
         model = model or self.config.default_model
@@ -148,7 +136,7 @@ class VLLMAgent:
             temperature=kwargs.get("temperature", self.config.temperature),
             top_p=kwargs.get("top_p", self.config.top_p),
             stream=True,
-            **kwargs
+            **kwargs,
         )
 
         full_response = ""
@@ -171,66 +159,64 @@ class VLLMAgent:
         # Chat completion tool
         @agent.tool
         async def chat_completion(
-            ctx,
-            messages: List[Dict[str, str]],
-            model: Optional[str] = None,
-            **kwargs
+            ctx, messages: List[Dict[str, str]], model: Optional[str] = None, **kwargs
         ) -> str:
             """Chat with the VLLM model."""
-            return await ctx.deps.vllm_client.chat_completions(
-                ChatCompletionRequest(
-                    model=model or ctx.deps.default_model,
-                    messages=messages,
-                    **kwargs
+            return (
+                await ctx.deps.vllm_client.chat_completions(
+                    ChatCompletionRequest(
+                        model=model or ctx.deps.default_model,
+                        messages=messages,
+                        **kwargs,
+                    )
                 )
-            ).choices[0].message.content
+                .choices[0]
+                .message.content
+            )
 
         # Text completion tool
         @agent.tool
         async def text_completion(
-            ctx,
-            prompt: str,
-            model: Optional[str] = None,
-            **kwargs
+            ctx, prompt: str, model: Optional[str] = None, **kwargs
         ) -> str:
             """Complete text with the VLLM model."""
-            return await ctx.deps.vllm_client.completions(
-                CompletionRequest(
-                    model=model or ctx.deps.default_model,
-                    prompt=prompt,
-                    **kwargs
+            return (
+                await ctx.deps.vllm_client.completions(
+                    CompletionRequest(
+                        model=model or ctx.deps.default_model, prompt=prompt, **kwargs
+                    )
                 )
-            ).choices[0].text
+                .choices[0]
+                .text
+            )
 
         # Embedding generation tool
         @agent.tool
         async def generate_embeddings(
-            ctx,
-            texts: Union[str, List[str]],
-            model: Optional[str] = None,
-            **kwargs
+            ctx, texts: Union[str, List[str]], model: Optional[str] = None, **kwargs
         ) -> List[List[float]]:
             """Generate embeddings using VLLM."""
             if isinstance(texts, str):
                 texts = [texts]
 
-            embedding_model = model or ctx.deps.embedding_model or ctx.deps.default_model
+            embedding_model = (
+                model or ctx.deps.embedding_model or ctx.deps.default_model
+            )
 
-            return await ctx.deps.vllm_client.embeddings(
-                EmbeddingRequest(
-                    model=embedding_model,
-                    input=texts,
-                    **kwargs
+            return (
+                await ctx.deps.vllm_client.embeddings(
+                    EmbeddingRequest(model=embedding_model, input=texts, **kwargs)
                 )
-            ).data[0].embedding if len(texts) == 1 else [
-                item.embedding for item in await ctx.deps.vllm_client.embeddings(
-                    EmbeddingRequest(
-                        model=embedding_model,
-                        input=texts,
-                        **kwargs
-                    )
-                ).data
-            ]
+                .data[0]
+                .embedding
+                if len(texts) == 1
+                else [
+                    item.embedding
+                    for item in await ctx.deps.vllm_client.embeddings(
+                        EmbeddingRequest(model=embedding_model, input=texts, **kwargs)
+                    ).data
+                ]
+            )
 
         # Model information tool
         @agent.tool
@@ -247,14 +233,18 @@ class VLLMAgent:
 
         # Tokenization tools
         @agent.tool
-        async def tokenize(ctx, text: str, model: Optional[str] = None) -> Dict[str, Any]:
+        async def tokenize(
+            ctx, text: str, model: Optional[str] = None
+        ) -> Dict[str, Any]:
             """Tokenize text."""
             return await ctx.deps.vllm_client.tokenize(
                 text, model or ctx.deps.default_model
             )
 
         @agent.tool
-        async def detokenize(ctx, token_ids: List[int], model: Optional[str] = None) -> Dict[str, Any]:
+        async def detokenize(
+            ctx, token_ids: List[int], model: Optional[str] = None
+        ) -> Dict[str, Any]:
             """Detokenize token IDs."""
             return await ctx.deps.vllm_client.detokenize(
                 token_ids, model or ctx.deps.default_model
@@ -274,16 +264,12 @@ def create_vllm_agent(
     base_url: str = "http://localhost:8000",
     api_key: Optional[str] = None,
     embedding_model: Optional[str] = None,
-    **kwargs
+    **kwargs,
 ) -> VLLMAgent:
     """Create a VLLM agent with default configuration."""
 
     config = VLLMAgentConfig(
-        client_config={
-            "base_url": base_url,
-            "api_key": api_key,
-            **kwargs
-        },
+        client_config={"base_url": base_url, "api_key": api_key, **kwargs},
         default_model=model_name,
         embedding_model=embedding_model,
     )
@@ -297,7 +283,7 @@ def create_advanced_vllm_agent(
     quantization: Optional[QuantizationMethod] = None,
     tensor_parallel_size: int = 1,
     gpu_memory_utilization: float = 0.9,
-    **kwargs
+    **kwargs,
 ) -> VLLMAgent:
     """Create a VLLM agent with advanced configuration."""
 
@@ -310,11 +296,7 @@ def create_advanced_vllm_agent(
     )
 
     config = VLLMAgentConfig(
-        client_config={
-            "base_url": base_url,
-            "vllm_config": vllm_config,
-            **kwargs
-        },
+        client_config={"base_url": base_url, "vllm_config": vllm_config, **kwargs},
         default_model=model_name,
     )
 
@@ -325,6 +307,7 @@ def create_advanced_vllm_agent(
 # Example Usage
 # ============================================================================
 
+
 async def example_vllm_agent():
     """Example usage of VLLM agent."""
     print("Creating VLLM agent...")
@@ -334,7 +317,7 @@ async def example_vllm_agent():
         model_name="microsoft/DialoGPT-medium",
         base_url="http://localhost:8000",
         temperature=0.8,
-        max_tokens=100
+        max_tokens=100,
     )
 
     await agent.initialize()
@@ -368,8 +351,7 @@ async def example_pydantic_ai_integration():
 
     # Create agent
     agent = create_vllm_agent(
-        model_name="microsoft/DialoGPT-medium",
-        base_url="http://localhost:8000"
+        model_name="microsoft/DialoGPT-medium", base_url="http://localhost:8000"
     )
 
     await agent.initialize()
@@ -381,8 +363,7 @@ async def example_pydantic_ai_integration():
 
     # Test with dependencies
     result = await pydantic_agent.run(
-        "Tell me about artificial intelligence",
-        deps=agent.dependencies
+        "Tell me about artificial intelligence", deps=agent.dependencies
     )
 
     print(f"Pydantic AI result: {result.data}")
@@ -398,5 +379,3 @@ if __name__ == "__main__":
     asyncio.run(example_pydantic_ai_integration())
 
     print("All examples completed!")
-
-

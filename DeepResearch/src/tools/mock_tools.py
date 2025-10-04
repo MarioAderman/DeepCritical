@@ -67,7 +67,9 @@ class MockTool(ToolRunner):
         )
 
     def run(self, params: Dict[str, str]) -> ExecutionResult:
-        return ExecutionResult(success=True, data={"output": f"Mock result for: {params.get('input', '')}"})
+        return ExecutionResult(
+            success=True, data={"output": f"Mock result for: {params.get('input', '')}"}
+        )
 
 
 @dataclass
@@ -89,7 +91,7 @@ class MockWebSearchTool(ToolRunner):
         return ExecutionResult(
             success=True,
             data={"results": f"Mock search results for: {query}"},
-            metrics={"hits": 5}
+            metrics={"hits": 5},
         )
 
 
@@ -112,7 +114,7 @@ class MockBioinformaticsTool(ToolRunner):
         return ExecutionResult(
             success=True,
             data={"analysis": f"Mock bioinformatics analysis for: {sequence[:50]}..."},
-            metrics={"length": len(sequence)}
+            metrics={"length": len(sequence)},
         )
 
 

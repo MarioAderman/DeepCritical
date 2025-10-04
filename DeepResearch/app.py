@@ -38,10 +38,10 @@ from .src.datatypes.workflow_orchestration import (
     SubgraphType,
     LossFunctionType,
 )
-from .tools import mock_tools  # noqa: F401 ensure registration
-from .tools import workflow_tools  # noqa: F401 ensure registration
-from .tools import pyd_ai_tools  # noqa: F401 ensure registration
-# from .tools import bioinformatics_tools  # noqa: F401 ensure registration  # Temporarily disabled due to circular import
+from .src.tools import mock_tools  # noqa: F401 ensure registration
+from .src.tools import workflow_tools  # noqa: F401 ensure registration
+from .src.tools import pyd_ai_tools  # noqa: F401 ensure registration
+# from .src.tools import bioinformatics_tools  # noqa: F401 ensure registration  # Temporarily disabled due to circular import
 
 
 # --- State for the deep research workflow ---

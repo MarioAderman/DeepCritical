@@ -601,7 +601,9 @@ class SearchResultProcessor:
     def __init__(self, schemas: DeepSearchSchemas):
         self.schemas = schemas
 
-    def process_search_results(self, results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def process_search_results(
+        self, results: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         """Process and clean search results."""
         processed = []
         for result in results:
@@ -610,12 +612,14 @@ class SearchResultProcessor:
                 "url": result.get("url", ""),
                 "snippet": result.get("snippet", ""),
                 "score": result.get("score", 0.0),
-                "processed": True
+                "processed": True,
             }
             processed.append(processed_result)
         return processed
 
-    def extract_relevant_content(self, results: List[Dict[str, Any]], query: str) -> str:
+    def extract_relevant_content(
+        self, results: List[Dict[str, Any]], query: str
+    ) -> str:
         """Extract relevant content from search results."""
         if not results:
             return "No relevant content found."
@@ -633,7 +637,9 @@ class DeepSearchUtils:
     """Utility class for deep search operations."""
 
     @staticmethod
-    def create_search_context(question: str, config: Optional[Dict[str, Any]] = None) -> SearchContext:
+    def create_search_context(
+        question: str, config: Optional[Dict[str, Any]] = None
+    ) -> SearchContext:
         """Create a new search context."""
         return SearchContext(question, config)
 

@@ -96,26 +96,26 @@ class AgentPrompts:
     def get_action_section(self, action_name: str) -> str:
         """Get a specific action section by name."""
         actions = {
-            'visit': self.action_visit,
-            'search': self.action_search,
-            'answer': self.action_answer,
-            'beast': self.action_beast,
-            'reflect': self.action_reflect,
-            'coding': self.action_coding,
+            "visit": self.action_visit,
+            "search": self.action_search,
+            "answer": self.action_answer,
+            "beast": self.action_beast,
+            "reflect": self.action_reflect,
+            "coding": self.action_coding,
         }
         return actions.get(action_name.lower(), "")
 
 
 # Prompt constants dictionary for easy access
 AGENT_PROMPTS = {
-    'header': HEADER,
-    'actions_wrapper': ACTIONS_WRAPPER,
-    'action_visit': ACTION_VISIT,
-    'action_search': ACTION_SEARCH,
-    'action_answer': ACTION_ANSWER,
-    'action_beast': ACTION_BEAST,
-    'action_reflect': ACTION_REFLECT,
-    'action_coding': ACTION_CODING,
-    'footer': FOOTER,
-    'system': SYSTEM,
+    "header": HEADER,
+    "actions_wrapper": ACTIONS_WRAPPER,
+    "action_visit": ACTION_VISIT,
+    "action_search": ACTION_SEARCH,
+    "action_answer": ACTION_ANSWER,
+    "action_beast": ACTION_BEAST,
+    "action_reflect": ACTION_REFLECT,
+    "action_coding": ACTION_CODING,
+    "footer": FOOTER,
+    "system": SYSTEM,
 }

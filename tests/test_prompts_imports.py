@@ -253,7 +253,10 @@ class TestPromptsComplexImportChains:
         try:
             from DeepResearch.src.prompts.agent import AgentPrompts, HEADER
             from DeepResearch.src.prompts.planner import PlannerPrompts, PLANNER_PROMPTS
-            from DeepResearch.src.prompts.evaluator import EvaluatorPrompts, EVALUATOR_PROMPTS
+            from DeepResearch.src.prompts.evaluator import (
+                EvaluatorPrompts,
+                EVALUATOR_PROMPTS,
+            )
             from DeepResearch.src.utils.config_loader import BioinformaticsConfigLoader
 
             # If all imports succeed, the chain is working

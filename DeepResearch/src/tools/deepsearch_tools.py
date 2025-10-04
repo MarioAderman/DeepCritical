@@ -863,13 +863,16 @@ class DeepSearchTool(ToolRunner):
             "query": query,
             "steps_completed": min(max_steps, 5),  # Simulate some steps
             "results_found": 15,
-            "final_answer": f"Deep search completed for query: {query}"
+            "final_answer": f"Deep search completed for query: {query}",
         }
 
         return ExecutionResult(
             success=True,
-            data={"results": search_results, "search_history": f"Search history for: {query}"},
-            metrics={"steps": max_steps, "results": 15}
+            data={
+                "results": search_results,
+                "search_history": f"Search history for: {query}",
+            },
+            metrics={"steps": max_steps, "results": 15},
         )
 
 

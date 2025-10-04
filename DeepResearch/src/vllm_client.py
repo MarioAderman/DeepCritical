@@ -15,13 +15,29 @@ import aiohttp
 from pydantic import BaseModel, Field
 from .datatypes.vllm_dataclass import (
     # Core configurations
-    VllmConfig, ModelConfig, CacheConfig, ParallelConfig, SchedulerConfig,
-    DeviceConfig, ObservabilityConfig, ChatCompletionRequest, ChatCompletionResponse, ChatCompletionChoice, ChatMessage,
-    CompletionRequest, CompletionResponse, CompletionChoice,
-    EmbeddingRequest, EmbeddingResponse, EmbeddingData,
-    UsageStats, ModelInfo, ModelListResponse, HealthCheck,
-    BatchRequest, BatchResponse,
-
+    VllmConfig,
+    ModelConfig,
+    CacheConfig,
+    ParallelConfig,
+    SchedulerConfig,
+    DeviceConfig,
+    ObservabilityConfig,
+    ChatCompletionRequest,
+    ChatCompletionResponse,
+    ChatCompletionChoice,
+    ChatMessage,
+    CompletionRequest,
+    CompletionResponse,
+    CompletionChoice,
+    EmbeddingRequest,
+    EmbeddingResponse,
+    EmbeddingData,
+    UsageStats,
+    ModelInfo,
+    ModelListResponse,
+    HealthCheck,
+    BatchRequest,
+    BatchResponse,
     # Sampling parameters
     QuantizationMethod,
 )
@@ -30,16 +46,19 @@ from .datatypes.rag import VLLMConfig as RAGVLLMConfig
 
 class VLLMClientError(Exception):
     """Base exception for VLLM client errors."""
+
     pass
 
 
 class VLLMConnectionError(VLLMClientError):
     """Connection-related errors."""
+
     pass
 
 
 class VLLMAPIError(VLLMClientError):
     """API-related errors."""
+
     pass
 
 
@@ -87,16 +106,13 @@ class VLLMClient(BaseModel):
         method: str,
         endpoint: str,
         payload: Optional[Dict[str, Any]] = None,
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Any]:
         """Make HTTP request to VLLM server with retry logic."""
         session = await self._get_session()
         url = f"{self.base_url}/v1/{endpoint}"
 
-        headers = {
-            "Content-Type": "application/json",
-            **kwargs.get("headers", {})
-        }
+        headers = {"Content-Type": "application/json", **kwargs.get("headers", {})}
 
         if self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"
@@ -110,17 +126,19 @@ class VLLMClient(BaseModel):
                         return await response.json()
                     elif response.status == 429:  # Rate limited
                         if attempt < self.max_retries - 1:
-                            await asyncio.sleep(self.retry_delay * (2 ** attempt))
+                            await asyncio.sleep(self.retry_delay * (2**attempt))
                             continue
                     elif response.status >= 400:
-                        error_data = await response.json() if response.content_length else {}
+                        error_data = (
+                            await response.json() if response.content_length else {}
+                        )
                         raise VLLMAPIError(
                             f"API Error {response.status}: {error_data.get('error', {}).get('message', 'Unknown error')}"
                         )
 
             except aiohttp.ClientError as e:
                 if attempt < self.max_retries - 1:
-                    await asyncio.sleep(self.retry_delay * (2 ** attempt))
+                    await asyncio.sleep(self.retry_delay * (2**attempt))
                     continue
                 raise VLLMConnectionError(f"Connection error: {e}")
 
@@ -130,7 +148,9 @@ class VLLMClient(BaseModel):
     # OpenAI-Compatible API Methods
     # ============================================================================
 
-    async def chat_completions(self, request: ChatCompletionRequest) -> ChatCompletionResponse:
+    async def chat_completions(
+        self, request: ChatCompletionRequest
+    ) -> ChatCompletionResponse:
         """Create chat completion (OpenAI-compatible)."""
         payload = request.model_dump(exclude_unset=True)
 
@@ -147,13 +167,13 @@ class VLLMClient(BaseModel):
                     index=choice["index"],
                     message=ChatMessage(
                         role=choice["message"]["role"],
-                        content=choice["message"]["content"]
+                        content=choice["message"]["content"],
                     ),
-                    finish_reason=choice.get("finish_reason")
+                    finish_reason=choice.get("finish_reason"),
                 )
                 for choice in response_data["choices"]
             ],
-            usage=UsageStats(**response_data["usage"])
+            usage=UsageStats(**response_data["usage"]),
         )
 
     async def completions(self, request: CompletionRequest) -> CompletionResponse:
@@ -172,11 +192,11 @@ class VLLMClient(BaseModel):
                     text=choice["text"],
                     index=choice["index"],
                     logprobs=choice.get("logprobs"),
-                    finish_reason=choice.get("finish_reason")
+                    finish_reason=choice.get("finish_reason"),
                 )
                 for choice in response_data["choices"]
             ],
-            usage=UsageStats(**response_data["usage"])
+            usage=UsageStats(**response_data["usage"]),
         )
 
     async def embeddings(self, request: EmbeddingRequest) -> EmbeddingResponse:
@@ -191,12 +211,12 @@ class VLLMClient(BaseModel):
                 EmbeddingData(
                     object=item["object"],
                     embedding=item["embedding"],
-                    index=item["index"]
+                    index=item["index"],
                 )
                 for item in response_data["data"]
             ],
             model=response_data["model"],
-            usage=UsageStats(**response_data["usage"])
+            usage=UsageStats(**response_data["usage"]),
         )
 
     async def models(self) -> ModelListResponse:
@@ -252,19 +272,18 @@ class VLLMClient(BaseModel):
                     response = await self.embeddings(request)
                     responses.append(response)
                 else:
-                    errors.append({
-                        "request_index": i,
-                        "error": f"Unsupported request type: {type(request)}"
-                    })
+                    errors.append(
+                        {
+                            "request_index": i,
+                            "error": f"Unsupported request type: {type(request)}",
+                        }
+                    )
                     continue
 
                 successful_requests += 1
 
             except Exception as e:
-                errors.append({
-                    "request_index": i,
-                    "error": str(e)
-                })
+                errors.append({"request_index": i, "error": str(e)})
 
         processing_time = time.time() - start_time
 
@@ -275,7 +294,7 @@ class VLLMClient(BaseModel):
             total_requests=total_requests,
             successful_requests=successful_requests,
             failed_requests=len(errors),
-            processing_time=processing_time
+            processing_time=processing_time,
         )
 
     # ============================================================================
@@ -371,10 +390,7 @@ class VLLMClient(BaseModel):
 
     @classmethod
     def from_config(
-        cls,
-        model_name: str,
-        base_url: str = "http://localhost:8000",
-        **kwargs
+        cls, model_name: str, base_url: str = "http://localhost:8000", **kwargs
     ) -> "VLLMClient":
         """Create client from model configuration."""
         # Create basic VLLM config
@@ -391,14 +407,10 @@ class VLLMClient(BaseModel):
             parallel=parallel_config,
             scheduler=scheduler_config,
             device=device_config,
-            observability=observability_config
+            observability=observability_config,
         )
 
-        return cls(
-            base_url=base_url,
-            vllm_config=vllm_config,
-            **kwargs
-        )
+        return cls(base_url=base_url, vllm_config=vllm_config, **kwargs)
 
     @classmethod
     def from_rag_config(cls, rag_config: RAGVLLMConfig) -> "VLLMClient":
@@ -421,18 +433,14 @@ class VLLMAgent:
         request = ChatCompletionRequest(
             model="vllm-model",  # This would be configured
             messages=messages,
-            **kwargs
+            **kwargs,
         )
         response = await self.client.chat_completions(request)
         return response.choices[0].message.content
 
     async def complete(self, prompt: str, **kwargs) -> str:
         """Complete text with the VLLM model."""
-        request = CompletionRequest(
-            model="vllm-model",
-            prompt=prompt,
-            **kwargs
-        )
+        request = CompletionRequest(model="vllm-model", prompt=prompt, **kwargs)
         response = await self.client.completions(request)
         return response.choices[0].text
 
@@ -441,11 +449,7 @@ class VLLMAgent:
         if isinstance(texts, str):
             texts = [texts]
 
-        request = EmbeddingRequest(
-            model="vllm-embedding-model",
-            input=texts,
-            **kwargs
-        )
+        request = EmbeddingRequest(model="vllm-embedding-model", input=texts, **kwargs)
         response = await self.client.embeddings(request)
         return [item.embedding for item in response.data]
 
@@ -457,33 +461,23 @@ class VLLMAgent:
         agent = Agent(
             model_name,
             deps_type=VLLMClient,
-            system_prompt="You are a helpful AI assistant powered by VLLM."
+            system_prompt="You are a helpful AI assistant powered by VLLM.",
         )
 
         # Add tools for VLLM functionality
         @agent.tool
-        async def chat_completion(
-            ctx,
-            messages: List[Dict[str, str]],
-            **kwargs
-        ) -> str:
+        async def chat_completion(ctx, messages: List[Dict[str, str]], **kwargs) -> str:
             """Chat completion using VLLM."""
             return await ctx.deps.chat(messages, **kwargs)
 
         @agent.tool
-        async def text_completion(
-            ctx,
-            prompt: str,
-            **kwargs
-        ) -> str:
+        async def text_completion(ctx, prompt: str, **kwargs) -> str:
             """Text completion using VLLM."""
             return await ctx.deps.complete(prompt, **kwargs)
 
         @agent.tool
         async def generate_embeddings(
-            ctx,
-            texts: Union[str, List[str]],
-            **kwargs
+            ctx, texts: Union[str, List[str]], **kwargs
         ) -> List[List[float]]:
             """Generate embeddings using VLLM."""
             return await ctx.deps.embed(texts, **kwargs)
@@ -518,7 +512,9 @@ class VLLMClientBuilder:
         self._config["timeout"] = timeout
         return self
 
-    def with_retries(self, max_retries: int, retry_delay: float = 1.0) -> "VLLMClientBuilder":
+    def with_retries(
+        self, max_retries: int, retry_delay: float = 1.0
+    ) -> "VLLMClientBuilder":
         """Set retry configuration."""
         self._config["max_retries"] = max_retries
         self._config["retry_delay"] = retry_delay
@@ -618,29 +614,25 @@ class VLLMClientBuilder:
 
     def build(self) -> VLLMClient:
         """Build the VLLM client."""
-        return VLLMClient(
-            vllm_config=self._vllm_config,
-            **self._config
-        )
+        return VLLMClient(vllm_config=self._vllm_config, **self._config)
 
 
 # ============================================================================
 # Utility Functions
 # ============================================================================
 
+
 def create_vllm_client(
     model_name: str,
     base_url: str = "http://localhost:8000",
     api_key: Optional[str] = None,
-    **kwargs
+    **kwargs,
 ) -> VLLMClient:
     """Create a VLLM client with sensible defaults."""
     return VLLMClient.from_config(
-        model_name=model_name,
-        base_url=base_url,
-        api_key=api_key,
-        **kwargs
+        model_name=model_name, base_url=base_url, api_key=api_key, **kwargs
     )
+
 
 async def test_vllm_connection(client: VLLMClient) -> bool:
     """Test if VLLM server is accessible."""
@@ -649,6 +641,7 @@ async def test_vllm_connection(client: VLLMClient) -> bool:
         return True
     except Exception:
         return False
+
 
 async def list_vllm_models(client: VLLMClient) -> List[str]:
     """List available models on the VLLM server."""
@@ -662,6 +655,7 @@ async def list_vllm_models(client: VLLMClient) -> List[str]:
 # ============================================================================
 # Example Usage and Factory Functions
 # ============================================================================
+
 
 async def example_basic_usage():
     """Example of basic VLLM client usage."""
@@ -680,13 +674,14 @@ async def example_basic_usage():
             model="microsoft/DialoGPT-medium",
             messages=[{"role": "user", "content": "Hello, how are you?"}],
             max_tokens=50,
-            temperature=0.7
+            temperature=0.7,
         )
 
         response = await client.chat_completions(chat_request)
         print(f"Response: {response.choices[0].message.content}")
 
     await client.close()
+
 
 async def example_streaming():
     """Example of streaming usage."""
@@ -697,7 +692,7 @@ async def example_streaming():
         messages=[{"role": "user", "content": "Tell me a story"}],
         max_tokens=100,
         temperature=0.8,
-        stream=True
+        stream=True,
     )
 
     print("Streaming response: ", end="")
@@ -707,13 +702,14 @@ async def example_streaming():
 
     await client.close()
 
+
 async def example_embeddings():
     """Example of embedding usage."""
     client = create_vllm_client("sentence-transformers/all-MiniLM-L6-v2")
 
     embedding_request = EmbeddingRequest(
         model="sentence-transformers/all-MiniLM-L6-v2",
-        input=["Hello world", "How are you?"]
+        input=["Hello world", "How are you?"],
     )
 
     response = await client.embeddings(embedding_request)
@@ -721,6 +717,7 @@ async def example_embeddings():
     print(f"First embedding dimension: {len(response.data[0].embedding)}")
 
     await client.close()
+
 
 async def example_batch_processing():
     """Example of batch processing."""
@@ -730,7 +727,7 @@ async def example_batch_processing():
         ChatCompletionRequest(
             model="microsoft/DialoGPT-medium",
             messages=[{"role": "user", "content": f"Question {i}"}],
-            max_tokens=20
+            max_tokens=20,
         )
         for i in range(3)
     ]
@@ -763,5 +760,3 @@ if __name__ == "__main__":
     asyncio.run(example_batch_processing())
 
     print("All examples completed!")
-
-
