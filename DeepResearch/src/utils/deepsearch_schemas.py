@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 import re
 
 
@@ -597,6 +597,47 @@ Ensure each reflection question:
         }
 
         return schema
+
+
+@dataclass
+class DeepSearchQuery:
+    """Query for deep search operations."""
+
+    query: str
+    max_results: int = 10
+    search_type: str = "web"
+    include_images: bool = False
+    filters: Dict[str, Any] = None
+
+    def __post_init__(self):
+        if self.filters is None:
+            self.filters = {}
+
+
+@dataclass
+class DeepSearchResult:
+    """Result from deep search operations."""
+
+    query: str
+    results: List[Dict[str, Any]]
+    total_found: int
+    execution_time: float
+    metadata: Dict[str, Any] = None
+
+    def __post_init__(self):
+        if self.metadata is None:
+            self.metadata = {}
+
+
+@dataclass
+class DeepSearchConfig:
+    """Configuration for deep search operations."""
+
+    max_concurrent_requests: int = 5
+    request_timeout: int = 30
+    max_retries: int = 3
+    backoff_factor: float = 0.3
+    user_agent: str = "DeepCritical/1.0"
 
 
 # Global instance for easy access

@@ -11,8 +11,8 @@ from dataclasses import dataclass
 from typing import Any, Dict
 
 from .base import ToolSpec, ToolRunner, ExecutionResult, registry
-from ..src.statemachines.deepsearch_workflow import run_deepsearch_workflow
-from ..src.utils.deepsearch_schemas import DeepSearchSchemas
+from ..statemachines.deepsearch_workflow import run_deepsearch_workflow
+from ..utils.deepsearch_schemas import DeepSearchSchemas
 
 
 @dataclass

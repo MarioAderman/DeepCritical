@@ -679,3 +679,44 @@ class AppConfiguration(BaseModel):
     max_total_time: float = Field(
         3600.0, description="Maximum total execution time in seconds"
     )
+
+
+class WorkflowOrchestrationState(BaseModel):
+    """State for workflow orchestration execution."""
+
+    workflow_id: str = Field(
+        default_factory=lambda: str(uuid.uuid4()),
+        description="Unique workflow identifier",
+    )
+    workflow_type: WorkflowType = Field(
+        ..., description="Type of workflow being orchestrated"
+    )
+    status: WorkflowStatus = Field(
+        default=WorkflowStatus.PENDING, description="Current workflow status"
+    )
+    current_step: Optional[str] = Field(None, description="Current execution step")
+    progress: float = Field(
+        default=0.0, ge=0.0, le=1.0, description="Execution progress (0-1)"
+    )
+    results: Dict[str, Any] = Field(
+        default_factory=dict, description="Workflow execution results"
+    )
+    errors: List[str] = Field(default_factory=list, description="Execution errors")
+    metadata: Dict[str, Any] = Field(
+        default_factory=dict, description="Additional metadata"
+    )
+    started_at: Optional[datetime] = Field(None, description="Workflow start time")
+    completed_at: Optional[datetime] = Field(
+        None, description="Workflow completion time"
+    )
+    sub_workflows: List[Dict[str, Any]] = Field(
+        default_factory=list, description="Sub-workflow information"
+    )
+
+    @validator("sub_workflows")
+    def validate_sub_workflows(cls, v):
+        """Validate sub-workflows structure."""
+        for workflow in v:
+            if not isinstance(workflow, dict):
+                raise ValueError("Each sub-workflow must be a dictionary")
+        return v

@@ -14,7 +14,7 @@ from pydantic_ai import RunContext
 from .base import ToolSpec, ToolRunner, ExecutionResult
 from .websearch_tools import ChunkedSearchTool
 from .analytics_tools import RecordRequestTool
-from ..src.datatypes.rag import Document, Chunk, RAGQuery
+from ..datatypes.rag import Document, Chunk, RAGQuery
 
 
 class IntegratedSearchRequest(BaseModel):

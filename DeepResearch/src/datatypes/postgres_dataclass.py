@@ -176,8 +176,8 @@ class View:
     """Database view structure."""
 
     name: str
-    schema: str = "public"
     definition: str
+    schema: str = "public"
     columns: List[Column] = field(default_factory=list)
     is_updatable: bool = False
     description: Optional[str] = None
@@ -188,9 +188,9 @@ class Function:
     """Database function structure."""
 
     name: str
+    return_type: str
     schema: str = "public"
     parameters: List[Dict[str, Any]] = field(default_factory=list)
-    return_type: str
     is_volatile: bool = False
     is_security_definer: bool = False
     language: str = "sql"
@@ -478,8 +478,8 @@ class InsertRequest:
     """Insert operation request."""
 
     table: str
-    schema: str = "public"
     data: Union[Dict[str, Any], List[Dict[str, Any]]]
+    schema: str = "public"
     columns: Optional[List[str]] = None
     prefer: PreferHeader = PreferHeader.RETURN_REPRESENTATION
     headers: Dict[str, str] = field(default_factory=dict)
@@ -503,9 +503,9 @@ class UpdateRequest:
     """Update operation request."""
 
     table: str
-    schema: str = "public"
     data: Dict[str, Any]
     filters: List[Filter]
+    schema: str = "public"
     prefer: PreferHeader = PreferHeader.RETURN_REPRESENTATION
     headers: Dict[str, str] = field(default_factory=dict)
 
@@ -519,8 +519,8 @@ class DeleteRequest:
     """Delete operation request."""
 
     table: str
-    schema: str = "public"
     filters: List[Filter]
+    schema: str = "public"
     prefer: PreferHeader = PreferHeader.RETURN_MINIMAL
     headers: Dict[str, str] = field(default_factory=dict)
 
@@ -534,8 +534,8 @@ class UpsertRequest:
     """Upsert operation request."""
 
     table: str
-    schema: str = "public"
     data: Union[Dict[str, Any], List[Dict[str, Any]]]
+    schema: str = "public"
     on_conflict: Optional[str] = None
     prefer: PreferHeader = PreferHeader.RESOLUTION_MERGE_DUPLICATES
     headers: Dict[str, str] = field(default_factory=dict)
@@ -878,6 +878,8 @@ __all__ = [
     # Error structures
     "PostgRESTError",
     "PostgRESTException",
+    # Document structures
+    "PostgresDocument",
     # Utility functions
     "create_client",
     "create_filter",
@@ -885,3 +887,21 @@ __all__ = [
     "create_pagination",
     "create_embedding",
 ]
+
+
+@dataclass
+class PostgresDocument:
+    """Document structure for PostgreSQL storage."""
+
+    id: str
+    content: str
+    metadata: Optional[Dict[str, Any]] = None
+    embedding: Optional[List[float]] = None
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+    def __post_init__(self):
+        if self.metadata is None:
+            self.metadata = {}
+        if self.created_at is None:
+            self.created_at = str(uuid.uuid4())

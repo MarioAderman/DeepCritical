@@ -6,12 +6,13 @@ integrating with the existing tool registry and datatypes.
 """
 
 import json
+from dataclasses import dataclass
 from typing import Dict, Any, List, Optional
 from pydantic import BaseModel, Field
 from pydantic_ai import RunContext
 
-from .base import ToolSpec, ToolRunner, ExecutionResult
-from ..src.utils.analytics import (
+from .base import ToolSpec, ToolRunner, ExecutionResult, registry
+from ..utils.analytics import (
     record_request,
     last_n_days_df,
     last_n_days_avg_time_df,
@@ -259,11 +260,57 @@ def get_analytics_time_data_tool(ctx: RunContext[Any]) -> str:
         return f"Failed to get analytics time data: {result.error}"
 
 
+@dataclass
+class AnalyticsTool(ToolRunner):
+    """Tool for analytics operations and metrics tracking."""
+
+    def __init__(self):
+        super().__init__(
+            ToolSpec(
+                name="analytics",
+                description="Perform analytics operations and retrieve metrics",
+                inputs={"operation": "TEXT", "days": "NUMBER", "parameters": "TEXT"},
+                outputs={"result": "TEXT", "data": "TEXT"},
+            )
+        )
+
+    def run(self, params: Dict[str, str]) -> ExecutionResult:
+        operation = params.get("operation", "")
+        days = int(params.get("days", "7"))
+
+        if operation == "request_rate":
+            # Calculate request rate using existing analytics functions
+            df = last_n_days_df(days)
+            rate = df["request_count"].sum() / days if not df.empty else 0.0
+            return ExecutionResult(
+                success=True,
+                data={
+                    "result": f"Average requests per day: {rate:.2f}",
+                    "data": f"Rate: {rate}",
+                },
+                metrics={"days": days, "rate": rate},
+            )
+        elif operation == "response_time":
+            # Calculate average response time
+            df = last_n_days_avg_time_df(days)
+            avg_time = df["avg_time"].mean() if not df.empty else 0.0
+            return ExecutionResult(
+                success=True,
+                data={
+                    "result": f"Average response time: {avg_time:.2f}s",
+                    "data": f"Avg time: {avg_time}",
+                },
+                metrics={"days": days, "avg_time": avg_time},
+            )
+        else:
+            return ExecutionResult(
+                success=False, error=f"Unknown analytics operation: {operation}"
+            )
+
+
 # Register tools with the global registry
 def register_analytics_tools():
     """Register analytics tools with the global registry."""
-    from .base import registry
-
     registry.register("record_request", RecordRequestTool)
     registry.register("get_analytics_data", GetAnalyticsDataTool)
     registry.register("get_analytics_time_data", GetAnalyticsTimeDataTool)
@@ -271,3 +318,4 @@ def register_analytics_tools():
 
 # Auto-register when module is imported
 register_analytics_tools()
+registry.register("analytics", AnalyticsTool)

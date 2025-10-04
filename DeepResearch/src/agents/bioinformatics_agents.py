@@ -335,6 +335,40 @@ Focus on:
         return result.data
 
 
+class BioinformaticsAgent:
+    """Main bioinformatics agent that coordinates all bioinformatics operations."""
+
+    def __init__(self, model_name: str = "anthropic:claude-sonnet-4-0"):
+        self.model_name = model_name
+        self.orchestrator = AgentOrchestrator(model_name)
+
+    async def process_request(
+        self, request: DataFusionRequest, deps: BioinformaticsAgentDeps
+    ) -> tuple[FusedDataset, ReasoningResult, Dict[str, float]]:
+        """Process a complete bioinformatics request end-to-end."""
+        # Create reasoning dataset
+        dataset, quality_metrics = await self.orchestrator.create_reasoning_dataset(
+            request, deps
+        )
+
+        # Create a reasoning task for the request
+        reasoning_task = ReasoningTask(
+            task_id="main_task",
+            task_type="integrative_analysis",
+            question=request.reasoning_question or "Analyze the fused dataset",
+            difficulty_level="moderate",
+            required_evidence=[],  # Will use default evidence requirements
+            timeout_seconds=300,
+        )
+
+        # Perform reasoning
+        reasoning_result = await self.orchestrator.perform_integrative_reasoning(
+            reasoning_task, dataset, deps
+        )
+
+        return dataset, reasoning_result, quality_metrics
+
+
 class AgentOrchestrator:
     """Orchestrator for coordinating multiple bioinformatics agents."""
 

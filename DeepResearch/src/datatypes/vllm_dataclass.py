@@ -732,6 +732,8 @@ class TokensPrompt(BaseModel):
 class MultiModalDataDict(BaseModel):
     """Multi-modal data dictionary for image, audio, and other modalities."""
 
+    model_config = {"arbitrary_types_allowed": True}
+
     image: Optional[Union[str, bytes, np.ndarray]] = Field(
         None, description="Image data"
     )
@@ -742,14 +744,6 @@ class MultiModalDataDict(BaseModel):
         None, description="Video data"
     )
     metadata: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
-
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "image": "path/to/image.jpg",
-                "metadata": {"format": "jpeg", "size": [224, 224]},
-            }
-        }
 
 
 # ============================================================================
@@ -1177,6 +1171,8 @@ class LLM(BaseModel):
 
 class LLMEngine(BaseModel):
     """VLLM engine for online inference."""
+
+    model_config = {"arbitrary_types_allowed": True}
 
     config: VllmConfig = Field(..., description="VLLM configuration")
     model: Optional[ModelInterface] = Field(None, description="Loaded model")
@@ -2045,3 +2041,32 @@ ChatCompletionChoice.model_rebuild()
 ChatMessage.model_rebuild()
 CompletionResponse.model_rebuild()
 CompletionChoice.model_rebuild()
+
+
+# ============================================================================
+# Document Types for VLLM Integration
+# ============================================================================
+
+
+class VLLMDocument(BaseModel):
+    """Document structure for VLLM-powered applications."""
+
+    id: str = Field(..., description="Unique document identifier")
+    content: str = Field(..., description="Document content")
+    metadata: Dict[str, Any] = Field(
+        default_factory=dict, description="Document metadata"
+    )
+    embedding: Optional[List[float]] = Field(
+        None, description="Document embedding vector"
+    )
+    created_at: Optional[str] = Field(None, description="Creation timestamp")
+    updated_at: Optional[str] = Field(None, description="Last update timestamp")
+    model_name: Optional[str] = Field(None, description="Model used for processing")
+    chunk_size: Optional[int] = Field(
+        None, description="Chunk size if document was split"
+    )
+
+    class Config:
+        """Pydantic configuration."""
+
+        json_encoders = {datetime: lambda v: v.isoformat() if v else None}

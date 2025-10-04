@@ -1,3 +1,6 @@
+from typing import Dict
+
+
 DEFINITIVE_SYSTEM = (
     "You are an evaluator of answer definitiveness. Analyze if the given answer provides a definitive response or not.\n\n"
     "<rules>\n"
@@ -189,3 +192,22 @@ QUESTION_EVALUATION_SYSTEM = (
     "${examples}\n"
     "</examples>\n"
 )
+
+
+EVALUATOR_PROMPTS: Dict[str, str] = {
+    "definitive_system": DEFINITIVE_SYSTEM,
+    "freshness_system": FRESHNESS_SYSTEM,
+    "plurality_system": PLURALITY_SYSTEM,
+    "evaluate_definitiveness": "Evaluate if the following answer is definitive: {answer}",
+    "evaluate_freshness": "Evaluate if the following answer is fresh: {answer}",
+    "evaluate_plurality": "Evaluate if the following answer addresses plurality: {answer}",
+}
+
+
+class EvaluatorPrompts:
+    """Prompt templates for evaluation."""
+
+    DEFINITIVE_SYSTEM = DEFINITIVE_SYSTEM
+    FRESHNESS_SYSTEM = FRESHNESS_SYSTEM
+    PLURALITY_SYSTEM = PLURALITY_SYSTEM
+    PROMPTS = EVALUATOR_PROMPTS

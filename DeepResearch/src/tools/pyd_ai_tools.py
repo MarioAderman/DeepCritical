@@ -249,7 +249,7 @@ class CodeExecBuiltinRunner(ToolRunner):
 
         # Load system prompt from Hydra (if available)
         try:
-            from DeepResearch.src.prompts import PromptLoader  # type: ignore
+            from ..prompts import PromptLoader  # type: ignore
 
             # In this wrapper, cfg may be empty; PromptLoader expects DictConfig-like object
             loader = PromptLoader(cfg)  # type: ignore

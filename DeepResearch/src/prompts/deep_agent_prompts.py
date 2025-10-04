@@ -493,4 +493,21 @@ __all__ = [
     "get_system_prompt",
     "get_tool_description",
     "format_template",
+    # Prompt constants and classes
+    "DEEP_AGENT_PROMPTS",
+    "DeepAgentPrompts",
 ]
+
+
+# Prompt constants for DeepAgent operations
+DEEP_AGENT_PROMPTS = {
+    "system": "You are a DeepAgent for complex reasoning and task execution.",
+    "task_execution": "Execute the following task: {task_description}",
+    "reasoning": "Reason step by step about: {query}",
+}
+
+
+class DeepAgentPrompts:
+    """Prompt templates for DeepAgent operations."""
+
+    PROMPTS = DEEP_AGENT_PROMPTS

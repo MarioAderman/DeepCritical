@@ -25,6 +25,7 @@ class SearchType(str, Enum):
     """Types of vector search operations."""
 
     SIMILARITY = "similarity"
+    SEMANTIC = "semantic"
     MAX_MARGINAL_RELEVANCE = "mmr"
     SIMILARITY_SCORE_THRESHOLD = "similarity_score_threshold"
     HYBRID = "hybrid"  # Combines vector and keyword search

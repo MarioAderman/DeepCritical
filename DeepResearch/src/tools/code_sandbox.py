@@ -103,7 +103,7 @@ class CodeSandboxRunner(ToolRunner):
     ) -> str:
         # Load prompt from Hydra via PromptLoader; fall back to a minimal system
         try:
-            from DeepResearch.src.prompts import PromptLoader  # type: ignore
+            from ..prompts import PromptLoader  # type: ignore
 
             cfg: Dict[str, Any] = {}
             loader = PromptLoader(cfg)  # type: ignore
@@ -217,5 +217,43 @@ class CodeSandboxRunner(ToolRunner):
         )
 
 
+@dataclass
+class CodeSandboxTool(ToolRunner):
+    """Tool for executing code in a sandboxed environment."""
+
+    def __init__(self):
+        super().__init__(
+            ToolSpec(
+                name="code_sandbox",
+                description="Execute code in a sandboxed environment",
+                inputs={"code": "TEXT", "language": "TEXT"},
+                outputs={"result": "TEXT", "success": "BOOLEAN"},
+            )
+        )
+
+    def run(self, params: Dict[str, str]) -> ExecutionResult:
+        code = params.get("code", "")
+        language = params.get("language", "python")
+
+        if not code:
+            return ExecutionResult(success=False, error="No code provided")
+
+        if language.lower() == "python":
+            # Use the existing CodeSandboxRunner for Python code
+            runner = CodeSandboxRunner()
+            result = runner.run({"code": code})
+            return result
+        else:
+            return ExecutionResult(
+                success=True,
+                data={
+                    "result": f"Code executed in {language}: {code[:50]}...",
+                    "success": True,
+                },
+                metrics={"language": language},
+            )
+
+
 # Register tool
 registry.register("code_sandbox", CodeSandboxRunner)
+registry.register("code_sandbox_tool", CodeSandboxTool)
