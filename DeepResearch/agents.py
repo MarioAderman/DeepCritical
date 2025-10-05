@@ -11,9 +11,7 @@ from __future__ import annotations
 import asyncio
 import time
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any
-from enum import Enum
 
 from pydantic_ai import Agent
 
@@ -21,6 +19,14 @@ from pydantic_ai import Agent
 from .src.tools.base import registry, ExecutionResult
 from .src.datatypes.rag import RAGQuery, RAGResponse
 from .src.datatypes.bioinformatics import FusedDataset, ReasoningTask, DataFusionRequest
+from .src.datatypes.agents import (
+    AgentType,
+    AgentStatus,
+    AgentDependencies,
+    AgentResult,
+    ExecutionHistory,
+)
+from .src.prompts.agents import AgentPrompts
 
 # Import DeepAgent components
 from .src.datatypes.deep_agent_state import DeepAgentState
@@ -35,78 +41,6 @@ from .src.agents.deep_agent_implementations import (
     AgentConfig,
     AgentExecutionResult,
 )
-
-
-class AgentType(str, Enum):
-    """Types of agents in the DeepCritical system."""
-
-    PARSER = "parser"
-    PLANNER = "planner"
-    EXECUTOR = "executor"
-    SEARCH = "search"
-    RAG = "rag"
-    BIOINFORMATICS = "bioinformatics"
-    DEEPSEARCH = "deepsearch"
-    ORCHESTRATOR = "orchestrator"
-    EVALUATOR = "evaluator"
-    # DeepAgent types
-    DEEP_AGENT_PLANNING = "deep_agent_planning"
-    DEEP_AGENT_FILESYSTEM = "deep_agent_filesystem"
-    DEEP_AGENT_RESEARCH = "deep_agent_research"
-    DEEP_AGENT_ORCHESTRATION = "deep_agent_orchestration"
-    DEEP_AGENT_GENERAL = "deep_agent_general"
-
-
-class AgentStatus(str, Enum):
-    """Agent execution status."""
-
-    IDLE = "idle"
-    RUNNING = "running"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    RETRYING = "retrying"
-
-
-@dataclass
-class AgentDependencies:
-    """Dependencies for agent execution."""
-
-    config: Dict[str, Any] = field(default_factory=dict)
-    tools: List[str] = field(default_factory=list)
-    other_agents: List[str] = field(default_factory=list)
-    data_sources: List[str] = field(default_factory=list)
-
-
-@dataclass
-class AgentResult:
-    """Result from agent execution."""
-
-    success: bool
-    data: Dict[str, Any] = field(default_factory=dict)
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    error: Optional[str] = None
-    execution_time: float = 0.0
-    agent_type: AgentType = AgentType.EXECUTOR
-
-
-@dataclass
-class ExecutionHistory:
-    """History of agent executions."""
-
-    items: List[Dict[str, Any]] = field(default_factory=list)
-
-    def record(self, agent_type: AgentType, result: AgentResult, **kwargs):
-        """Record an execution result."""
-        self.items.append(
-            {
-                "timestamp": time.time(),
-                "agent_type": agent_type.value,
-                "success": result.success,
-                "execution_time": result.execution_time,
-                "error": result.error,
-                **kwargs,
-            }
-        )
 
 
 class BaseAgent(ABC):
@@ -149,15 +83,13 @@ class BaseAgent(ABC):
             print(f"Warning: Failed to initialize Pydantic AI agent: {e}")
             self._agent = None
 
-    @abstractmethod
     def _get_default_system_prompt(self) -> str:
         """Get default system prompt for this agent type."""
-        pass
+        return AgentPrompts.get_system_prompt(self.agent_type.value)
 
-    @abstractmethod
     def _get_default_instructions(self) -> str:
         """Get default instructions for this agent type."""
-        pass
+        return AgentPrompts.get_instructions(self.agent_type.value)
 
     @abstractmethod
     def _register_tools(self):
@@ -233,25 +165,6 @@ class ParserAgent(BaseAgent):
     def __init__(self, model_name: str = "anthropic:claude-sonnet-4-0", **kwargs):
         super().__init__(AgentType.PARSER, model_name, **kwargs)
 
-    def _get_default_system_prompt(self) -> str:
-        return """You are a research question parser. Your job is to analyze research questions and extract:
-1. The main intent/purpose
-2. Key entities and concepts
-3. Required data sources
-4. Expected output format
-5. Complexity level
-
-Be precise and structured in your analysis."""
-
-    def _get_default_instructions(self) -> str:
-        return """Parse the research question and return a structured analysis including:
-- intent: The main research intent
-- entities: Key entities mentioned
-- data_sources: Required data sources
-- output_format: Expected output format
-- complexity: Simple/Moderate/Complex
-- domain: Research domain (bioinformatics, general, etc.)"""
-
     def _register_tools(self):
         """Register parsing tools."""
         # Add any specific parsing tools here
@@ -278,18 +191,6 @@ class PlannerAgent(BaseAgent):
 
     def __init__(self, model_name: str = "anthropic:claude-sonnet-4-0", **kwargs):
         super().__init__(AgentType.PLANNER, model_name, **kwargs)
-
-    def _get_default_system_prompt(self) -> str:
-        return """You are a research workflow planner. Your job is to create detailed execution plans for research tasks.
-Break down complex research questions into actionable steps using available tools and agents."""
-
-    def _get_default_instructions(self) -> str:
-        return """Create a detailed execution plan with:
-- steps: List of execution steps
-- tools: Tools to use for each step
-- dependencies: Step dependencies
-- parameters: Parameters for each step
-- success_criteria: How to measure success"""
 
     def _register_tools(self):
         """Register planning tools."""
@@ -346,16 +247,6 @@ class ExecutorAgent(BaseAgent):
     ):
         self.retries = retries
         super().__init__(AgentType.EXECUTOR, model_name, **kwargs)
-
-    def _get_default_system_prompt(self) -> str:
-        return """You are a research workflow executor. Your job is to execute research plans by calling tools and managing data flow between steps."""
-
-    def _get_default_instructions(self) -> str:
-        return """Execute the workflow plan by:
-1. Calling tools with appropriate parameters
-2. Managing data flow between steps
-3. Handling errors and retries
-4. Collecting results"""
 
     def _register_tools(self):
         """Register execution tools."""
@@ -456,16 +347,6 @@ class SearchAgent(BaseAgent):
     def __init__(self, model_name: str = "anthropic:claude-sonnet-4-0", **kwargs):
         super().__init__(AgentType.SEARCH, model_name, **kwargs)
 
-    def _get_default_system_prompt(self) -> str:
-        return """You are a web search specialist. Your job is to perform comprehensive web searches and analyze results for research purposes."""
-
-    def _get_default_instructions(self) -> str:
-        return """Perform web searches and return:
-- search_results: List of search results
-- summary: Summary of findings
-- sources: List of sources
-- confidence: Confidence in results"""
-
     def _register_tools(self):
         """Register search tools."""
         try:
@@ -500,16 +381,6 @@ class RAGAgent(BaseAgent):
 
     def __init__(self, model_name: str = "anthropic:claude-sonnet-4-0", **kwargs):
         super().__init__(AgentType.RAG, model_name, **kwargs)
-
-    def _get_default_system_prompt(self) -> str:
-        return """You are a RAG specialist. Your job is to perform retrieval-augmented generation by searching vector stores and generating answers based on retrieved context."""
-
-    def _get_default_instructions(self) -> str:
-        return """Perform RAG operations and return:
-- retrieved_documents: Retrieved documents
-- generated_answer: Generated answer
-- context: Context used
-- confidence: Confidence score"""
 
     def _register_tools(self):
         """Register RAG tools."""
@@ -551,16 +422,6 @@ class BioinformaticsAgent(BaseAgent):
 
     def __init__(self, model_name: str = "anthropic:claude-sonnet-4-0", **kwargs):
         super().__init__(AgentType.BIOINFORMATICS, model_name, **kwargs)
-
-    def _get_default_system_prompt(self) -> str:
-        return """You are a bioinformatics specialist. Your job is to fuse data from multiple bioinformatics sources (GO, PubMed, GEO, etc.) and perform integrative reasoning."""
-
-    def _get_default_instructions(self) -> str:
-        return """Perform bioinformatics operations and return:
-- fused_dataset: Fused dataset
-- reasoning_result: Reasoning result
-- quality_metrics: Quality metrics
-- cross_references: Cross-references found"""
 
     def _register_tools(self):
         """Register bioinformatics tools."""
@@ -622,17 +483,6 @@ class DeepSearchAgent(BaseAgent):
     def __init__(self, model_name: str = "anthropic:claude-sonnet-4-0", **kwargs):
         super().__init__(AgentType.DEEPSEARCH, model_name, **kwargs)
 
-    def _get_default_system_prompt(self) -> str:
-        return """You are a deep search specialist. Your job is to perform iterative, comprehensive searches with reflection and refinement to find the most relevant information."""
-
-    def _get_default_instructions(self) -> str:
-        return """Perform deep search operations and return:
-- search_strategy: Search strategy used
-- iterations: Number of search iterations
-- final_answer: Final comprehensive answer
-- sources: All sources consulted
-- confidence: Confidence in final answer"""
-
     def _register_tools(self):
         """Register deep search tools."""
         try:
@@ -687,16 +537,6 @@ class EvaluatorAgent(BaseAgent):
     def __init__(self, model_name: str = "anthropic:claude-sonnet-4-0", **kwargs):
         super().__init__(AgentType.EVALUATOR, model_name, **kwargs)
 
-    def _get_default_system_prompt(self) -> str:
-        return """You are a research evaluator. Your job is to evaluate the quality, completeness, and accuracy of research results."""
-
-    def _get_default_instructions(self) -> str:
-        return """Evaluate research results and return:
-- quality_score: Overall quality score (0-1)
-- completeness: Completeness assessment
-- accuracy: Accuracy assessment
-- recommendations: Improvement recommendations"""
-
     def _register_tools(self):
         """Register evaluation tools."""
         try:
@@ -749,17 +589,6 @@ class DeepAgentPlanningAgent(BaseAgent):
             self._deep_agent = PlanningAgent(config)
         except Exception as e:
             print(f"Warning: Failed to initialize DeepAgent planning agent: {e}")
-
-    def _get_default_system_prompt(self) -> str:
-        return """You are a DeepAgent planning specialist integrated with DeepResearch. Your job is to create detailed execution plans and manage task workflows."""
-
-    def _get_default_instructions(self) -> str:
-        return """Create comprehensive execution plans with:
-- task_breakdown: Detailed task breakdown
-- dependencies: Task dependencies
-- timeline: Estimated timeline
-- resources: Required resources
-- success_criteria: Success metrics"""
 
     def _register_tools(self):
         """Register planning tools."""
@@ -817,16 +646,6 @@ class DeepAgentFilesystemAgent(BaseAgent):
             self._deep_agent = FilesystemAgent(config)
         except Exception as e:
             print(f"Warning: Failed to initialize DeepAgent filesystem agent: {e}")
-
-    def _get_default_system_prompt(self) -> str:
-        return """You are a DeepAgent filesystem specialist integrated with DeepResearch. Your job is to manage files and content for research workflows."""
-
-    def _get_default_instructions(self) -> str:
-        return """Manage filesystem operations and return:
-- file_operations: List of file operations performed
-- content_changes: Summary of content changes
-- project_structure: Updated project structure
-- recommendations: File organization recommendations"""
 
     def _register_tools(self):
         """Register filesystem tools."""
@@ -888,17 +707,6 @@ class DeepAgentResearchAgent(BaseAgent):
             self._deep_agent = ResearchAgent(config)
         except Exception as e:
             print(f"Warning: Failed to initialize DeepAgent research agent: {e}")
-
-    def _get_default_system_prompt(self) -> str:
-        return """You are a DeepAgent research specialist integrated with DeepResearch. Your job is to conduct comprehensive research using multiple sources and methods."""
-
-    def _get_default_instructions(self) -> str:
-        return """Conduct research and return:
-- research_findings: Key research findings
-- sources: List of sources consulted
-- analysis: Analysis of findings
-- recommendations: Research recommendations
-- confidence: Confidence in findings"""
 
     def _register_tools(self):
         """Register research tools."""
@@ -969,17 +777,6 @@ class DeepAgentOrchestrationAgent(BaseAgent):
 
         except Exception as e:
             print(f"Warning: Failed to initialize DeepAgent orchestration agent: {e}")
-
-    def _get_default_system_prompt(self) -> str:
-        return """You are a DeepAgent orchestration specialist integrated with DeepResearch. Your job is to coordinate multiple agents and synthesize their results."""
-
-    def _get_default_instructions(self) -> str:
-        return """Orchestrate multi-agent workflows and return:
-- coordination_plan: Coordination strategy
-- agent_assignments: Task assignments for agents
-- execution_timeline: Execution timeline
-- result_synthesis: Synthesized results
-- performance_metrics: Performance metrics"""
 
     def _register_tools(self):
         """Register orchestration tools."""
@@ -1053,17 +850,6 @@ class DeepAgentGeneralAgent(BaseAgent):
             self._deep_agent = GeneralPurposeAgent(config)
         except Exception as e:
             print(f"Warning: Failed to initialize DeepAgent general agent: {e}")
-
-    def _get_default_system_prompt(self) -> str:
-        return """You are a DeepAgent general-purpose agent integrated with DeepResearch. Your job is to handle diverse tasks and coordinate with specialized agents."""
-
-    def _get_default_instructions(self) -> str:
-        return """Handle general tasks and return:
-- task_analysis: Analysis of the task
-- execution_strategy: Strategy for execution
-- delegated_tasks: Tasks delegated to other agents
-- final_result: Final synthesized result
-- recommendations: Recommendations for future tasks"""
 
     def _register_tools(self):
         """Register general tools."""

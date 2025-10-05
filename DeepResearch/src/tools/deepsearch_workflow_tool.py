@@ -12,7 +12,6 @@ from typing import Any, Dict
 
 from .base import ToolSpec, ToolRunner, ExecutionResult, registry
 from ..statemachines.deepsearch_workflow import run_deepsearch_workflow
-from ..utils.deepsearch_schemas import DeepSearchSchemas
 
 
 @dataclass
@@ -40,7 +39,6 @@ class DeepSearchWorkflowTool(ToolRunner):
                 },
             )
         )
-        self.schemas = DeepSearchSchemas()
 
     def run(self, params: Dict[str, Any]) -> ExecutionResult:
         """Execute complete deep search workflow."""
@@ -190,7 +188,6 @@ class DeepSearchAgentTool(ToolRunner):
                 },
             )
         )
-        self.schemas = DeepSearchSchemas()
 
     def run(self, params: Dict[str, Any]) -> ExecutionResult:
         """Execute deep search with agent behavior."""

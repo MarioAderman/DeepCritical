@@ -376,6 +376,64 @@ class RAGResponse(BaseModel):
         }
 
 
+class IntegratedSearchRequest(BaseModel):
+    """Request model for integrated search operations."""
+
+    query: str = Field(..., description="Search query")
+    search_type: str = Field("search", description="Type of search: 'search' or 'news'")
+    num_results: Optional[int] = Field(
+        4, description="Number of results to fetch (1-20)"
+    )
+    chunk_size: int = Field(1000, description="Chunk size for processing")
+    chunk_overlap: int = Field(0, description="Overlap between chunks")
+    enable_analytics: bool = Field(True, description="Whether to record analytics")
+    convert_to_rag: bool = Field(
+        True, description="Whether to convert results to RAG format"
+    )
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "query": "artificial intelligence developments 2024",
+                "search_type": "news",
+                "num_results": 5,
+                "chunk_size": 1000,
+                "chunk_overlap": 100,
+                "enable_analytics": True,
+                "convert_to_rag": True,
+            }
+        }
+
+
+class IntegratedSearchResponse(BaseModel):
+    """Response model for integrated search operations."""
+
+    query: str = Field(..., description="Original search query")
+    documents: List[Document] = Field(
+        ..., description="RAG documents created from search results"
+    )
+    chunks: List[Chunk] = Field(
+        ..., description="RAG chunks created from search results"
+    )
+    analytics_recorded: bool = Field(..., description="Whether analytics were recorded")
+    processing_time: float = Field(..., description="Total processing time in seconds")
+    success: bool = Field(..., description="Whether the search was successful")
+    error: Optional[str] = Field(None, description="Error message if search failed")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "query": "artificial intelligence developments 2024",
+                "documents": [],
+                "chunks": [],
+                "analytics_recorded": True,
+                "processing_time": 2.5,
+                "success": True,
+                "error": None,
+            }
+        }
+
+
 class RAGConfig(BaseModel):
     """Complete RAG system configuration."""
 
@@ -600,13 +658,9 @@ class RAGSystem(BaseModel):
         context = "\n\n".join(context_parts)
 
         # Generate answer using LLM
-        prompt = f"""Based on the following context, please answer the question: {rag_query.text}
+        from ..prompts.rag import RAGPrompts
 
-Context:
-{context}
-
-Answer:"""
-
+        prompt = RAGPrompts.get_rag_query_prompt(rag_query.text, context)
         generated_answer = await self.llm.generate(prompt, context=context)
 
         processing_time = time.time() - start_time
@@ -729,19 +783,9 @@ class BioinformaticsRAGSystem(RAGSystem):
         context = "\n\n".join(context_parts)
 
         # Generate specialized prompt for bioinformatics
-        prompt = f"""Based on the following bioinformatics data, please provide a comprehensive answer to: {query.text}
+        from ..prompts.rag import RAGPrompts
 
-Context from bioinformatics databases:
-{context}
-
-Please provide:
-1. A direct answer to the question
-2. Key findings from the data
-3. Relevant gene symbols, GO terms, or other identifiers mentioned
-4. Confidence level based on the evidence quality
-
-Answer:"""
-
+        prompt = RAGPrompts.get_bioinformatics_rag_query_prompt(query.text, context)
         generated_answer = await self.llm.generate(prompt, context=context)
 
         processing_time = time.time() - start_time

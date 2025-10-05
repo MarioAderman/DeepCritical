@@ -11,6 +11,47 @@ import pytest
 class TestAgentsModuleImports:
     """Test imports for individual agent modules."""
 
+    def test_agents_datatypes_imports(self):
+        """Test all imports from agents datatypes module."""
+        from DeepResearch.src.datatypes.agents import (
+            AgentType,
+            AgentStatus,
+            AgentDependencies,
+            AgentResult,
+            ExecutionHistory,
+        )
+
+        # Verify they are all accessible and not None
+        assert AgentType is not None
+        assert AgentStatus is not None
+        assert AgentDependencies is not None
+        assert AgentResult is not None
+        assert ExecutionHistory is not None
+
+        # Test enum values exist
+        assert hasattr(AgentType, "PARSER")
+        assert hasattr(AgentType, "PLANNER")
+        assert hasattr(AgentStatus, "IDLE")
+        assert hasattr(AgentStatus, "RUNNING")
+
+    def test_agents_prompts_imports(self):
+        """Test all imports from agents prompts module."""
+        from DeepResearch.src.prompts.agents import AgentPrompts
+
+        # Verify they are all accessible and not None
+        assert AgentPrompts is not None
+
+        # Test that AgentPrompts has the expected methods
+        assert hasattr(AgentPrompts, "get_system_prompt")
+        assert hasattr(AgentPrompts, "get_instructions")
+        assert hasattr(AgentPrompts, "get_agent_prompts")
+
+        # Test that we can get prompts for different agent types
+        parser_prompts = AgentPrompts.get_agent_prompts("parser")
+        assert isinstance(parser_prompts, dict)
+        assert "system" in parser_prompts
+        assert "instructions" in parser_prompts
+
     def test_prime_parser_imports(self):
         """Test all imports from prime_parser module."""
         # Test core imports
@@ -76,18 +117,28 @@ class TestAgentsModuleImports:
     def test_orchestrator_imports(self):
         """Test all imports from orchestrator module."""
 
-        from DeepResearch.src.agents.orchestrator import Orchestrator
+        from DeepResearch.src.datatypes.orchestrator import Orchestrator
 
         # Verify they are all accessible and not None
         assert Orchestrator is not None
 
+        # Test that it's a dataclass
+        from dataclasses import is_dataclass
+
+        assert is_dataclass(Orchestrator)
+
     def test_planner_imports(self):
         """Test all imports from planner module."""
 
-        from DeepResearch.src.agents.planner import Planner
+        from DeepResearch.src.datatypes.planner import Planner
 
         # Verify they are all accessible and not None
         assert Planner is not None
+
+        # Test that it's a dataclass
+        from dataclasses import is_dataclass
+
+        assert is_dataclass(Planner)
 
     def test_pyd_ai_toolsets_imports(self):
         """Test all imports from pyd_ai_toolsets module."""
@@ -102,9 +153,11 @@ class TestAgentsModuleImports:
 
         from DeepResearch.src.agents.research_agent import (
             ResearchAgent,
+            run,
+        )
+        from DeepResearch.src.datatypes.research import (
             ResearchOutcome,
             StepResult,
-            run,
         )
 
         # Verify they are all accessible and not None
@@ -157,13 +210,67 @@ class TestAgentsModuleImports:
         # Verify they are all accessible and not None
         assert MultiAgentCoordinator is not None
 
+        # Test that the main types are accessible through the main module
+        # (they should be imported from the datatypes module)
+        from DeepResearch.src.datatypes import (
+            CoordinationStrategy,
+            AgentRole,
+            CoordinationResult,
+        )
+
+        assert CoordinationStrategy is not None
+        assert AgentRole is not None
+        assert CoordinationResult is not None
+
+        # Test enum values exist
+        assert hasattr(CoordinationStrategy, "COLLABORATIVE")
+        assert hasattr(AgentRole, "COORDINATOR")
+
+    def test_execution_imports(self):
+        """Test that execution types are accessible through agents module."""
+
+        # Test that execution types are accessible from datatypes (used by agents)
+        from DeepResearch.src.datatypes import (
+            WorkflowStep,
+            WorkflowDAG,
+            ExecutionContext,
+        )
+
+        # Verify they are all accessible and not None
+        assert WorkflowStep is not None
+        assert WorkflowDAG is not None
+        assert ExecutionContext is not None
+
+        # Test that they are dataclasses
+        from dataclasses import is_dataclass
+
+        assert is_dataclass(WorkflowStep)
+        assert is_dataclass(WorkflowDAG)
+        assert is_dataclass(ExecutionContext)
+
     def test_search_agent_imports(self):
         """Test all imports from search_agent module."""
 
         from DeepResearch.src.agents.search_agent import SearchAgent
+        from DeepResearch.src.datatypes.search_agent import (
+            SearchAgentConfig,
+            SearchQuery,
+            SearchResult,
+            SearchAgentDependencies,
+        )
+        from DeepResearch.src.prompts.search_agent import SearchAgentPrompts
 
         # Verify they are all accessible and not None
         assert SearchAgent is not None
+        assert SearchAgentConfig is not None
+        assert SearchQuery is not None
+        assert SearchResult is not None
+        assert SearchAgentDependencies is not None
+        assert SearchAgentPrompts is not None
+
+        # Test that search agent can import its dependencies
+        assert hasattr(SearchAgent, "_get_system_prompt")
+        assert hasattr(SearchAgent, "create_rag_agent")
 
     def test_workflow_orchestrator_imports(self):
         """Test all imports from workflow_orchestrator module."""
@@ -205,9 +312,11 @@ class TestAgentsCrossModuleImports:
         """Test that agents can import from datatypes module."""
         # This tests the import chain: agents -> datatypes
         from DeepResearch.src.agents.prime_parser import StructuredProblem
+        from DeepResearch.src.datatypes.agents import AgentType
 
         # If we get here without ImportError, the import chain works
         assert StructuredProblem is not None
+        assert AgentType is not None
 
 
 class TestAgentsComplexImportChains:
@@ -219,14 +328,18 @@ class TestAgentsComplexImportChains:
         try:
             from DeepResearch.src.agents.research_agent import ResearchAgent
             from DeepResearch.src.prompts import PromptLoader
-            from DeepResearch.src.tools.pyd_ai_tools import _build_builtin_tools
-            from DeepResearch.src.datatypes import Document
+            from DeepResearch.src.utils.pydantic_ai_utils import (
+                build_builtin_tools as _build_builtin_tools,
+            )
+            from DeepResearch.src.datatypes import Document, ResearchOutcome, StepResult
 
             # If all imports succeed, the chain is working
             assert ResearchAgent is not None
             assert PromptLoader is not None
             assert _build_builtin_tools is not None
             assert Document is not None
+            assert ResearchOutcome is not None
+            assert StepResult is not None
 
         except ImportError as e:
             pytest.fail(f"Import chain failed: {e}")
@@ -236,7 +349,7 @@ class TestAgentsComplexImportChains:
         try:
             from DeepResearch.src.agents.prime_planner import generate_plan
             from DeepResearch.src.agents.prime_executor import execute_workflow
-            from DeepResearch.src.agents.orchestrator import Orchestrator
+            from DeepResearch.src.datatypes.orchestrator import Orchestrator
 
             # If all imports succeed, the chain is working
             assert generate_plan is not None

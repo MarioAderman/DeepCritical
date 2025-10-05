@@ -15,7 +15,6 @@ from dataclasses import dataclass, field
 from omegaconf import DictConfig
 
 from pydantic_ai import Agent, RunContext
-from pydantic import BaseModel, Field
 
 from ..datatypes.workflow_orchestration import (
     AgentOrchestratorConfig,
@@ -26,85 +25,14 @@ from ..datatypes.workflow_orchestration import (
     SubgraphType,
     LossFunctionType,
     AgentRole,
+    OrchestratorDependencies,
+    BreakConditionCheck,
+    OrchestrationResult,
 )
+from ..prompts.orchestrator import OrchestratorPrompts
 
 if TYPE_CHECKING:
     pass
-
-
-class OrchestratorDependencies(BaseModel):
-    """Dependencies for the agent orchestrator."""
-
-    config: Dict[str, Any] = Field(default_factory=dict)
-    user_input: str = Field(..., description="User input/query")
-    context: Dict[str, Any] = Field(default_factory=dict)
-    available_subgraphs: List[str] = Field(default_factory=list)
-    available_agents: List[str] = Field(default_factory=list)
-    current_iteration: int = Field(0, description="Current iteration number")
-    parent_loop_id: Optional[str] = Field(None, description="Parent loop ID if nested")
-
-
-class NestedLoopRequest(BaseModel):
-    """Request to spawn a nested REACT loop."""
-
-    loop_id: str = Field(..., description="Loop identifier")
-    parent_loop_id: Optional[str] = Field(None, description="Parent loop ID")
-    max_iterations: int = Field(10, description="Maximum iterations")
-    break_conditions: List[BreakCondition] = Field(
-        default_factory=list, description="Break conditions"
-    )
-    state_machine_mode: MultiStateMachineMode = Field(
-        MultiStateMachineMode.GROUP_CHAT, description="State machine mode"
-    )
-    subgraphs: List[SubgraphType] = Field(
-        default_factory=list, description="Subgraphs to include"
-    )
-    agent_roles: List[AgentRole] = Field(
-        default_factory=list, description="Agent roles"
-    )
-    tools: List[str] = Field(default_factory=list, description="Available tools")
-    priority: int = Field(0, description="Execution priority")
-
-
-class SubgraphSpawnRequest(BaseModel):
-    """Request to spawn a subgraph."""
-
-    subgraph_id: str = Field(..., description="Subgraph identifier")
-    subgraph_type: SubgraphType = Field(..., description="Type of subgraph")
-    parameters: Dict[str, Any] = Field(
-        default_factory=dict, description="Subgraph parameters"
-    )
-    entry_node: str = Field(..., description="Entry node")
-    max_execution_time: float = Field(300.0, description="Maximum execution time")
-    tools: List[str] = Field(default_factory=list, description="Available tools")
-
-
-class BreakConditionCheck(BaseModel):
-    """Result of break condition evaluation."""
-
-    condition_met: bool = Field(..., description="Whether the condition is met")
-    condition_type: LossFunctionType = Field(..., description="Type of condition")
-    current_value: float = Field(..., description="Current value")
-    threshold: float = Field(..., description="Threshold value")
-    should_break: bool = Field(..., description="Whether to break the loop")
-
-
-class OrchestrationResult(BaseModel):
-    """Result of orchestration execution."""
-
-    success: bool = Field(..., description="Whether orchestration was successful")
-    final_answer: str = Field(..., description="Final answer")
-    nested_loops_spawned: List[str] = Field(
-        default_factory=list, description="Nested loops spawned"
-    )
-    subgraphs_executed: List[str] = Field(
-        default_factory=list, description="Subgraphs executed"
-    )
-    total_iterations: int = Field(..., description="Total iterations")
-    break_reason: Optional[str] = Field(None, description="Reason for breaking")
-    execution_metadata: Dict[str, Any] = Field(
-        default_factory=dict, description="Execution metadata"
-    )
 
 
 @dataclass
@@ -133,44 +61,18 @@ class AgentOrchestrator:
 
     def _get_orchestrator_system_prompt(self) -> str:
         """Get the system prompt for the orchestrator agent."""
-        return f"""You are an advanced orchestrator agent responsible for managing nested REACT loops and subgraphs.
-
-Your capabilities include:
-1. Spawning nested REACT loops with different state machine modes
-2. Managing subgraphs for specialized workflows (RAG, search, code, etc.)
-3. Coordinating multi-agent systems with configurable strategies
-4. Evaluating break conditions and loss functions
-5. Making decisions about when to continue or terminate loops
-
-You have access to various tools for:
-- Spawning nested loops with specific configurations
-- Executing subgraphs with different parameters
-- Checking break conditions and loss functions
-- Coordinating agent interactions
-- Managing workflow execution
-
-Your role is to analyze the user input and orchestrate the most appropriate combination of nested loops and subgraphs to achieve the desired outcome.
-
-Current configuration:
-- Max nested loops: {self.config.max_nested_loops}
-- Coordination strategy: {self.config.coordination_strategy}
-- Can spawn subgraphs: {self.config.can_spawn_subgraphs}
-- Can spawn agents: {self.config.can_spawn_agents}"""
+        prompts = OrchestratorPrompts()
+        return prompts.get_system_prompt(
+            max_nested_loops=self.config.max_nested_loops,
+            coordination_strategy=self.config.coordination_strategy,
+            can_spawn_subgraphs=self.config.can_spawn_subgraphs,
+            can_spawn_agents=self.config.can_spawn_agents,
+        )
 
     def _get_orchestrator_instructions(self) -> List[str]:
         """Get instructions for the orchestrator agent."""
-        return [
-            "Analyze the user input to understand the complexity and requirements",
-            "Determine if nested REACT loops are needed based on the task complexity",
-            "Select appropriate state machine modes (group_chat, sequential, hierarchical, etc.)",
-            "Choose relevant subgraphs (RAG, search, code, bioinformatics, etc.)",
-            "Configure break conditions and loss functions appropriately",
-            "Spawn nested loops and subgraphs as needed",
-            "Monitor execution and evaluate break conditions",
-            "Coordinate between different loops and subgraphs",
-            "Synthesize results from multiple sources",
-            "Make decisions about when to terminate or continue execution",
-        ]
+        prompts = OrchestratorPrompts()
+        return prompts.get_instructions()
 
     def _register_orchestrator_tools(self):
         """Register tools for the orchestrator agent."""

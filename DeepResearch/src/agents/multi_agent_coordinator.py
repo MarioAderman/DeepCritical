@@ -12,117 +12,31 @@ import time
 from datetime import datetime
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 from dataclasses import dataclass, field
-from enum import Enum
 
 from pydantic_ai import Agent, RunContext
-from pydantic import BaseModel, Field
 
 from ..datatypes.workflow_orchestration import (
     MultiAgentSystemConfig,
     AgentConfig,
-    AgentRole,
     WorkflowStatus,
+)
+from ..datatypes.multi_agent import (
+    CoordinationStrategy,
+    AgentState,
+    CoordinationMessage,
+    CoordinationRound,
+    CoordinationResult,
+    AgentRole,
+)
+from ..prompts.multi_agent_coordinator import (
+    get_system_prompt,
+    get_instructions,
 )
 # Note: JudgeEvaluationRequest and JudgeEvaluationResult are defined in workflow_orchestrator.py
 # Import them from there if needed in the future
 
 if TYPE_CHECKING:
     pass
-
-
-class CoordinationStrategy(str, Enum):
-    """Coordination strategies for multi-agent systems."""
-
-    COLLABORATIVE = "collaborative"
-    SEQUENTIAL = "sequential"
-    HIERARCHICAL = "hierarchical"
-    PEER_TO_PEER = "peer_to_peer"
-    PIPELINE = "pipeline"
-    CONSENSUS = "consensus"
-    GROUP_CHAT = "group_chat"
-    STATE_MACHINE_ENTRY = "state_machine_entry"
-    SUBGRAPH_COORDINATION = "subgraph_coordination"
-
-
-class CommunicationProtocol(str, Enum):
-    """Communication protocols for agent coordination."""
-
-    DIRECT = "direct"
-    BROADCAST = "broadcast"
-    HIERARCHICAL = "hierarchical"
-    PEER_TO_PEER = "peer_to_peer"
-    MESSAGE_PASSING = "message_passing"
-
-
-class AgentState(BaseModel):
-    """State of an individual agent."""
-
-    agent_id: str = Field(..., description="Agent identifier")
-    role: AgentRole = Field(..., description="Agent role")
-    status: WorkflowStatus = Field(WorkflowStatus.PENDING, description="Agent status")
-    current_task: Optional[str] = Field(None, description="Current task")
-    input_data: Dict[str, Any] = Field(default_factory=dict, description="Input data")
-    output_data: Dict[str, Any] = Field(default_factory=dict, description="Output data")
-    error_message: Optional[str] = Field(None, description="Error message if failed")
-    start_time: Optional[datetime] = Field(None, description="Start time")
-    end_time: Optional[datetime] = Field(None, description="End time")
-    iteration_count: int = Field(0, description="Number of iterations")
-    max_iterations: int = Field(10, description="Maximum iterations")
-
-
-class CoordinationMessage(BaseModel):
-    """Message for agent coordination."""
-
-    message_id: str = Field(..., description="Message identifier")
-    sender_id: str = Field(..., description="Sender agent ID")
-    receiver_id: Optional[str] = Field(
-        None, description="Receiver agent ID (None for broadcast)"
-    )
-    message_type: str = Field(..., description="Message type")
-    content: Dict[str, Any] = Field(..., description="Message content")
-    timestamp: datetime = Field(
-        default_factory=datetime.now, description="Message timestamp"
-    )
-    priority: int = Field(0, description="Message priority")
-
-
-class CoordinationRound(BaseModel):
-    """A single coordination round."""
-
-    round_id: str = Field(..., description="Round identifier")
-    round_number: int = Field(..., description="Round number")
-    start_time: datetime = Field(
-        default_factory=datetime.now, description="Round start time"
-    )
-    end_time: Optional[datetime] = Field(None, description="Round end time")
-    messages: List[CoordinationMessage] = Field(
-        default_factory=list, description="Messages in this round"
-    )
-    agent_states: Dict[str, AgentState] = Field(
-        default_factory=dict, description="Agent states"
-    )
-    consensus_reached: bool = Field(False, description="Whether consensus was reached")
-    consensus_score: float = Field(0.0, description="Consensus score")
-
-
-class CoordinationResult(BaseModel):
-    """Result of multi-agent coordination."""
-
-    coordination_id: str = Field(..., description="Coordination identifier")
-    system_id: str = Field(..., description="System identifier")
-    strategy: CoordinationStrategy = Field(..., description="Coordination strategy")
-    success: bool = Field(..., description="Whether coordination was successful")
-    total_rounds: int = Field(..., description="Total coordination rounds")
-    final_result: Dict[str, Any] = Field(..., description="Final coordination result")
-    agent_results: Dict[str, Dict[str, Any]] = Field(
-        default_factory=dict, description="Individual agent results"
-    )
-    consensus_score: float = Field(0.0, description="Final consensus score")
-    coordination_rounds: List[CoordinationRound] = Field(
-        default_factory=list, description="Coordination rounds"
-    )
-    execution_time: float = Field(0.0, description="Total execution time")
-    error_message: Optional[str] = Field(None, description="Error message if failed")
 
 
 @dataclass
@@ -165,61 +79,11 @@ class MultiAgentCoordinator:
 
     def _get_default_system_prompt(self, role: AgentRole) -> str:
         """Get default system prompt for an agent role."""
-        prompts = {
-            AgentRole.COORDINATOR: "You are a coordinator agent responsible for managing and coordinating other agents.",
-            AgentRole.EXECUTOR: "You are an executor agent responsible for executing specific tasks.",
-            AgentRole.EVALUATOR: "You are an evaluator agent responsible for evaluating and assessing outputs.",
-            AgentRole.JUDGE: "You are a judge agent responsible for making final decisions and evaluations.",
-            AgentRole.REVIEWER: "You are a reviewer agent responsible for reviewing and providing feedback.",
-            AgentRole.LINTER: "You are a linter agent responsible for checking code quality and standards.",
-            AgentRole.CODE_EXECUTOR: "You are a code executor agent responsible for executing code and analyzing results.",
-            AgentRole.HYPOTHESIS_GENERATOR: "You are a hypothesis generator agent responsible for creating scientific hypotheses.",
-            AgentRole.HYPOTHESIS_TESTER: "You are a hypothesis tester agent responsible for testing and validating hypotheses.",
-            AgentRole.REASONING_AGENT: "You are a reasoning agent responsible for logical reasoning and analysis.",
-            AgentRole.SEARCH_AGENT: "You are a search agent responsible for searching and retrieving information.",
-            AgentRole.RAG_AGENT: "You are a RAG agent responsible for retrieval-augmented generation tasks.",
-            AgentRole.BIOINFORMATICS_AGENT: "You are a bioinformatics agent responsible for biological data analysis.",
-        }
-        return prompts.get(
-            role, "You are a specialized agent with specific capabilities."
-        )
+        return get_system_prompt(role.value)
 
     def _get_default_instructions(self, role: AgentRole) -> List[str]:
         """Get default instructions for an agent role."""
-        instructions = {
-            AgentRole.COORDINATOR: [
-                "Coordinate with other agents to achieve common goals",
-                "Manage task distribution and workflow",
-                "Ensure effective communication between agents",
-                "Monitor progress and resolve conflicts",
-            ],
-            AgentRole.EXECUTOR: [
-                "Execute assigned tasks efficiently",
-                "Provide clear status updates",
-                "Handle errors gracefully",
-                "Deliver high-quality outputs",
-            ],
-            AgentRole.EVALUATOR: [
-                "Evaluate outputs objectively",
-                "Provide constructive feedback",
-                "Assess quality and accuracy",
-                "Suggest improvements",
-            ],
-            AgentRole.JUDGE: [
-                "Make fair and objective decisions",
-                "Consider multiple perspectives",
-                "Provide detailed reasoning",
-                "Ensure consistency in evaluations",
-            ],
-        }
-        return instructions.get(
-            role,
-            [
-                "Perform your role effectively",
-                "Communicate clearly",
-                "Maintain quality standards",
-            ],
-        )
+        return get_instructions(role.value)
 
     def _register_agent_tools(self, agent: Agent, agent_config: AgentConfig):
         """Register tools for an agent."""
@@ -536,7 +400,7 @@ class MultiAgentCoordinator:
         # Find coordinator agent
         coordinator_id = None
         for agent_id, state in agent_states.items():
-            if state.role == AgentRole.COORDINATOR:
+            if AgentRole(state.role) == AgentRole.COORDINATOR:
                 coordinator_id = agent_id
                 break
 
@@ -790,7 +654,7 @@ class MultiAgentCoordinator:
         """Get the role of an agent."""
         for agent_config in self.system_config.agents:
             if agent_config.agent_id == agent_id:
-                return agent_config.role
+                return AgentRole(agent_config.role.value)
         return AgentRole.EXECUTOR
 
     def _determine_pipeline_order(
@@ -809,7 +673,7 @@ class MultiAgentCoordinator:
 
         sorted_agents = sorted(
             agent_states.keys(),
-            key=lambda x: role_priority.get(agent_states[x].role, 10),
+            key=lambda x: role_priority.get(AgentRole(agent_states[x].role), 10),
         )
 
         return sorted_agents

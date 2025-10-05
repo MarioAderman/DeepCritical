@@ -12,6 +12,13 @@ from time import sleep
 from typing import Any, Dict, Optional, ClassVar
 
 from .base import ToolSpec, ToolRunner, ExecutionResult, registry
+from ..datatypes.docker_sandbox_datatypes import (
+    DockerSandboxConfig,
+    DockerExecutionRequest,
+    DockerExecutionResult,
+    DockerSandboxEnvironment,
+    DockerSandboxPolicies,
+)
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -121,34 +128,29 @@ class DockerSandboxRunner(ToolRunner):
         if not ok:
             return ExecutionResult(success=False, error=err)
 
-        # Parse parameters
-        language = str(params.get("language", "python")).strip() or "python"
-        code = str(params.get("code", "")).strip()
-        explicit_cmd = str(params.get("command", "")).strip()
-        env_json = str(params.get("env", "")).strip()
-        timeout_str = str(params.get("timeout", "60")).strip()
-        execution_policy_json = str(params.get("execution_policy", "")).strip()
-
-        # Parse timeout
-        try:
-            timeout = max(1, int(timeout_str))
-        except Exception:
-            timeout = 60
+        # Create execution request from parameters
+        execution_request = DockerExecutionRequest(
+            language=str(params.get("language", "python")).strip() or "python",
+            code=str(params.get("code", "")).strip(),
+            command=str(params.get("command", "")).strip() or None,
+            timeout=max(1, int(str(params.get("timeout", "60")).strip() or "60")),
+        )
 
         # Parse environment variables
+        env_json = str(params.get("env", "")).strip()
         try:
             env_map: Dict[str, str] = json.loads(env_json) if env_json else {}
-            if not isinstance(env_map, dict):
-                env_map = {}
+            execution_request.environment = env_map
         except Exception:
-            env_map = {}
+            execution_request.environment = {}
 
         # Parse execution policies
+        execution_policy_json = str(params.get("execution_policy", "")).strip()
         try:
             if execution_policy_json:
                 custom_policies = json.loads(execution_policy_json)
                 if isinstance(custom_policies, dict):
-                    self.execution_policies.update(custom_policies)
+                    execution_request.execution_policy = custom_policies
         except Exception:
             pass  # Use default policies
 
@@ -158,20 +160,39 @@ class DockerSandboxRunner(ToolRunner):
         except Exception:
             cfg = {}
 
-        # Get configuration values
-        image = _get_cfg_value(cfg, "sandbox.image", "python:3.11-slim")
-        workdir = _get_cfg_value(cfg, "sandbox.workdir", "/workspace")
-        cpu = _get_cfg_value(cfg, "sandbox.cpu", None)
-        mem = _get_cfg_value(cfg, "sandbox.mem", None)
-        auto_remove = _get_cfg_value(cfg, "sandbox.auto_remove", True)
+        # Create Docker sandbox configuration
+        sandbox_config = DockerSandboxConfig(
+            image=_get_cfg_value(cfg, "sandbox.image", "python:3.11-slim"),
+            working_directory=_get_cfg_value(cfg, "sandbox.workdir", "/workspace"),
+            cpu_limit=_get_cfg_value(cfg, "sandbox.cpu", None),
+            memory_limit=_get_cfg_value(cfg, "sandbox.mem", None),
+            auto_remove=_get_cfg_value(cfg, "sandbox.auto_remove", True),
+        )
+
+        # Create environment settings
+        environment = DockerSandboxEnvironment(
+            variables=execution_request.environment,
+            working_directory=sandbox_config.working_directory,
+        )
+
+        # Update execution policies if provided
+        if execution_request.execution_policy:
+            policies = DockerSandboxPolicies()
+            for lang, allowed in execution_request.execution_policy.items():
+                if hasattr(policies, lang.lower()):
+                    setattr(policies, lang.lower(), allowed)
+        else:
+            policies = DockerSandboxPolicies()
 
         # Normalize language and check execution policy
-        lang = self.LANGUAGE_ALIASES.get(language.lower(), language.lower())
+        lang = self.LANGUAGE_ALIASES.get(
+            execution_request.language.lower(), execution_request.language.lower()
+        )
         if lang not in self.DEFAULT_EXECUTION_POLICY:
             return ExecutionResult(success=False, error=f"Unsupported language: {lang}")
 
-        execute_code = self.execution_policies.get(lang, False)
-        if not execute_code and not explicit_cmd:
+        execute_code = policies.is_language_allowed(lang)
+        if not execute_code and not execution_request.command:
             return ExecutionResult(
                 success=False, error=f"Execution disabled for language: {lang}"
             )
@@ -191,7 +212,7 @@ class DockerSandboxRunner(ToolRunner):
         try:
             # Create container with enhanced configuration
             container_name = f"deepcritical-sandbox-{uuid.uuid4().hex[:8]}"
-            container = DockerContainer(image)
+            container = DockerContainer(sandbox_config.image)
             container.with_name(container_name)
 
             # Set environment variables
@@ -200,37 +221,45 @@ class DockerSandboxRunner(ToolRunner):
                 container.with_env(str(k), str(v))
 
             # Set resource limits if configured
-            if cpu:
+            if sandbox_config.cpu_limit:
                 try:
-                    container.with_cpu_quota(int(cpu))
+                    container.with_cpu_quota(int(sandbox_config.cpu_limit * 100000))
                 except Exception:
-                    logger.warning(f"Failed to set CPU quota: {cpu}")
+                    logger.warning(
+                        f"Failed to set CPU quota: {sandbox_config.cpu_limit}"
+                    )
 
-            if mem:
+            if sandbox_config.memory_limit:
                 try:
-                    container.with_memory(mem)
+                    container.with_memory(sandbox_config.memory_limit)
                 except Exception:
-                    logger.warning(f"Failed to set memory limit: {mem}")
+                    logger.warning(
+                        f"Failed to set memory limit: {sandbox_config.memory_limit}"
+                    )
 
-            container.with_workdir(workdir)
+            container.with_workdir(sandbox_config.working_directory)
 
             # Mount working directory
-            container.with_volume_mapping(str(work_path), workdir)
+            container.with_volume_mapping(
+                str(work_path), sandbox_config.working_directory
+            )
 
             # Handle code execution
-            if explicit_cmd:
+            if execution_request.command:
                 # Use explicit command
-                cmd = explicit_cmd
+                cmd = execution_request.command
                 container.with_command(cmd)
             else:
                 # Save code to file and execute
-                filename = _get_file_name_from_content(code, work_path)
+                filename = _get_file_name_from_content(
+                    execution_request.code, work_path
+                )
                 if not filename:
-                    filename = f"tmp_code_{md5(code.encode()).hexdigest()}.{lang}"
+                    filename = f"tmp_code_{md5(execution_request.code.encode()).hexdigest()}.{lang}"
 
                 code_path = work_path / filename
                 with code_path.open("w", encoding="utf-8") as f:
-                    f.write(code)
+                    f.write(execution_request.code)
                 files_created.append(str(code_path))
 
                 # Build execution command
@@ -246,7 +275,9 @@ class DockerSandboxRunner(ToolRunner):
                 container.with_command(cmd)
 
             # Start container and wait for readiness
-            logger.info(f"Starting container {container_name} with image {image}")
+            logger.info(
+                f"Starting container {container_name} with image {sandbox_config.image}"
+            )
             container.start()
             _wait_for_ready(container, timeout=30)
 
@@ -254,7 +285,7 @@ class DockerSandboxRunner(ToolRunner):
             logger.info(f"Executing command: {cmd}")
             result = container.get_wrapped_container().exec_run(
                 cmd,
-                workdir=workdir,
+                workdir=sandbox_config.working_directory,
                 environment=env_map,
                 stdout=True,
                 stderr=True,
@@ -288,13 +319,24 @@ class DockerSandboxRunner(ToolRunner):
             # Stop container
             container.stop()
 
+            # Create Docker execution result
+            docker_result = DockerExecutionResult(
+                success=True,
+                stdout=stdout,
+                stderr=stderr,
+                exit_code=exit_code,
+                files_created=files_created,
+                execution_time=0.0,  # Could be calculated if we track timing
+            )
+
             return ExecutionResult(
                 success=True,
                 data={
-                    "stdout": stdout,
-                    "stderr": stderr,
-                    "exit_code": str(exit_code),
-                    "files": json.dumps(files_created),
+                    "stdout": docker_result.stdout,
+                    "stderr": docker_result.stderr,
+                    "exit_code": str(docker_result.exit_code),
+                    "files": json.dumps(docker_result.files_created),
+                    "execution_time": docker_result.execution_time,
                 },
             )
 

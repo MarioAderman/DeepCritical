@@ -12,7 +12,7 @@ import time
 from typing import Any, Dict, List, Optional, Set
 from datetime import datetime
 
-from .deepsearch_schemas import DeepSearchSchemas, EvaluationType, ActionType
+from ..datatypes.deepsearch import DeepSearchSchemas, EvaluationType, ActionType
 from .execution_status import ExecutionStatus
 from .execution_history import ExecutionHistory, ExecutionItem
 

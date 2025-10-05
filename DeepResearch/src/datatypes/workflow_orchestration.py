@@ -508,17 +508,110 @@ class OrchestrationState(BaseModel):
         default_factory=datetime.now, description="Last update time"
     )
 
+
+class OrchestratorDependencies(BaseModel):
+    """Dependencies for the workflow orchestrator."""
+
+    config: Dict[str, Any] = Field(default_factory=dict)
+    user_input: str = Field(..., description="User input/query")
+    context: Dict[str, Any] = Field(default_factory=dict)
+    available_workflows: List[str] = Field(default_factory=list)
+    available_agents: List[str] = Field(default_factory=list)
+    available_judges: List[str] = Field(default_factory=list)
+
+
+class WorkflowSpawnRequest(BaseModel):
+    """Request to spawn a new workflow."""
+
+    workflow_type: WorkflowType = Field(..., description="Type of workflow to spawn")
+    workflow_name: str = Field(..., description="Name of the workflow")
+    input_data: Dict[str, Any] = Field(..., description="Input data for the workflow")
+    parameters: Dict[str, Any] = Field(
+        default_factory=dict, description="Workflow parameters"
+    )
+    priority: int = Field(0, description="Execution priority")
+    dependencies: List[str] = Field(
+        default_factory=list, description="Dependent workflow names"
+    )
+
+
+class WorkflowSpawnResult(BaseModel):
+    """Result of spawning a workflow."""
+
+    success: bool = Field(..., description="Whether spawning was successful")
+    execution_id: str = Field(..., description="Execution ID of the spawned workflow")
+    workflow_name: str = Field(..., description="Name of the spawned workflow")
+    status: WorkflowStatus = Field(..., description="Initial status")
+    error_message: Optional[str] = Field(None, description="Error message if failed")
+
+
+class MultiAgentCoordinationRequest(BaseModel):
+    """Request for multi-agent coordination."""
+
+    system_id: str = Field(..., description="Multi-agent system ID")
+    task_description: str = Field(..., description="Task description")
+    input_data: Dict[str, Any] = Field(..., description="Input data")
+    coordination_strategy: str = Field(
+        "collaborative", description="Coordination strategy"
+    )
+    max_rounds: int = Field(10, description="Maximum coordination rounds")
+
+
+class MultiAgentCoordinationResult(BaseModel):
+    """Result of multi-agent coordination."""
+
+    success: bool = Field(..., description="Whether coordination was successful")
+    system_id: str = Field(..., description="System ID")
+    final_result: Dict[str, Any] = Field(..., description="Final coordination result")
+    coordination_rounds: int = Field(..., description="Number of coordination rounds")
+    agent_results: Dict[str, Any] = Field(
+        default_factory=dict, description="Individual agent results"
+    )
+    consensus_score: float = Field(0.0, description="Consensus score")
+
+
+class JudgeEvaluationRequest(BaseModel):
+    """Request for judge evaluation."""
+
+    judge_id: str = Field(..., description="Judge ID")
+    content_to_evaluate: Dict[str, Any] = Field(..., description="Content to evaluate")
+    evaluation_criteria: List[str] = Field(..., description="Evaluation criteria")
+    context: Dict[str, Any] = Field(
+        default_factory=dict, description="Evaluation context"
+    )
+
+
+class JudgeEvaluationResult(BaseModel):
+    """Result of judge evaluation."""
+
+    success: bool = Field(..., description="Whether evaluation was successful")
+    judge_id: str = Field(..., description="Judge ID")
+    overall_score: float = Field(..., description="Overall evaluation score")
+    criterion_scores: Dict[str, float] = Field(
+        default_factory=dict, description="Scores by criterion"
+    )
+    feedback: str = Field(..., description="Detailed feedback")
+    recommendations: List[str] = Field(
+        default_factory=list, description="Improvement recommendations"
+    )
+
     class Config:
         json_schema_extra = {
             "example": {
-                "state_id": "state_001",
-                "active_executions": [],
-                "completed_executions": [],
-                "system_metrics": {
-                    "total_executions": 0,
-                    "success_rate": 0.0,
-                    "average_execution_time": 0.0,
-                },
+                # "state_id": "state_001",
+                # "active_executions": [],
+                # "completed_executions": [],
+                # "system_metrics": {
+                #     "total_executions": 0,
+                #     "success_rate": 0.0,
+                #     "average_execution_time": 0.0,
+                # },
+                "success": True,
+                "judge_id": "quality_judge_001",
+                "overall_score": 8.5,
+                "criterion_scores": {"quality": 8.5, "accuracy": 8.0, "clarity": 9.0},
+                "feedback": "Good quality output with room for improvement",
+                "recommendations": ["Add more detail", "Improve clarity"],
             }
         }
 
@@ -649,6 +742,69 @@ class AppMode(str, Enum):
     SUBGRAPH_COORDINATION = "subgraph_coordination"
     LOSS_DRIVEN = "loss_driven"
     CUSTOM_MODE = "custom_mode"
+
+
+class NestedLoopRequest(BaseModel):
+    """Request to spawn a nested REACT loop."""
+
+    loop_id: str = Field(..., description="Loop identifier")
+    parent_loop_id: Optional[str] = Field(None, description="Parent loop ID")
+    max_iterations: int = Field(10, description="Maximum iterations")
+    break_conditions: List[BreakCondition] = Field(
+        default_factory=list, description="Break conditions"
+    )
+    state_machine_mode: MultiStateMachineMode = Field(
+        MultiStateMachineMode.GROUP_CHAT, description="State machine mode"
+    )
+    subgraphs: List[SubgraphType] = Field(
+        default_factory=list, description="Subgraphs to include"
+    )
+    agent_roles: List[AgentRole] = Field(
+        default_factory=list, description="Agent roles"
+    )
+    tools: List[str] = Field(default_factory=list, description="Available tools")
+    priority: int = Field(0, description="Execution priority")
+
+
+class SubgraphSpawnRequest(BaseModel):
+    """Request to spawn a subgraph."""
+
+    subgraph_id: str = Field(..., description="Subgraph identifier")
+    subgraph_type: SubgraphType = Field(..., description="Type of subgraph")
+    parameters: Dict[str, Any] = Field(
+        default_factory=dict, description="Subgraph parameters"
+    )
+    entry_node: str = Field(..., description="Entry node")
+    max_execution_time: float = Field(300.0, description="Maximum execution time")
+    tools: List[str] = Field(default_factory=list, description="Available tools")
+
+
+class BreakConditionCheck(BaseModel):
+    """Result of break condition evaluation."""
+
+    condition_met: bool = Field(..., description="Whether the condition is met")
+    condition_type: LossFunctionType = Field(..., description="Type of condition")
+    current_value: float = Field(..., description="Current value")
+    threshold: float = Field(..., description="Threshold value")
+    should_break: bool = Field(..., description="Whether to break the loop")
+
+
+class OrchestrationResult(BaseModel):
+    """Result of orchestration execution."""
+
+    success: bool = Field(..., description="Whether orchestration was successful")
+    final_answer: str = Field(..., description="Final answer")
+    nested_loops_spawned: List[str] = Field(
+        default_factory=list, description="Nested loops spawned"
+    )
+    subgraphs_executed: List[str] = Field(
+        default_factory=list, description="Subgraphs executed"
+    )
+    total_iterations: int = Field(..., description="Total iterations")
+    break_reason: Optional[str] = Field(None, description="Reason for breaking")
+    execution_metadata: Dict[str, Any] = Field(
+        default_factory=dict, description="Execution metadata"
+    )
 
 
 class AppConfiguration(BaseModel):

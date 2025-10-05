@@ -18,57 +18,19 @@ import requests
 from bs4 import BeautifulSoup
 
 from .base import ToolSpec, ToolRunner, ExecutionResult, registry
-from ..utils.deepsearch_schemas import (
-    DeepSearchSchemas,
+from ..datatypes.deepsearch import (
     SearchTimeFilter,
     MAX_URLS_PER_STEP,
     MAX_QUERIES_PER_STEP,
     MAX_REFLECT_PER_STEP,
+    SearchResult,
+    WebSearchRequest,
+    URLVisitResult,
+    ReflectionQuestion,
 )
 
 # Configure logging
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class SearchResult:
-    """Individual search result."""
-
-    title: str
-    url: str
-    snippet: str
-    score: float = 0.0
-
-
-@dataclass
-class WebSearchRequest:
-    """Web search request parameters."""
-
-    query: str
-    time_filter: Optional[SearchTimeFilter] = None
-    location: Optional[str] = None
-    max_results: int = 10
-
-
-@dataclass
-class URLVisitResult:
-    """Result of visiting a URL."""
-
-    url: str
-    title: str
-    content: str
-    success: bool
-    error: Optional[str] = None
-    processing_time: float = 0.0
-
-
-@dataclass
-class ReflectionQuestion:
-    """Reflection question for deep search."""
-
-    question: str
-    priority: int = 1
-    context: Optional[str] = None
 
 
 class WebSearchTool(ToolRunner):
@@ -92,7 +54,6 @@ class WebSearchTool(ToolRunner):
                 },
             )
         )
-        self.schemas = DeepSearchSchemas()
 
     def run(self, params: Dict[str, Any]) -> ExecutionResult:
         """Execute web search."""
@@ -204,7 +165,6 @@ class URLVisitTool(ToolRunner):
                 },
             )
         )
-        self.schemas = DeepSearchSchemas()
 
     def run(self, params: Dict[str, Any]) -> ExecutionResult:
         """Execute URL visits."""
@@ -373,7 +333,6 @@ class ReflectionTool(ToolRunner):
                 outputs={"reflection_questions": "JSON", "knowledge_gaps": "JSON"},
             )
         )
-        self.schemas = DeepSearchSchemas()
 
     def run(self, params: Dict[str, Any]) -> ExecutionResult:
         """Generate reflection questions."""
@@ -557,7 +516,6 @@ class AnswerGeneratorTool(ToolRunner):
                 outputs={"answer": "TEXT", "confidence": "FLOAT", "sources": "JSON"},
             )
         )
-        self.schemas = DeepSearchSchemas()
 
     def run(self, params: Dict[str, Any]) -> ExecutionResult:
         """Generate comprehensive answer."""
@@ -736,7 +694,6 @@ class QueryRewriterTool(ToolRunner):
                 outputs={"rewritten_queries": "JSON", "search_strategies": "JSON"},
             )
         )
-        self.schemas = DeepSearchSchemas()
 
     def run(self, params: Dict[str, Any]) -> ExecutionResult:
         """Rewrite search queries."""

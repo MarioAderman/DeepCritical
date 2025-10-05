@@ -1,33 +1,12 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Dict, List
 
 
 from .prime_parser import StructuredProblem, ScientificIntent
-from ..utils.tool_specs import ToolSpec, ToolCategory
-
-
-@dataclass
-class WorkflowStep:
-    """A single step in a computational workflow."""
-
-    tool: str
-    parameters: Dict[str, Any]
-    inputs: Dict[str, str]  # Maps input names to data sources
-    outputs: Dict[str, str]  # Maps output names to data destinations
-    success_criteria: Dict[str, Any]
-    retry_config: Dict[str, Any] = field(default_factory=dict)
-
-
-@dataclass
-class WorkflowDAG:
-    """Directed Acyclic Graph representing a computational workflow."""
-
-    steps: List[WorkflowStep]
-    dependencies: Dict[str, List[str]]  # Maps step names to their dependencies
-    execution_order: List[str]  # Topological sort of step names
-    metadata: Dict[str, Any] = field(default_factory=dict)
+from ..datatypes.tool_specs import ToolSpec, ToolCategory
+from ..datatypes.execution import WorkflowStep, WorkflowDAG
 
 
 @dataclass

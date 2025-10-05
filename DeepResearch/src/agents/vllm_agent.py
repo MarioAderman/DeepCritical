@@ -9,9 +9,8 @@ from __future__ import annotations
 
 import asyncio
 from typing import Any, Dict, List, Optional, Union
-from pydantic import BaseModel, Field
 
-from ..vllm_client import VLLMClient
+from ..datatypes.vllm_agent import VLLMAgentDependencies, VLLMAgentConfig
 from ..datatypes.vllm_dataclass import (
     ChatCompletionRequest,
     CompletionRequest,
@@ -19,36 +18,7 @@ from ..datatypes.vllm_dataclass import (
     VllmConfig,
     QuantizationMethod,
 )
-
-
-class VLLMAgentDependencies(BaseModel):
-    """Dependencies for VLLM agent."""
-
-    vllm_client: VLLMClient = Field(..., description="VLLM client instance")
-    default_model: str = Field(
-        "microsoft/DialoGPT-medium", description="Default model name"
-    )
-    embedding_model: Optional[str] = Field(None, description="Embedding model name")
-
-    class Config:
-        arbitrary_types_allowed = True
-
-
-class VLLMAgentConfig(BaseModel):
-    """Configuration for VLLM agent."""
-
-    client_config: Dict[str, Any] = Field(
-        default_factory=dict, description="VLLM client configuration"
-    )
-    default_model: str = Field("microsoft/DialoGPT-medium", description="Default model")
-    embedding_model: Optional[str] = Field(None, description="Embedding model")
-    system_prompt: str = Field(
-        "You are a helpful AI assistant powered by VLLM. You can perform various tasks including text generation, conversation, and analysis.",
-        description="System prompt for the agent",
-    )
-    max_tokens: int = Field(512, description="Maximum tokens for generation")
-    temperature: float = Field(0.7, description="Sampling temperature")
-    top_p: float = Field(0.9, description="Top-p sampling parameter")
+from ..vllm_client import VLLMClient
 
 
 class VLLMAgent:
@@ -149,11 +119,12 @@ class VLLMAgent:
     def to_pydantic_ai_agent(self):
         """Convert to Pydantic AI agent."""
         from pydantic_ai import Agent
+        from ..prompts.vllm_agent import VLLMAgentPrompts
 
         agent = Agent(
             "vllm-agent",
             deps_type=VLLMAgentDependencies,
-            system_prompt=self.config.system_prompt,
+            system_prompt=VLLMAgentPrompts.get_system_prompt(),
         )
 
         # Chat completion tool

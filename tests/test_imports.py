@@ -81,6 +81,7 @@ class TestMainSrcImports:
                 StepResult,
                 run,
                 ToolCaller,
+                SearchAgent,
             )
 
             # Verify they are all accessible
@@ -106,6 +107,7 @@ class TestMainSrcImports:
             assert StepResult is not None
             assert run is not None
             assert ToolCaller is not None
+            assert SearchAgent is not None
         else:
             # Skip test if imports fail in CI environment
             pytest.skip("Agents module not available in CI environment")
@@ -131,24 +133,35 @@ class TestMainSrcImports:
                 FusedDataset,
                 ReasoningTask,
                 DataFusionRequest,
+                # Agent types
+                AgentType,
+                AgentStatus,
+                AgentDependencies,
+                AgentResult,
+                ExecutionHistory,
                 # RAG types
                 SearchType,
                 EmbeddingModelType,
                 LLMModelType,
                 VectorStoreType,
                 Document,
-                SearchResult,
                 EmbeddingsConfig,
                 VLLMConfig,
                 VectorStoreConfig,
                 RAGQuery,
                 RAGResponse,
                 RAGConfig,
+                IntegratedSearchRequest,
+                IntegratedSearchResponse,
                 Embeddings,
                 VectorStore,
                 LLMProvider,
                 RAGSystem,
                 RAGWorkflowState,
+                # Search agent types
+                SearchAgentConfig,
+                SearchQuery,
+                SearchAgentDependencies,
                 # VLLM integration types
                 VLLMEmbeddings,
                 VLLMLLMProvider,
@@ -156,6 +169,74 @@ class TestMainSrcImports:
                 VLLMEmbeddingServerConfig,
                 VLLMDeployment,
                 VLLMRAGSystem,
+                # Analytics types
+                AnalyticsRequest,
+                AnalyticsResponse,
+                AnalyticsDataRequest,
+                AnalyticsDataResponse,
+                # Middleware types
+                MiddlewareConfig,
+                MiddlewareResult,
+                BaseMiddleware,
+                PlanningMiddleware,
+                FilesystemMiddleware,
+                SubAgentMiddleware,
+                SummarizationMiddleware,
+                PromptCachingMiddleware,
+                MiddlewarePipeline,
+                # DeepAgent tools types
+                WriteTodosRequest,
+                WriteTodosResponse,
+                ListFilesResponse,
+                ReadFileRequest,
+                ReadFileResponse,
+                WriteFileRequest,
+                WriteFileResponse,
+                EditFileRequest,
+                EditFileResponse,
+                TaskRequestModel,
+                TaskResponse,
+                # Deep search types
+                EvaluationType,
+                ActionType,
+                SearchTimeFilter,
+                SearchResult,
+                WebSearchRequest,
+                URLVisitResult,
+                ReflectionQuestion,
+                PromptPair,
+                DeepSearchSchemas,
+                # Docker sandbox types
+                DockerSandboxConfig,
+                DockerExecutionRequest,
+                DockerExecutionResult,
+                DockerSandboxEnvironment,
+                DockerSandboxPolicies,
+                DockerSandboxContainerInfo,
+                DockerSandboxMetrics,
+                DockerSandboxRequest,
+                DockerSandboxResponse,
+                # Pydantic AI tools types
+                WebSearchBuiltinRunner,
+                CodeExecBuiltinRunner,
+                UrlContextBuiltinRunner,
+                # Core tool types
+                ToolMetadata,
+                ExecutionResult,
+                ToolRunner,
+                MockToolRunner,
+                # Workflow orchestration types
+                OrchestratorDependencies,
+                NestedLoopRequest,
+                SubgraphSpawnRequest,
+                BreakConditionCheck,
+                OrchestrationResult,
+                # Execution types
+                WorkflowStep,
+                WorkflowDAG,
+                ExecutionContext,
+                Orchestrator,
+                Planner,
             )
 
             # Verify they are all accessible
@@ -173,6 +254,11 @@ class TestMainSrcImports:
             assert FusedDataset is not None
             assert ReasoningTask is not None
             assert DataFusionRequest is not None
+            assert AgentType is not None
+            assert AgentStatus is not None
+            assert AgentDependencies is not None
+            assert AgentResult is not None
+            assert ExecutionHistory is not None
             assert SearchType is not None
             assert EmbeddingModelType is not None
             assert LLMModelType is not None
@@ -185,17 +271,82 @@ class TestMainSrcImports:
             assert RAGQuery is not None
             assert RAGResponse is not None
             assert RAGConfig is not None
+            assert IntegratedSearchRequest is not None
+            assert IntegratedSearchResponse is not None
             assert Embeddings is not None
             assert VectorStore is not None
             assert LLMProvider is not None
             assert RAGSystem is not None
             assert RAGWorkflowState is not None
+            assert SearchAgentConfig is not None
+            assert SearchQuery is not None
+            assert SearchResult is not None
+            assert SearchAgentDependencies is not None
             assert VLLMEmbeddings is not None
             assert VLLMLLMProvider is not None
             assert VLLMServerConfig is not None
             assert VLLMEmbeddingServerConfig is not None
             assert VLLMDeployment is not None
             assert VLLMRAGSystem is not None
+            assert AnalyticsRequest is not None
+            assert AnalyticsResponse is not None
+            assert AnalyticsDataRequest is not None
+            assert AnalyticsDataResponse is not None
+            assert MiddlewareConfig is not None
+            assert MiddlewareResult is not None
+            assert BaseMiddleware is not None
+            assert PlanningMiddleware is not None
+            assert FilesystemMiddleware is not None
+            assert SubAgentMiddleware is not None
+            assert SummarizationMiddleware is not None
+            assert PromptCachingMiddleware is not None
+            assert MiddlewarePipeline is not None
+            assert WriteTodosRequest is not None
+            assert WriteTodosResponse is not None
+            assert ListFilesResponse is not None
+            assert ReadFileRequest is not None
+            assert ReadFileResponse is not None
+            assert WriteFileRequest is not None
+            assert WriteFileResponse is not None
+            assert EditFileRequest is not None
+            assert EditFileResponse is not None
+            assert TaskRequestModel is not None
+            assert TaskResponse is not None
+            assert EvaluationType is not None
+            assert ActionType is not None
+            assert SearchTimeFilter is not None
+            assert SearchResult is not None
+            assert WebSearchRequest is not None
+            assert URLVisitResult is not None
+            assert ReflectionQuestion is not None
+            assert PromptPair is not None
+            assert DeepSearchSchemas is not None
+            assert DockerSandboxConfig is not None
+            assert DockerExecutionRequest is not None
+            assert DockerExecutionResult is not None
+            assert DockerSandboxEnvironment is not None
+            assert DockerSandboxPolicies is not None
+            assert DockerSandboxContainerInfo is not None
+            assert DockerSandboxMetrics is not None
+            assert DockerSandboxRequest is not None
+            assert DockerSandboxResponse is not None
+            assert WebSearchBuiltinRunner is not None
+            assert CodeExecBuiltinRunner is not None
+            assert UrlContextBuiltinRunner is not None
+            assert ToolMetadata is not None
+            assert ExecutionResult is not None
+            assert ToolRunner is not None
+            assert MockToolRunner is not None
+            assert OrchestratorDependencies is not None
+            assert NestedLoopRequest is not None
+            assert SubgraphSpawnRequest is not None
+            assert BreakConditionCheck is not None
+            assert OrchestrationResult is not None
+            assert WorkflowStep is not None
+            assert WorkflowDAG is not None
+            assert ExecutionContext is not None
+            assert Orchestrator is not None
+            assert Planner is not None
         else:
             # Skip test if imports fail in CI environment
             pytest.skip("Datatypes module not available in CI environment")
@@ -294,6 +445,7 @@ class TestSubmoduleImports:
                 deep_agent_state,
                 deep_agent_types,
                 workflow_orchestration,
+                pydantic_ai_tools,
             )
 
             # Verify they are all accessible
@@ -309,6 +461,7 @@ class TestSubmoduleImports:
             assert deep_agent_state is not None
             assert deep_agent_types is not None
             assert workflow_orchestration is not None
+            assert pydantic_ai_tools is not None
         else:
             pytest.skip("Datatype submodules not available in CI environment")
 
@@ -378,6 +531,7 @@ class TestSubmoduleImports:
         if success:
             from DeepResearch.src.prompts import (
                 agent,
+                bioinformatics_agents,
                 broken_ch_fixer,
                 code_exec,
                 code_sandbox,
@@ -392,10 +546,12 @@ class TestSubmoduleImports:
                 reducer,
                 research_planner,
                 serp_cluster,
+                vllm_agent,
             )
 
             # Verify they are all accessible
             assert agent is not None
+            assert bioinformatics_agents is not None
             assert broken_ch_fixer is not None
             assert code_exec is not None
             assert code_sandbox is not None
@@ -410,6 +566,7 @@ class TestSubmoduleImports:
             assert reducer is not None
             assert research_planner is not None
             assert serp_cluster is not None
+            assert vllm_agent is not None
         else:
             pytest.skip("Prompts submodules not available in CI environment")
 
@@ -493,7 +650,7 @@ class TestDeepImportChains:
         success = safe_import("DeepResearch.src.prompts.agent")
         if success:
             # Test that agent prompts can be imported
-            from DeepResearch.src.prompts.agent import AgentPrompts
+            from DeepResearch.src.datatypes.agent_prompts import AgentPrompts
 
             assert AgentPrompts is not None
         else:

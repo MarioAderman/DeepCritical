@@ -16,19 +16,7 @@ from ..tools.pyd_ai_tools import (
     _build_toolsets,
     _build_agent as _build_core_agent,
 )
-
-
-@dataclass
-class StepResult:
-    action: str
-    payload: Dict[str, Any]
-
-
-@dataclass
-class ResearchOutcome:
-    answer: str
-    references: List[str]
-    context: Dict[str, Any]
+from ..datatypes.research import ResearchOutcome
 
 
 def _compose_agent_system(
