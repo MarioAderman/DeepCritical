@@ -16,7 +16,7 @@ from enum import Enum
 from pydantic_graph import BaseNode, End, Graph, GraphRunContext, Edge
 from omegaconf import DictConfig
 
-from ..utils.deepsearch_schemas import ActionType, EvaluationType
+from ..datatypes.deepsearch import ActionType, EvaluationType
 from ..utils.deepsearch_utils import (
     SearchContext,
     SearchOrchestrator,

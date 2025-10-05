@@ -5,62 +5,19 @@ This agent demonstrates how to use the websearch and analytics tools with Pydant
 for intelligent search and retrieval operations.
 """
 
-from typing import Any, Dict, Optional
-from pydantic import BaseModel, Field
+from typing import Any, Dict
 from pydantic_ai import Agent
 
 from ..tools.websearch_tools import web_search_tool, chunked_search_tool
 from ..tools.analytics_tools import record_request_tool, get_analytics_data_tool
 from ..tools.integrated_search_tools import integrated_search_tool, rag_search_tool
-
-
-class SearchAgentConfig(BaseModel):
-    """Configuration for the search agent."""
-
-    model: str = Field("gpt-4", description="Model to use for the agent")
-    enable_analytics: bool = Field(
-        True, description="Whether to enable analytics tracking"
-    )
-    default_search_type: str = Field("search", description="Default search type")
-    default_num_results: int = Field(4, description="Default number of results")
-    chunk_size: int = Field(1000, description="Default chunk size")
-    chunk_overlap: int = Field(0, description="Default chunk overlap")
-
-
-class SearchQuery(BaseModel):
-    """Search query model."""
-
-    query: str = Field(..., description="The search query")
-    search_type: Optional[str] = Field(
-        None, description="Type of search: 'search' or 'news'"
-    )
-    num_results: Optional[int] = Field(None, description="Number of results to fetch")
-    use_rag: bool = Field(False, description="Whether to use RAG-optimized search")
-
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "query": "artificial intelligence developments 2024",
-                "search_type": "news",
-                "num_results": 5,
-                "use_rag": True,
-            }
-        }
-
-
-class SearchResult(BaseModel):
-    """Search result model."""
-
-    query: str = Field(..., description="Original query")
-    content: str = Field(..., description="Search results content")
-    success: bool = Field(..., description="Whether the search was successful")
-    processing_time: Optional[float] = Field(
-        None, description="Processing time in seconds"
-    )
-    analytics_recorded: bool = Field(
-        False, description="Whether analytics were recorded"
-    )
-    error: Optional[str] = Field(None, description="Error message if search failed")
+from ..datatypes.search_agent import (
+    SearchAgentConfig,
+    SearchQuery,
+    SearchResult,
+    SearchAgentDependencies,
+)
+from ..prompts.search_agent import SearchAgentPrompts
 
 
 class SearchAgent:
@@ -83,48 +40,24 @@ class SearchAgent:
 
     def _get_system_prompt(self) -> str:
         """Get the system prompt for the search agent."""
-        return """You are an intelligent search agent that helps users find information on the web.
-
-Your capabilities include:
-1. Web search - Search for general information or news
-2. Chunked search - Search and process results into chunks for analysis
-3. Integrated search - Comprehensive search with analytics and RAG formatting
-4. RAG search - Search optimized for retrieval-augmented generation
-5. Analytics tracking - Record search metrics for monitoring
-
-When performing searches:
-- Use the most appropriate search tool for the user's needs
-- For general information, use web_search_tool
-- For analysis or RAG workflows, use integrated_search_tool or rag_search_tool
-- Always provide clear, well-formatted results
-- Include relevant metadata and sources when available
-
-Be helpful, accurate, and provide comprehensive search results."""
+        return SearchAgentPrompts.SEARCH_SYSTEM
 
     async def search(self, query: SearchQuery) -> SearchResult:
         """Perform a search using the agent."""
         try:
-            # Prepare context for the agent
-            context = {
-                "query": query.query,
-                "search_type": query.search_type or self.config.default_search_type,
-                "num_results": query.num_results or self.config.default_num_results,
-                "chunk_size": self.config.chunk_size,
-                "chunk_overlap": self.config.chunk_overlap,
-                "use_rag": query.use_rag,
-            }
+            # Prepare dependencies for the agent
+            deps = SearchAgentDependencies.from_search_query(query, self.config)
 
             # Create the user message
-            user_message = f"""Please search for: "{query.query}"
-
-Search type: {context["search_type"]}
-Number of results: {context["num_results"]}
-Use RAG format: {query.use_rag}
-
-Please provide comprehensive search results with proper formatting and source attribution."""
+            user_message = SearchAgentPrompts.get_search_request_prompt(
+                query=query.query,
+                search_type=deps.search_type,
+                num_results=deps.num_results,
+                use_rag=query.use_rag,
+            )
 
             # Run the agent
-            result = await self.agent.run(user_message, deps=context)
+            result = await self.agent.run(user_message, deps=deps)
 
             # Extract processing time if available
             processing_time = None
@@ -151,10 +84,9 @@ Please provide comprehensive search results with proper formatting and source at
     async def get_analytics(self, days: int = 30) -> Dict[str, Any]:
         """Get analytics data for the specified number of days."""
         try:
-            context = {"days": days}
-            result = await self.agent.run(
-                f"Get analytics data for the last {days} days", deps=context
-            )
+            deps = {"days": days}
+            user_message = SearchAgentPrompts.get_analytics_request_prompt(days)
+            result = await self.agent.run(user_message, deps=deps)
             return result.data if hasattr(result, "data") else {}
         except Exception as e:
             return {"error": str(e)}
@@ -163,15 +95,7 @@ Please provide comprehensive search results with proper formatting and source at
         """Create a specialized RAG agent for vector store integration."""
         return Agent(
             model=self.config.model,
-            system_prompt="""You are a RAG (Retrieval-Augmented Generation) search specialist.
-
-Your role is to:
-1. Perform searches optimized for vector store integration
-2. Convert search results into RAG-compatible formats
-3. Ensure proper chunking and metadata for vector embeddings
-4. Provide structured outputs for RAG workflows
-
-Use rag_search_tool for all search operations to ensure compatibility with RAG systems.""",
+            system_prompt=SearchAgentPrompts.RAG_SEARCH_SYSTEM,
             tools=[rag_search_tool, integrated_search_tool],
         )
 

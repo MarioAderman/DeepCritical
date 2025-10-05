@@ -9,7 +9,7 @@ from omegaconf import DictConfig
 
 from pydantic_graph import BaseNode, End, Graph, GraphRunContext, Edge
 from .agents import ParserAgent, PlannerAgent, ExecutorAgent, ExecutionHistory
-from .src.agents.orchestrator import Orchestrator  # type: ignore
+from .src.datatypes.orchestrator import Orchestrator  # type: ignore
 from .src.agents.prime_parser import QueryParser, StructuredProblem
 from .src.agents.prime_planner import PlanGenerator, WorkflowDAG
 from .src.agents.prime_executor import ToolExecutor, ExecutionContext

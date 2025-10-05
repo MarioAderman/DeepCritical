@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Dict, Optional
 import time
 
@@ -8,20 +8,9 @@ import time
 from .prime_planner import WorkflowDAG, WorkflowStep
 from ..utils.execution_history import ExecutionHistory, ExecutionItem
 from ..utils.execution_status import ExecutionStatus
-from ..utils.tool_registry import ToolRegistry, ExecutionResult
-
-
-@dataclass
-class ExecutionContext:
-    """Context for workflow execution."""
-
-    workflow: WorkflowDAG
-    history: ExecutionHistory
-    data_bag: Dict[str, Any] = field(default_factory=dict)
-    current_step: int = 0
-    max_retries: int = 3
-    manual_confirmation: bool = False
-    adaptive_replanning: bool = True
+from ..utils.tool_registry import ToolRegistry
+from ..datatypes.tools import ExecutionResult
+from ..datatypes.execution import ExecutionContext
 
 
 @dataclass

@@ -397,3 +397,49 @@ class DataFusionRequest(BaseModel):
                 "quality_threshold": 0.9,
             }
         }
+
+
+class BioinformaticsAgentDeps(BaseModel):
+    """Dependencies for bioinformatics agents."""
+
+    config: Dict[str, Any] = Field(default_factory=dict)
+    data_sources: List[str] = Field(default_factory=list)
+    quality_threshold: float = Field(0.8, ge=0.0, le=1.0)
+
+    @classmethod
+    def from_config(cls, config: Dict[str, Any], **kwargs) -> "BioinformaticsAgentDeps":
+        """Create dependencies from configuration."""
+        bioinformatics_config = config.get("bioinformatics", {})
+        quality_config = bioinformatics_config.get("quality", {})
+
+        return cls(
+            config=config,
+            quality_threshold=quality_config.get("default_threshold", 0.8),
+            **kwargs,
+        )
+
+
+class DataFusionResult(BaseModel):
+    """Result of data fusion operation."""
+
+    success: bool = Field(..., description="Whether fusion was successful")
+    fused_dataset: Optional[FusedDataset] = Field(None, description="Fused dataset")
+    quality_metrics: Dict[str, float] = Field(
+        default_factory=dict, description="Quality metrics"
+    )
+    errors: List[str] = Field(default_factory=list, description="Error messages")
+    processing_time: float = Field(0.0, description="Processing time in seconds")
+
+
+class ReasoningResult(BaseModel):
+    """Result of reasoning task."""
+
+    success: bool = Field(..., description="Whether reasoning was successful")
+    answer: str = Field(..., description="Reasoning answer")
+    confidence: float = Field(0.0, ge=0.0, le=1.0, description="Confidence score")
+    supporting_evidence: List[str] = Field(
+        default_factory=list, description="Supporting evidence"
+    )
+    reasoning_chain: List[str] = Field(
+        default_factory=list, description="Reasoning steps"
+    )

@@ -54,10 +54,8 @@ class TestUtilsModuleImports:
     def test_tool_registry_imports(self):
         """Test all imports from tool_registry module."""
 
-        from DeepResearch.src.utils.tool_registry import (
-            ToolRegistry,
-            ToolMetadata,
-        )
+        from DeepResearch.src.utils.tool_registry import ToolRegistry
+        from DeepResearch.src.datatypes.tools import ToolMetadata
 
         # Verify they are all accessible and not None
         assert ToolRegistry is not None
@@ -66,7 +64,7 @@ class TestUtilsModuleImports:
     def test_tool_specs_imports(self):
         """Test all imports from tool_specs module."""
 
-        from DeepResearch.src.utils.tool_specs import (
+        from DeepResearch.src.datatypes.tool_specs import (
             ToolSpec,
             ToolInput,
             ToolOutput,
@@ -90,18 +88,28 @@ class TestUtilsModuleImports:
         assert MetricCalculator is not None
 
     def test_deepsearch_schemas_imports(self):
-        """Test all imports from deepsearch_schemas module."""
+        """Test that deep search schemas are now imported from datatypes."""
 
-        from DeepResearch.src.utils.deepsearch_schemas import (
-            DeepSearchQuery,
-            DeepSearchResult,
-            DeepSearchConfig,
+        # These types are now imported from datatypes.deepsearch
+        from DeepResearch.src.datatypes.deepsearch import (
+            DeepSearchSchemas,
+            EvaluationType,
+            ActionType,
         )
 
         # Verify they are all accessible and not None
-        assert DeepSearchQuery is not None
-        assert DeepSearchResult is not None
-        assert DeepSearchConfig is not None
+        assert DeepSearchSchemas is not None
+        assert EvaluationType is not None
+        assert ActionType is not None
+
+        # Test that DeepSearchSchemas can be instantiated
+        try:
+            schemas = DeepSearchSchemas()
+            assert schemas is not None
+            assert schemas.language_style == "formal English"
+            assert schemas.language_code == "en"
+        except Exception as e:
+            pytest.fail(f"DeepSearchSchemas instantiation failed: {e}")
 
     def test_deepsearch_utils_imports(self):
         """Test all imports from deepsearch_utils module."""
@@ -132,7 +140,7 @@ class TestUtilsCrossModuleImports:
     def test_datatypes_integration_imports(self):
         """Test that utils can import from datatypes module."""
         # This tests the import chain: utils -> datatypes
-        from DeepResearch.src.utils.tool_specs import ToolSpec
+        from DeepResearch.src.datatypes.tool_specs import ToolSpec
         from DeepResearch.src.datatypes import Document
 
         # If we get here without ImportError, the import chain works

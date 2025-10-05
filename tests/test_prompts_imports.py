@@ -11,6 +11,50 @@ import pytest
 class TestPromptsModuleImports:
     """Test imports for individual prompt modules."""
 
+    def test_agents_prompts_imports(self):
+        """Test all imports from agents prompts module."""
+
+        from DeepResearch.src.prompts.agents import (
+            BASE_AGENT_SYSTEM_PROMPT,
+            BASE_AGENT_INSTRUCTIONS,
+            PARSER_AGENT_SYSTEM_PROMPT,
+            PLANNER_AGENT_SYSTEM_PROMPT,
+            EXECUTOR_AGENT_SYSTEM_PROMPT,
+            SEARCH_AGENT_SYSTEM_PROMPT,
+            RAG_AGENT_SYSTEM_PROMPT,
+            BIOINFORMATICS_AGENT_SYSTEM_PROMPT,
+            DEEPSEARCH_AGENT_SYSTEM_PROMPT,
+            EVALUATOR_AGENT_SYSTEM_PROMPT,
+            AgentPrompts,
+        )
+
+        # Verify they are all accessible and not None
+        assert BASE_AGENT_SYSTEM_PROMPT is not None
+        assert BASE_AGENT_INSTRUCTIONS is not None
+        assert PARSER_AGENT_SYSTEM_PROMPT is not None
+        assert PLANNER_AGENT_SYSTEM_PROMPT is not None
+        assert EXECUTOR_AGENT_SYSTEM_PROMPT is not None
+        assert SEARCH_AGENT_SYSTEM_PROMPT is not None
+        assert RAG_AGENT_SYSTEM_PROMPT is not None
+        assert BIOINFORMATICS_AGENT_SYSTEM_PROMPT is not None
+        assert DEEPSEARCH_AGENT_SYSTEM_PROMPT is not None
+        assert EVALUATOR_AGENT_SYSTEM_PROMPT is not None
+        assert AgentPrompts is not None
+
+        # Test that they are strings (prompt templates)
+        assert isinstance(BASE_AGENT_SYSTEM_PROMPT, str)
+        assert isinstance(PARSER_AGENT_SYSTEM_PROMPT, str)
+
+        # Test AgentPrompts functionality
+        assert hasattr(AgentPrompts, "get_system_prompt")
+        assert hasattr(AgentPrompts, "get_instructions")
+        assert callable(AgentPrompts.get_system_prompt)
+
+        # Test getting prompts for different agent types
+        parser_prompt = AgentPrompts.get_system_prompt("parser")
+        assert isinstance(parser_prompt, str)
+        assert len(parser_prompt) > 0
+
     def test_agent_imports(self):
         """Test all imports from agent module."""
 

@@ -12,17 +12,10 @@ from .tool_registry import (
     ExecutionResult,
     registry,
 )
-from .tool_specs import ToolSpec, ToolCategory, ToolInput, ToolOutput
+
+# Import tool specs from datatypes for backward compatibility
+from ..datatypes.tool_specs import ToolSpec, ToolCategory, ToolInput, ToolOutput
 from .analytics import AnalyticsEngine
-from .deepsearch_schemas import (
-    DeepSearchSchemas,
-    EvaluationType,
-    ActionType,
-    DeepSearchQuery,
-    DeepSearchResult,
-    DeepSearchConfig,
-    deepsearch_schemas,
-)
 from .deepsearch_utils import (
     SearchContext,
     KnowledgeManager,
@@ -48,14 +41,7 @@ __all__ = [
     "ToolOutput",
     "ExecutionResult",
     "AnalyticsEngine",
-    "DeepSearchSchemas",
-    "EvaluationType",
-    "ActionType",
-    "DeepSearchQuery",
-    "DeepSearchResult",
-    "DeepSearchConfig",
     "registry",
-    "deepsearch_schemas",
     "SearchContext",
     "KnowledgeManager",
     "SearchOrchestrator",

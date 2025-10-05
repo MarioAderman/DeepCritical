@@ -10,12 +10,11 @@ from __future__ import annotations
 import asyncio
 import time
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Callable, TYPE_CHECKING
+from typing import Any, Dict, List, Callable, TYPE_CHECKING
 from dataclasses import dataclass, field
 from omegaconf import DictConfig
 
 from pydantic_ai import Agent, RunContext
-from pydantic import BaseModel, Field
 
 from ..datatypes.workflow_orchestration import (
     WorkflowOrchestrationConfig,
@@ -28,97 +27,18 @@ from ..datatypes.workflow_orchestration import (
     HypothesisDataset,
     HypothesisTestingEnvironment,
     WorkflowConfig,
+    OrchestratorDependencies,
+    WorkflowSpawnRequest,
+    WorkflowSpawnResult,
+    MultiAgentCoordinationRequest,
+    MultiAgentCoordinationResult,
+    JudgeEvaluationRequest,
+    JudgeEvaluationResult,
 )
+from ..prompts.workflow_orchestrator import WorkflowOrchestratorPrompts
 
 if TYPE_CHECKING:
     pass
-
-
-class OrchestratorDependencies(BaseModel):
-    """Dependencies for the workflow orchestrator."""
-
-    config: Dict[str, Any] = Field(default_factory=dict)
-    user_input: str = Field(..., description="User input/query")
-    context: Dict[str, Any] = Field(default_factory=dict)
-    available_workflows: List[str] = Field(default_factory=list)
-    available_agents: List[str] = Field(default_factory=list)
-    available_judges: List[str] = Field(default_factory=list)
-
-
-class WorkflowSpawnRequest(BaseModel):
-    """Request to spawn a new workflow."""
-
-    workflow_type: WorkflowType = Field(..., description="Type of workflow to spawn")
-    workflow_name: str = Field(..., description="Name of the workflow")
-    input_data: Dict[str, Any] = Field(..., description="Input data for the workflow")
-    parameters: Dict[str, Any] = Field(
-        default_factory=dict, description="Workflow parameters"
-    )
-    priority: int = Field(0, description="Execution priority")
-    dependencies: List[str] = Field(
-        default_factory=list, description="Dependent workflow names"
-    )
-
-
-class WorkflowSpawnResult(BaseModel):
-    """Result of spawning a workflow."""
-
-    success: bool = Field(..., description="Whether spawning was successful")
-    execution_id: str = Field(..., description="Execution ID of the spawned workflow")
-    workflow_name: str = Field(..., description="Name of the spawned workflow")
-    status: WorkflowStatus = Field(..., description="Initial status")
-    error_message: Optional[str] = Field(None, description="Error message if failed")
-
-
-class MultiAgentCoordinationRequest(BaseModel):
-    """Request for multi-agent coordination."""
-
-    system_id: str = Field(..., description="Multi-agent system ID")
-    task_description: str = Field(..., description="Task description")
-    input_data: Dict[str, Any] = Field(..., description="Input data")
-    coordination_strategy: str = Field(
-        "collaborative", description="Coordination strategy"
-    )
-    max_rounds: int = Field(10, description="Maximum coordination rounds")
-
-
-class MultiAgentCoordinationResult(BaseModel):
-    """Result of multi-agent coordination."""
-
-    success: bool = Field(..., description="Whether coordination was successful")
-    system_id: str = Field(..., description="System ID")
-    final_result: Dict[str, Any] = Field(..., description="Final coordination result")
-    coordination_rounds: int = Field(..., description="Number of coordination rounds")
-    agent_results: Dict[str, Any] = Field(
-        default_factory=dict, description="Individual agent results"
-    )
-    consensus_score: float = Field(0.0, description="Consensus score")
-
-
-class JudgeEvaluationRequest(BaseModel):
-    """Request for judge evaluation."""
-
-    judge_id: str = Field(..., description="Judge ID")
-    content_to_evaluate: Dict[str, Any] = Field(..., description="Content to evaluate")
-    evaluation_criteria: List[str] = Field(..., description="Evaluation criteria")
-    context: Dict[str, Any] = Field(
-        default_factory=dict, description="Evaluation context"
-    )
-
-
-class JudgeEvaluationResult(BaseModel):
-    """Result of judge evaluation."""
-
-    success: bool = Field(..., description="Whether evaluation was successful")
-    judge_id: str = Field(..., description="Judge ID")
-    overall_score: float = Field(..., description="Overall evaluation score")
-    criterion_scores: Dict[str, float] = Field(
-        default_factory=dict, description="Scores by criterion"
-    )
-    feedback: str = Field(..., description="Detailed feedback")
-    recommendations: List[str] = Field(
-        default_factory=list, description="Improvement recommendations"
-    )
 
 
 @dataclass
@@ -180,42 +100,18 @@ class PrimaryWorkflowOrchestrator:
 
     def _create_primary_agent(self):
         """Create the primary REACT agent."""
+        # Get prompts from the prompts module
+        prompts = WorkflowOrchestratorPrompts()
+
         self.primary_agent = Agent(
             model_name=self.config.primary_workflow.parameters.get(
                 "model_name", "anthropic:claude-sonnet-4-0"
             ),
             deps_type=OrchestratorDependencies,
-            system_prompt=self._get_primary_system_prompt(),
-            instructions=self._get_primary_instructions(),
+            system_prompt=prompts.get_system_prompt(),
+            instructions=prompts.get_instructions(),
         )
         self._register_primary_tools()
-
-    def _get_primary_system_prompt(self) -> str:
-        """Get the system prompt for the primary agent."""
-        return """You are the primary orchestrator for a sophisticated workflow-of-workflows system. 
-        Your role is to:
-        1. Analyze user input and determine which workflows to spawn
-        2. Coordinate multiple specialized workflows (RAG, bioinformatics, search, multi-agent systems)
-        3. Manage data flow between workflows
-        4. Ensure quality through judge evaluation
-        5. Synthesize results from multiple workflows
-        6. Generate comprehensive outputs including hypotheses, testing environments, and reasoning results
-        
-        You have access to various tools for spawning workflows, coordinating agents, and evaluating outputs.
-        Always consider the user's intent and select the most appropriate combination of workflows."""
-
-    def _get_primary_instructions(self) -> List[str]:
-        """Get instructions for the primary agent."""
-        return [
-            "Analyze the user input to understand the research question or task",
-            "Determine which workflows are needed based on the input",
-            "Spawn appropriate workflows with correct parameters",
-            "Coordinate data flow between workflows",
-            "Use judges to evaluate intermediate and final results",
-            "Synthesize results from multiple workflows into comprehensive outputs",
-            "Generate datasets, testing environments, and reasoning results as needed",
-            "Ensure quality and consistency across all outputs",
-        ]
 
     def _register_primary_tools(self):
         """Register tools for the primary agent."""
@@ -238,8 +134,7 @@ class PrimaryWorkflowOrchestrator:
                     parameters=parameters or {},
                     priority=priority,
                 )
-                result = self._spawn_workflow(request)
-                return result
+                return self._spawn_workflow(request)
             except Exception as e:
                 return WorkflowSpawnResult(
                     success=False,
@@ -267,15 +162,16 @@ class PrimaryWorkflowOrchestrator:
                     coordination_strategy=coordination_strategy,
                     max_rounds=max_rounds,
                 )
-                result = self._coordinate_multi_agent_system(request)
-                return result
-            except Exception as e:
+                return self._coordinate_multi_agent_system(request)
+            except Exception:
                 return MultiAgentCoordinationResult(
                     success=False,
                     system_id=system_id,
                     final_result={},
                     coordination_rounds=0,
-                    error_message=str(e),
+                    agent_results={},
+                    consensus_score=0.0,
+                    # error_message is not a field in MultiAgentCoordinationResult
                 )
 
         @self.primary_agent.tool
@@ -294,14 +190,15 @@ class PrimaryWorkflowOrchestrator:
                     evaluation_criteria=evaluation_criteria,
                     context=context or {},
                 )
-                result = self._evaluate_with_judge(request)
-                return result
+                return self._evaluate_with_judge(request)
             except Exception as e:
                 return JudgeEvaluationResult(
                     success=False,
                     judge_id=judge_id,
                     overall_score=0.0,
+                    criterion_scores={},
                     feedback=f"Evaluation failed: {str(e)}",
+                    recommendations=[],
                 )
 
         @self.primary_agent.tool
