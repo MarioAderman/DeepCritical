@@ -83,6 +83,19 @@ from .workflow_orchestration import (
     BreakConditionCheck,
     OrchestrationResult,
 )
+from .workflow_patterns import (
+    InteractionPattern,
+    MessageType,
+    AgentInteractionMode,
+    InteractionMessage,
+    AgentInteractionState,
+    WorkflowOrchestrator,
+    InteractionConfig,
+    AgentInteractionRequest,
+    AgentInteractionResponse,
+    create_interaction_state,
+    create_workflow_orchestrator,
+)
 
 from .orchestrator import (
     Orchestrator,
@@ -96,6 +109,11 @@ from .execution import (
     WorkflowStep,
     WorkflowDAG,
     ExecutionContext,
+)
+
+from .research import (
+    ResearchOutcome,
+    StepResult,
 )
 
 from .middleware import (
@@ -165,6 +183,7 @@ from .tool_specs import (
 )
 
 from .tools import (
+    ToolMetadata,
     ExecutionResult,
     ToolRunner,
     MockToolRunner,
@@ -184,12 +203,24 @@ from .agents import (
     ExecutionHistory,
 )
 
+from .multi_agent import (
+    CoordinationStrategy,
+    CommunicationProtocol,
+    AgentState,
+    CoordinationMessage,
+    CoordinationRound,
+    CoordinationResult,
+    MultiAgentCoordinatorConfig,
+    AgentRole,
+)
+
 __all__ = [
     # Tool specification types
     "ToolSpec",
     "ToolCategory",
     "ToolInput",
     "ToolOutput",
+    "ToolMetadata",
     # Bioinformatics types
     "EvidenceCode",
     "GOTerm",
@@ -254,11 +285,26 @@ __all__ = [
     "SubgraphSpawnRequest",
     "BreakConditionCheck",
     "OrchestrationResult",
+    # Workflow pattern types
+    "InteractionPattern",
+    "MessageType",
+    "AgentInteractionMode",
+    "InteractionMessage",
+    "AgentInteractionState",
+    "WorkflowOrchestrator",
+    "InteractionConfig",
+    "AgentInteractionRequest",
+    "AgentInteractionResponse",
+    "create_interaction_state",
+    "create_workflow_orchestrator",
     "WorkflowStep",
     "WorkflowDAG",
     "ExecutionContext",
     "Orchestrator",
     "Planner",
+    # Research types
+    "ResearchOutcome",
+    "StepResult",
     # Middleware types
     "MiddlewareConfig",
     "MiddlewareResult",
@@ -324,4 +370,13 @@ __all__ = [
     "AgentDependencies",
     "AgentResult",
     "ExecutionHistory",
+    # Multi-agent types
+    "CoordinationStrategy",
+    "CommunicationProtocol",
+    "AgentState",
+    "CoordinationMessage",
+    "CoordinationRound",
+    "CoordinationResult",
+    "MultiAgentCoordinatorConfig",
+    "AgentRole",
 ]
