@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 
+
 class OrchestratorDependencies(BaseModel):
     """Dependencies for the agent orchestrator."""
 
@@ -15,11 +16,14 @@ class OrchestratorDependencies(BaseModel):
     current_iteration: int = Field(0, description="Current iteration number")
     parent_loop_id: Optional[str] = Field(None, description="Parent loop ID if nested")
 
+
 @dataclass
 class Orchestrator:
     """Placeholder orchestrator that would sequence subflows based on config."""
 
-    def build_plan(self, question: str, flows_cfg: Dict[str, Any]) -> List[str]:
+    def build_plan(
+        self, question: str, flows_cfg: Optional[Dict[str, Any]]
+    ) -> List[str]:
         enabled = [
             k
             for k, v in (flows_cfg or {}).items()
