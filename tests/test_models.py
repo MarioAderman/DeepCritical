@@ -1,23 +1,42 @@
 """
 Tests for custom Pydantic AI model implementations.
 
-This module tests the VLLMModel and OpenAICompatibleModel wrappers.
+This module tests the VLLMModel and OpenAICompatibleModel wrappers with both
+config-based and direct parameter approaches.
 """
 
 import pytest
 from unittest.mock import Mock, AsyncMock, patch
+from omegaconf import OmegaConf
 from DeepResearch.src.models import VLLMModel, LlamaCppModel, OpenAICompatibleModel
 
 
 class TestOpenAICompatibleModel:
-    """Tests for OpenAICompatibleModel."""
+    """Tests for OpenAICompatibleModel with direct parameters."""
 
-    def test_from_vllm_creates_model(self):
-        """Test that from_vllm factory method creates a model."""
+    def test_from_vllm_direct_params(self):
+        """Test from_vllm with direct parameters."""
         model = OpenAICompatibleModel.from_vllm(
             base_url="http://localhost:8000/v1",
             model_name="meta-llama/Llama-3-8B"
         )
+
+        assert model.model_name == "meta-llama/Llama-3-8B"
+        assert model.base_url == "http://localhost:8000/v1/"
+
+    def test_from_vllm_with_config(self):
+        """Test from_vllm with Hydra config."""
+        config = OmegaConf.create({
+            "provider": "vllm",
+            "model_name": "meta-llama/Llama-3-8B",
+            "base_url": "http://localhost:8000/v1",
+            "generation": {
+                "temperature": 0.8,
+                "max_tokens": 256
+            }
+        })
+
+        model = OpenAICompatibleModel.from_vllm(config=config)
 
         assert model.model_name == "meta-llama/Llama-3-8B"
         assert model.base_url == "http://localhost:8000/v1/"
@@ -50,6 +69,19 @@ class TestOpenAICompatibleModel:
         )
 
         assert model.model_name == "llama"
+
+    def test_from_llamacpp_with_config(self):
+        """Test from_llamacpp with Hydra config."""
+        config = OmegaConf.create({
+            "provider": "llamacpp",
+            "model_name": "llama-3-8b.gguf",
+            "base_url": "http://localhost:8080/v1",
+        })
+
+        model = OpenAICompatibleModel.from_llamacpp(config=config)
+
+        assert model.model_name == "llama-3-8b.gguf"
+        assert model.base_url == "http://localhost:8080/v1/"
 
     def test_from_tgi_creates_model(self):
         """Test that from_tgi factory method creates a model."""
