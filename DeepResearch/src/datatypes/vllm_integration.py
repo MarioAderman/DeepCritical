@@ -51,9 +51,9 @@ class VLLMEmbeddings(Embeddings):
         url = f"{self.base_url}/v1/{endpoint}"
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.config.api_key}"
-            if self.config.api_key
-            else "",
+            "Authorization": (
+                f"Bearer {self.config.api_key}" if self.config.api_key else ""
+            ),
         }
 
         async with self.session.post(url, json=payload, headers=headers) as response:
@@ -133,9 +133,9 @@ class VLLMLLMProvider(LLMProvider):
         url = f"{self.base_url}/v1/{endpoint}"
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.config.api_key}"
-            if self.config.api_key
-            else "",
+            "Authorization": (
+                f"Bearer {self.config.api_key}" if self.config.api_key else ""
+            ),
         }
 
         async with self.session.post(url, json=payload, headers=headers) as response:
@@ -202,9 +202,9 @@ class VLLMLLMProvider(LLMProvider):
         url = f"{self.base_url}/v1/chat/completions"
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.config.api_key}"
-            if self.config.api_key
-            else "",
+            "Authorization": (
+                f"Bearer {self.config.api_key}" if self.config.api_key else ""
+            ),
         }
 
         try:
@@ -406,7 +406,7 @@ class VLLMRAGSystem(BaseModel):
             embedding_config = EmbeddingsConfig(
                 model_type=EmbeddingModelType.CUSTOM,
                 model_name=self.deployment.embedding_config.model_name,
-                base_url=f"{self.deployment.embedding_config.host}:{self.deployment.embedding_config.port}",
+                base_url=f"http://{self.deployment.embedding_config.host}:{self.deployment.embedding_config.port}",  # type: ignore
                 num_dimensions=384,  # Default for sentence-transformers models
             )
             self.embeddings = VLLMEmbeddings(embedding_config)

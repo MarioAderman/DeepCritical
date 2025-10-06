@@ -8,6 +8,10 @@ from datetime import datetime
 
 from omegaconf import DictConfig
 
+# Import agent prompts
+from .agent import AgentPrompts, HEADER, ACTIONS_WRAPPER
+from . import deep_agent_graph
+
 
 @dataclass
 class PromptLoader:
@@ -60,7 +64,9 @@ class PromptLoader:
         except Exception:
             pass
 
-        now = datetime.utcnow()
+        from datetime import timezone
+
+        now = datetime.now(timezone.utc)
         vars_map.setdefault(
             "current_date_utc", now.strftime("%a, %d %b %Y %H:%M:%S GMT")
         )
@@ -76,13 +82,9 @@ class PromptLoader:
         return re.sub(r"\$\{([A-Za-z0-9_]+)\}", repl, template)
 
 
-# Import agent prompts
-from .agent import AgentPrompts, HEADER, ACTIONS_WRAPPER
-from . import deep_agent_graph
-
 __all__ = [
     "PromptLoader",
-    "AgentPrompts", 
+    "AgentPrompts",
     "HEADER",
     "ACTIONS_WRAPPER",
     "deep_agent_graph",
