@@ -171,7 +171,6 @@ python -m deepresearch.app flows.prime.params.adaptive_replanning=false
 
 ⚠️ **Known Issues:**
 - Circular import issues in some tool modules (bioinformatics_tools, deep_agent_tools)
-- Some pydantic-ai API compatibility issues (defer decorator not available in current version)
 - These issues are being addressed and will be resolved in future updates
 
 ## 🏗️ Architecture
@@ -479,16 +478,6 @@ DeepCritical/
        async def run(self, ctx: GraphRunContext[BioinformaticsState]) -> NextNode:
            # Data fusion logic
            return AssessDataQuality()
-   ```
-
-4. **Register Deferred Tools**:
-   ```python
-   from pydantic_ai.tools import defer
-   
-   @defer
-   def go_annotation_processor(annotations, papers, evidence_codes):
-       # Processing logic
-       return processed_annotations
    ```
 
 ## 🚀 Advanced Usage

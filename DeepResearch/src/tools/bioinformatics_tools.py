@@ -11,7 +11,6 @@ import asyncio
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Any
 from pydantic import BaseModel, Field
-# Note: defer decorator is not available in current pydantic-ai version
 
 from .base import ToolSpec, ToolRunner, ExecutionResult, registry
 from ..src.datatypes.bioinformatics import (
@@ -54,8 +53,7 @@ class BioinformaticsToolDeps(BaseModel):
         )
 
 
-# Deferred tool definitions for bioinformatics data processing
-# @defer - not available in current pydantic-ai version
+# Tool definitions for bioinformatics data processing
 def go_annotation_processor(
     annotations: List[Dict[str, Any]],
     papers: List[Dict[str, Any]],
@@ -67,7 +65,6 @@ def go_annotation_processor(
     return []
 
 
-# @defer - not available in current pydantic-ai version
 def pubmed_paper_retriever(
     query: str, max_results: int = 100, year_min: Optional[int] = None
 ) -> List[PubMedPaper]:
@@ -77,7 +74,6 @@ def pubmed_paper_retriever(
     return []
 
 
-# @defer - not available in current pydantic-ai version
 def geo_data_retriever(
     series_ids: List[str], include_expression: bool = True
 ) -> List[GEOSeries]:
@@ -87,7 +83,6 @@ def geo_data_retriever(
     return []
 
 
-# @defer - not available in current pydantic-ai version
 def drug_target_mapper(
     drug_ids: List[str], target_types: List[str] = None
 ) -> List[DrugTarget]:
@@ -97,7 +92,6 @@ def drug_target_mapper(
     return []
 
 
-# @defer - not available in current pydantic-ai version
 def protein_structure_retriever(
     pdb_ids: List[str], include_interactions: bool = True
 ) -> List[ProteinStructure]:
@@ -107,7 +101,6 @@ def protein_structure_retriever(
     return []
 
 
-# @defer - not available in current pydantic-ai version
 def data_fusion_engine(
     fusion_request: DataFusionRequest, deps: BioinformaticsToolDeps
 ) -> DataFusionResult:
@@ -126,7 +119,6 @@ def data_fusion_engine(
     )
 
 
-# @defer - not available in current pydantic-ai version
 def reasoning_engine(
     task: ReasoningTask, dataset: FusedDataset, deps: BioinformaticsToolDeps
 ) -> ReasoningResult:
