@@ -13,10 +13,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from pydantic_ai.models.openai import OpenAIChatModel, OpenAIProvider
+from pydantic_ai.models.openai import OpenAIChatModel
+from pydantic_ai.providers.ollama import OllamaProvider
 
 
-@dataclass
 class OpenAICompatibleModel(OpenAIChatModel):
     """Pydantic AI model for OpenAI-compatible servers.
 
@@ -61,7 +61,7 @@ class OpenAICompatibleModel(OpenAIChatModel):
     @classmethod
     def from_vllm(
         cls, base_url: str, model_name: str, api_key: str = "EMPTY", **kwargs: Any
-    ) -> OpenAICompatibleModel:
+    ) -> "OpenAICompatibleModel":
         """Create a model for a vLLM server.
 
         Args:
@@ -82,12 +82,12 @@ class OpenAICompatibleModel(OpenAIChatModel):
             )
             ```
         """
-        provider = OpenAIProvider(
+        provider = OllamaProvider(
             base_url=base_url,
             api_key=api_key,
         )
 
-        return cls(model_name=model_name, provider=provider, **kwargs)
+        return cls(model_name, provider=provider, **kwargs)
 
     @classmethod
     def from_llamacpp(
@@ -96,7 +96,7 @@ class OpenAICompatibleModel(OpenAIChatModel):
         model_name: str = "llama",
         api_key: str = "sk-no-key-required",
         **kwargs: Any,
-    ) -> OpenAICompatibleModel:
+    ) -> "OpenAICompatibleModel":
         """Create a model for a llama.cpp server.
 
         Args:
@@ -116,17 +116,17 @@ class OpenAICompatibleModel(OpenAIChatModel):
             )
             ```
         """
-        provider = OpenAIProvider(
+        provider = OllamaProvider(
             base_url=base_url,
             api_key=api_key,
         )
 
-        return cls(model_name=model_name, provider=provider, **kwargs)
+        return cls(model_name, provider=provider, **kwargs)
 
     @classmethod
     def from_tgi(
         cls, base_url: str, model_name: str, api_key: str | None = None, **kwargs: Any
-    ) -> OpenAICompatibleModel:
+    ) -> "OpenAICompatibleModel":
         """Create a model for a Text Generation Inference (TGI) server.
 
         Args:
@@ -146,17 +146,17 @@ class OpenAICompatibleModel(OpenAIChatModel):
             )
             ```
         """
-        provider = OpenAIProvider(
+        provider = OllamaProvider(
             base_url=base_url,
             api_key=api_key or "EMPTY",
         )
 
-        return cls(model_name=model_name, provider=provider, **kwargs)
+        return cls(model_name, provider=provider, **kwargs)
 
     @classmethod
     def from_custom(
         cls, base_url: str, model_name: str, api_key: str | None = None, **kwargs: Any
-    ) -> OpenAICompatibleModel:
+    ) -> "OpenAICompatibleModel":
         """Create a model for any custom OpenAI-compatible server.
 
         Args:
@@ -177,12 +177,12 @@ class OpenAICompatibleModel(OpenAIChatModel):
             )
             ```
         """
-        provider = OpenAIProvider(
+        provider = OllamaProvider(
             base_url=base_url,
             api_key=api_key or "EMPTY",
         )
 
-        return cls(model_name=model_name, provider=provider, **kwargs)
+        return cls(model_name, provider=provider, **kwargs)
 
 
 # Convenience aliases
