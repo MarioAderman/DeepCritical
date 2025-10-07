@@ -339,6 +339,100 @@ Prompt templates in `configs/prompts/`:
 - `configs/prompts/prime_executor.yaml` - Tool execution prompts
 - `configs/prompts/prime_evaluator.yaml` - Result evaluation prompts
 
+### LLM Model Configuration
+
+DeepCritical supports multiple LLM providers through Hydra configuration:
+
+#### Available Model Providers
+
+- **vLLM** - Production-grade local inference with PagedAttention
+- **llama.cpp** - Lightweight C++ inference (GGUF format)
+- **Text Generation Inference (TGI)** - Hugging Face's optimized server
+- **OpenAI-compatible** - Any server implementing OpenAI Chat Completions API
+
+#### Configuration Files
+
+Model configurations in `configs/llm/`:
+
+- `configs/llm/vllm_pydantic.yaml` - vLLM server configuration
+- `configs/llm/llamacpp_local.yaml` - llama.cpp server configuration
+- `configs/llm/tgi_local.yaml` - TGI server configuration
+
+#### Usage with Hydra
+
+```python
+from hydra import compose, initialize
+from DeepResearch.src.models import OpenAICompatibleModel
+
+# Initialize Hydra
+with initialize(config_path="../configs"):
+    cfg = compose(config_name="config", overrides=["llm=vllm_pydantic"])
+
+    # Create model from config
+    model = OpenAICompatibleModel.from_config(cfg.llm)
+
+    # Or use specific factory method
+    model = OpenAICompatibleModel.from_vllm(config=cfg.llm)
+```
+
+#### Direct Parameter Usage
+
+For testing or simple cases, you can also use direct parameters:
+
+```python
+from DeepResearch.src.models import VLLMModel, LlamaCppModel
+
+# vLLM
+model = VLLMModel.from_vllm(
+    base_url="http://localhost:8000/v1",
+    model_name="meta-llama/Llama-3-8B"
+)
+
+# llama.cpp
+model = LlamaCppModel.from_llamacpp(
+    base_url="http://localhost:8080/v1",
+    model_name="llama-3-8b.gguf"
+)
+```
+
+#### Configuration Structure
+
+Example `vllm_pydantic.yaml`:
+
+```yaml
+# Basic connection settings
+provider: "vllm"
+model_name: "meta-llama/Llama-3-8B"
+base_url: "http://localhost:8000/v1"
+api_key: null  # or use environment variable LLM_API_KEY
+
+# Generation parameters
+generation:
+  temperature: 0.7
+  max_tokens: 512
+  top_p: 0.9
+  frequency_penalty: 0.0
+  presence_penalty: 0.0
+
+# Connection settings
+timeout: 60.0
+max_retries: 3
+retry_delay: 1.0
+```
+
+#### Environment Variables
+
+You can override config values with environment variables:
+
+- `LLM_BASE_URL` - Override base_url from config
+- `LLM_API_KEY` - Override api_key from config
+
+```bash
+export LLM_BASE_URL="http://localhost:8000/v1"
+export LLM_API_KEY="your-api-key"
+uv run deepresearch
+```
+
 ## 🔧 Development
 
 ### Development with uv

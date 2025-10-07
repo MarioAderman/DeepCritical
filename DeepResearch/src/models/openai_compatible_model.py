@@ -19,6 +19,8 @@ from omegaconf import DictConfig, OmegaConf
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.ollama import OllamaProvider
 
+from ..datatypes.llm_models import LLMModelConfig, GenerationConfig
+
 
 class OpenAICompatibleModel(OpenAIChatModel):
     """Pydantic AI model for OpenAI-compatible servers.
@@ -31,40 +33,12 @@ class OpenAICompatibleModel(OpenAIChatModel):
     - llama.cpp server in OpenAI mode
     - Text Generation Inference (TGI)
     - Any custom OpenAI-compatible endpoint
-
-    Example:
-        ```python
-        from pydantic_ai import Agent
-        from DeepResearch.src.models import OpenAICompatibleModel
-
-        # Connect to vLLM server
-        model = OpenAICompatibleModel.from_vllm(
-            base_url="http://localhost:8000/v1",
-            model_name="meta-llama/Llama-3-8B"
-        )
-
-        # Use with agent
-        agent = Agent(model)
-        result = agent.run_sync("Hello!")
-        ```
-
-    Example (llama.cpp):
-        ```python
-        # Connect to llama.cpp server
-        model = OpenAICompatibleModel.from_llamacpp(
-            base_url="http://localhost:8080/v1",
-            model_name="llama-3-8b.gguf"
-        )
-
-        agent = Agent(model)
-        result = agent.run_sync("Hello!")
-        ```
     """
 
     @classmethod
     def from_config(
         cls,
-        config: DictConfig | dict,
+        config: DictConfig | dict | LLMModelConfig,
         model_name: Optional[str] = None,
         base_url: Optional[str] = None,
         api_key: Optional[str] = None,
@@ -73,7 +47,7 @@ class OpenAICompatibleModel(OpenAIChatModel):
         """Create a model from Hydra configuration.
 
         Args:
-            config: Hydra configuration (DictConfig) or dict with model settings.
+            config: Hydra configuration (DictConfig), dict, or LLMModelConfig with model settings.
             model_name: Override model name from config.
             base_url: Override base URL from config.
             api_key: Override API key from config.
@@ -81,56 +55,60 @@ class OpenAICompatibleModel(OpenAIChatModel):
 
         Returns:
             Configured OpenAICompatibleModel instance.
-
-        Example:
-            ```python
-            from hydra import compose, initialize
-
-            with initialize(config_path="../configs"):
-                cfg = compose(config_name="config", overrides=["llm=vllm_local"])
-                model = OpenAICompatibleModel.from_config(cfg.llm)
-            ```
         """
-        # Convert DictConfig to dict if needed
-        if isinstance(config, DictConfig):
-            config = OmegaConf.to_container(config, resolve=True)
+        # If already a validated LLMModelConfig, use it
+        if isinstance(config, LLMModelConfig):
+            validated_config = config
+        else:
+            # Convert DictConfig to dict if needed
+            if isinstance(config, DictConfig):
+                config = OmegaConf.to_container(config, resolve=True)
 
-        # Extract configuration with fallbacks
-        final_model_name = (
-            model_name
-            or config.get("model_name")
-            or config.get("model", {}).get("name", "gpt-3.5-turbo")
-        )
-        final_base_url = base_url or config.get("base_url") or os.getenv("LLM_BASE_URL")
-        final_api_key = (
-            api_key or config.get("api_key") or os.getenv("LLM_API_KEY", "EMPTY")
-        )
+            # Build config dict with fallbacks for validation
+            config_dict = {
+                "provider": config.get("provider", "custom"),
+                "model_name": (
+                    model_name
+                    or config.get("model_name")
+                    or config.get("model", {}).get("name", "gpt-3.5-turbo")
+                ),
+                "base_url": base_url or config.get("base_url") or os.getenv("LLM_BASE_URL", ""),
+                "api_key": api_key or config.get("api_key") or os.getenv("LLM_API_KEY"),
+                "timeout": config.get("timeout", 60.0),
+                "max_retries": config.get("max_retries", 3),
+                "retry_delay": config.get("retry_delay", 1.0),
+            }
 
-        # Extract generation settings from config
-        generation_config = config.get("generation", {})
+            # Validate using Pydantic model
+            try:
+                validated_config = LLMModelConfig(**config_dict)
+            except Exception as e:
+                raise ValueError(f"Invalid LLM model configuration: {e}")
+
+        # Apply direct parameter overrides
+        final_model_name = model_name or validated_config.model_name
+        final_base_url = base_url or validated_config.base_url
+        final_api_key = api_key or validated_config.api_key or "EMPTY"
+
+        # Extract and validate generation settings from config
         settings = kwargs.pop("settings", {})
 
-        # Merge config-based settings with kwargs
-        if generation_config:
-            settings.update(
-                {
-                    k: v
-                    for k, v in generation_config.items()
-                    if k
-                    in [
-                        "temperature",
-                        "max_tokens",
-                        "top_p",
-                        "frequency_penalty",
-                        "presence_penalty",
-                    ]
-                }
-            )
+        if isinstance(config, (dict, DictConfig)) and not isinstance(config, LLMModelConfig):
+            if isinstance(config, DictConfig):
+                config = OmegaConf.to_container(config, resolve=True)
+            generation_config_dict = config.get("generation", {})
 
-        if not final_base_url:
-            raise ValueError(
-                "base_url must be provided either in config, as argument, or via LLM_BASE_URL environment variable"
-            )
+            # Validate generation parameters that are present in config
+            if generation_config_dict:
+                try:
+                    # Validate only the parameters present in the config
+                    validated_gen_config = GenerationConfig(**generation_config_dict)
+                    # Only include parameters that were in the original config
+                    for key in generation_config_dict.keys():
+                        if hasattr(validated_gen_config, key):
+                            settings[key] = getattr(validated_gen_config, key)
+                except Exception as e:
+                    raise ValueError(f"Invalid generation configuration: {e}")
 
         provider = OllamaProvider(
             base_url=final_base_url,
@@ -161,18 +139,6 @@ class OpenAICompatibleModel(OpenAIChatModel):
 
         Returns:
             Configured OpenAICompatibleModel instance.
-
-        Example:
-            ```python
-            # From config
-            model = OpenAICompatibleModel.from_vllm(config=cfg.vllm)
-
-            # Direct parameters (for testing/simple cases)
-            model = OpenAICompatibleModel.from_vllm(
-                base_url="http://localhost:8000/v1",
-                model_name="meta-llama/Llama-3-8B"
-            )
-            ```
         """
         if config is not None:
             return cls.from_config(config, model_name, base_url, api_key, **kwargs)
@@ -209,18 +175,6 @@ class OpenAICompatibleModel(OpenAIChatModel):
 
         Returns:
             Configured OpenAICompatibleModel instance.
-
-        Example:
-            ```python
-            # From config
-            model = OpenAICompatibleModel.from_llamacpp(config=cfg.llamacpp)
-
-            # Direct parameters
-            model = OpenAICompatibleModel.from_llamacpp(
-                base_url="http://localhost:8080/v1",
-                model_name="llama-3-8b.gguf"
-            )
-            ```
         """
         if config is not None:
             # Use default llama model name if not specified
@@ -258,18 +212,6 @@ class OpenAICompatibleModel(OpenAIChatModel):
 
         Returns:
             Configured OpenAICompatibleModel instance.
-
-        Example:
-            ```python
-            # From config
-            model = OpenAICompatibleModel.from_tgi(config=cfg.tgi)
-
-            # Direct parameters
-            model = OpenAICompatibleModel.from_tgi(
-                base_url="http://localhost:3000/v1",
-                model_name="bigscience/bloom"
-            )
-            ```
         """
         if config is not None:
             return cls.from_config(config, model_name, base_url, api_key, **kwargs)
@@ -306,19 +248,6 @@ class OpenAICompatibleModel(OpenAIChatModel):
 
         Returns:
             Configured OpenAICompatibleModel instance.
-
-        Example:
-            ```python
-            # From config
-            model = OpenAICompatibleModel.from_custom(config=cfg.custom_llm)
-
-            # Direct parameters
-            model = OpenAICompatibleModel.from_custom(
-                base_url="https://my-llm-server.com/v1",
-                model_name="my-custom-model",
-                api_key="my-secret-key"
-            )
-            ```
         """
         if config is not None:
             return cls.from_config(config, model_name, base_url, api_key, **kwargs)
@@ -339,28 +268,8 @@ class OpenAICompatibleModel(OpenAIChatModel):
 # Convenience aliases
 VLLMModel = OpenAICompatibleModel
 """Alias for OpenAICompatibleModel when using vLLM.
-
-Example:
-    ```python
-    from DeepResearch.src.models import VLLMModel
-
-    model = VLLMModel.from_vllm(
-        base_url="http://localhost:8000/v1",
-        model_name="meta-llama/Llama-3-8B"
-    )
-    ```
 """
 
 LlamaCppModel = OpenAICompatibleModel
 """Alias for OpenAICompatibleModel when using llama.cpp.
-
-Example:
-    ```python
-    from DeepResearch.src.models import LlamaCppModel
-
-    model = LlamaCppModel.from_llamacpp(
-        base_url="http://localhost:8080/v1",
-        model_name="llama-3-8b.gguf"
-    )
-    ```
 """

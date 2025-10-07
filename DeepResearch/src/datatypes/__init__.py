@@ -43,6 +43,13 @@ from .rag import (
     RAGWorkflowState,
 )
 
+from .llm_models import (
+    LLMProvider as LLMProviderEnum,
+    LLMModelConfig,
+    GenerationConfig,
+    LLMConnectionConfig,
+)
+
 # from .vllm_agent import (
 #     VLLMAgentDependencies,
 #     VLLMAgentConfig,
