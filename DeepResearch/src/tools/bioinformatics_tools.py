@@ -12,6 +12,8 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional, Any
 from pydantic import BaseModel, Field
 
+# Note: defer decorator is not available in current pydantic-ai version
+
 from .base import ToolSpec, ToolRunner, ExecutionResult, registry
 from ..datatypes.bioinformatics import (
     GOAnnotation,
