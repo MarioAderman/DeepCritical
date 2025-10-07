@@ -271,6 +271,11 @@ __all__ = [
     "VLLMLLMProvider",
     "VLLMServerConfig",
     "VLLMEmbeddingServerConfig",
+    # LLM model types
+    "LLMProviderEnum",
+    "LLMModelConfig",
+    "GenerationConfig",
+    "LLMConnectionConfig",
     "VLLMDeployment",
     "VLLMRAGSystem",
     # Analytics types
