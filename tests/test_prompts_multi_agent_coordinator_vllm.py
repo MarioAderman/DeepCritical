@@ -6,6 +6,7 @@ These tests are optional and disabled in CI by default.
 """
 
 import pytest
+
 from scripts.prompt_testing.test_prompts_vllm_base import VLLMPromptTestBase
 
 
@@ -21,6 +22,6 @@ class TestMultiAgentCoordinatorPromptsVLLM(VLLMPromptTestBase):
         )
 
         self.assert_prompt_test_success(results, min_success_rate=0.8)
-        assert (
-            len(results) > 0
-        ), "No prompts were tested from multi_agent_coordinator module"
+        assert len(results) > 0, (
+            "No prompts were tested from multi_agent_coordinator module"
+        )
