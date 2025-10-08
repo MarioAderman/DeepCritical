@@ -10,18 +10,18 @@ from __future__ import annotations
 import time
 from typing import Any, Dict, List, Optional
 
-from .base import BaseAgent
+from ...agents import BaseAgent  # Use top-level BaseAgent to satisfy linters
+from ..datatypes.agents import AgentDependencies, AgentResult, AgentType
 from ..datatypes.workflow_patterns import (
     InteractionPattern,
 )
-from ..utils.workflow_patterns import ConsensusAlgorithm
-from ..datatypes.agents import AgentType, AgentDependencies, AgentResult
+from ..prompts.workflow_pattern_agents import WorkflowPatternAgentPrompts
 from ..statemachines.workflow_pattern_statemachines import (
     run_collaborative_pattern_workflow,
-    run_sequential_pattern_workflow,
     run_hierarchical_pattern_workflow,
+    run_sequential_pattern_workflow,
 )
-from ..prompts.workflow_pattern_agents import WorkflowPatternAgentPrompts
+from ..utils.workflow_patterns import ConsensusAlgorithm
 
 
 class WorkflowPatternAgent(BaseAgent):
@@ -31,7 +31,7 @@ class WorkflowPatternAgent(BaseAgent):
         self,
         pattern: InteractionPattern,
         model_name: str = "anthropic:claude-sonnet-4-0",
-        dependencies: Optional[AgentDependencies] = None,
+        dependencies: AgentDependencies | None = None,
     ):
         super().__init__(
             agent_type=AgentType.ORCHESTRATOR,
@@ -54,15 +54,6 @@ class WorkflowPatternAgent(BaseAgent):
     def _register_tools(self):
         """Register tools for workflow pattern execution."""
         # Register pattern-specific tools
-        from ..tools.workflow_pattern_tools import (
-            collaborative_pattern_tool,
-            sequential_pattern_tool,
-            hierarchical_pattern_tool,
-            consensus_tool,
-            message_routing_tool,
-            workflow_orchestration_tool,
-            interaction_state_tool,
-        )
 
         # Add tools to agent
         if self._agent:
@@ -72,11 +63,11 @@ class WorkflowPatternAgent(BaseAgent):
 
     async def execute_pattern(
         self,
-        agents: List[str],
-        agent_types: Dict[str, AgentType],
-        agent_executors: Dict[str, Any],
-        input_data: Dict[str, Any],
-        config: Optional[Dict[str, Any]] = None,
+        agents: list[str],
+        agent_types: dict[str, AgentType],
+        agent_executors: dict[str, Any],
+        input_data: dict[str, Any],
+        config: dict[str, Any] | None = None,
     ) -> AgentResult:
         """Execute the workflow pattern."""
         try:
@@ -100,8 +91,12 @@ class WorkflowPatternAgent(BaseAgent):
                     config=self.dependencies.config,
                 )
             elif self.pattern == InteractionPattern.HIERARCHICAL:
-                coordinator_id = input_data.get("coordinator_id", agents[0] if agents else "")
-                subordinate_ids = input_data.get("subordinate_ids", agents[1:] if len(agents) > 1 else [])
+                coordinator_id = input_data.get(
+                    "coordinator_id", agents[0] if agents else ""
+                )
+                subordinate_ids = input_data.get(
+                    "subordinate_ids", agents[1:] if len(agents) > 1 else []
+                )
 
                 result = await run_hierarchical_pattern_workflow(
                     question=input_data.get("question", ""),
@@ -151,7 +146,7 @@ class CollaborativePatternAgent(WorkflowPatternAgent):
     def __init__(
         self,
         model_name: str = "anthropic:claude-sonnet-4-0",
-        dependencies: Optional[AgentDependencies] = None,
+        dependencies: AgentDependencies | None = None,
     ):
         super().__init__(
             pattern=InteractionPattern.COLLABORATIVE,
@@ -166,12 +161,12 @@ class CollaborativePatternAgent(WorkflowPatternAgent):
 
     async def execute_collaborative_workflow(
         self,
-        agents: List[str],
-        agent_types: Dict[str, AgentType],
-        agent_executors: Dict[str, Any],
-        input_data: Dict[str, Any],
+        agents: list[str],
+        agent_types: dict[str, AgentType],
+        agent_executors: dict[str, Any],
+        input_data: dict[str, Any],
         consensus_algorithm: ConsensusAlgorithm = ConsensusAlgorithm.SIMPLE_AGREEMENT,
-        config: Optional[Dict[str, Any]] = None,
+        config: dict[str, Any] | None = None,
     ) -> AgentResult:
         """Execute collaborative workflow with consensus."""
         try:
@@ -200,7 +195,7 @@ class CollaborativePatternAgent(WorkflowPatternAgent):
         except Exception as e:
             return AgentResult(
                 success=False,
-                error=f"Collaborative workflow failed: {str(e)}",
+                error=f"Collaborative workflow failed: {e!s}",
                 agent_type=self.agent_type,
             )
 
@@ -211,7 +206,7 @@ class SequentialPatternAgent(WorkflowPatternAgent):
     def __init__(
         self,
         model_name: str = "anthropic:claude-sonnet-4-0",
-        dependencies: Optional[AgentDependencies] = None,
+        dependencies: AgentDependencies | None = None,
     ):
         super().__init__(
             pattern=InteractionPattern.SEQUENTIAL,
@@ -226,11 +221,11 @@ class SequentialPatternAgent(WorkflowPatternAgent):
 
     async def execute_sequential_workflow(
         self,
-        agent_order: List[str],
-        agent_types: Dict[str, AgentType],
-        agent_executors: Dict[str, Any],
-        input_data: Dict[str, Any],
-        config: Optional[Dict[str, Any]] = None,
+        agent_order: list[str],
+        agent_types: dict[str, AgentType],
+        agent_executors: dict[str, Any],
+        input_data: dict[str, Any],
+        config: dict[str, Any] | None = None,
     ) -> AgentResult:
         """Execute sequential workflow."""
         try:
@@ -259,7 +254,7 @@ class SequentialPatternAgent(WorkflowPatternAgent):
         except Exception as e:
             return AgentResult(
                 success=False,
-                error=f"Sequential workflow failed: {str(e)}",
+                error=f"Sequential workflow failed: {e!s}",
                 agent_type=self.agent_type,
             )
 
@@ -270,7 +265,7 @@ class HierarchicalPatternAgent(WorkflowPatternAgent):
     def __init__(
         self,
         model_name: str = "anthropic:claude-sonnet-4-0",
-        dependencies: Optional[AgentDependencies] = None,
+        dependencies: AgentDependencies | None = None,
     ):
         super().__init__(
             pattern=InteractionPattern.HIERARCHICAL,
@@ -286,11 +281,11 @@ class HierarchicalPatternAgent(WorkflowPatternAgent):
     async def execute_hierarchical_workflow(
         self,
         coordinator_id: str,
-        subordinate_ids: List[str],
-        agent_types: Dict[str, AgentType],
-        agent_executors: Dict[str, Any],
-        input_data: Dict[str, Any],
-        config: Optional[Dict[str, Any]] = None,
+        subordinate_ids: list[str],
+        agent_types: dict[str, AgentType],
+        agent_executors: dict[str, Any],
+        input_data: dict[str, Any],
+        config: dict[str, Any] | None = None,
     ) -> AgentResult:
         """Execute hierarchical workflow."""
         try:
@@ -325,7 +320,7 @@ class HierarchicalPatternAgent(WorkflowPatternAgent):
         except Exception as e:
             return AgentResult(
                 success=False,
-                error=f"Hierarchical workflow failed: {str(e)}",
+                error=f"Hierarchical workflow failed: {e!s}",
                 agent_type=self.agent_type,
             )
 
@@ -336,7 +331,7 @@ class PatternOrchestratorAgent(BaseAgent):
     def __init__(
         self,
         model_name: str = "anthropic:claude-sonnet-4-0",
-        dependencies: Optional[AgentDependencies] = None,
+        dependencies: AgentDependencies | None = None,
     ):
         super().__init__(
             agent_type=AgentType.ORCHESTRATOR,
@@ -371,35 +366,48 @@ class PatternOrchestratorAgent(BaseAgent):
         self,
         problem_complexity: str,
         agent_count: int,
-        agent_capabilities: List[str],
-        coordination_requirements: Optional[Dict[str, Any]] = None,
+        agent_capabilities: list[str],
+        coordination_requirements: dict[str, Any] | None = None,
     ) -> InteractionPattern:
         """Select the optimal interaction pattern based on requirements."""
 
         # Analyze requirements
-        needs_consensus = coordination_requirements.get("consensus", False) if coordination_requirements else False
-        needs_sequential_flow = coordination_requirements.get("sequential_flow", False) if coordination_requirements else False
-        needs_hierarchy = coordination_requirements.get("hierarchy", False) if coordination_requirements else False
+        needs_consensus = (
+            coordination_requirements.get("consensus", False)
+            if coordination_requirements
+            else False
+        )
+        needs_sequential_flow = (
+            coordination_requirements.get("sequential_flow", False)
+            if coordination_requirements
+            else False
+        )
+        needs_hierarchy = (
+            coordination_requirements.get("hierarchy", False)
+            if coordination_requirements
+            else False
+        )
 
         # Pattern selection logic
         if needs_hierarchy or agent_count > 5:
             return InteractionPattern.HIERARCHICAL
-        elif needs_sequential_flow or agent_count <= 3:
+        if needs_sequential_flow or agent_count <= 3:
             return InteractionPattern.SEQUENTIAL
-        elif needs_consensus or (agent_count > 3 and "diverse_perspectives" in str(agent_capabilities)):
+        if needs_consensus or (
+            agent_count > 3 and "diverse_perspectives" in str(agent_capabilities)
+        ):
             return InteractionPattern.COLLABORATIVE
-        else:
-            # Default to collaborative for most cases
-            return InteractionPattern.COLLABORATIVE
+        # Default to collaborative for most cases
+        return InteractionPattern.COLLABORATIVE
 
     async def orchestrate_workflow(
         self,
         question: str,
-        available_agents: Dict[str, AgentType],
-        agent_executors: Dict[str, Any],
-        pattern_preference: Optional[InteractionPattern] = None,
-        coordination_requirements: Optional[Dict[str, Any]] = None,
-        config: Optional[Dict[str, Any]] = None,
+        available_agents: dict[str, AgentType],
+        agent_executors: dict[str, Any],
+        pattern_preference: InteractionPattern | None = None,
+        coordination_requirements: dict[str, Any] | None = None,
+        config: dict[str, Any] | None = None,
     ) -> AgentResult:
         """Orchestrate workflow with optimal pattern selection."""
         try:
@@ -479,7 +487,7 @@ class PatternOrchestratorAgent(BaseAgent):
         except Exception as e:
             return AgentResult(
                 success=False,
-                error=f"Workflow orchestration failed: {str(e)}",
+                error=f"Workflow orchestration failed: {e!s}",
                 agent_type=self.agent_type,
             )
 
@@ -490,7 +498,7 @@ class AdaptivePatternAgent(BaseAgent):
     def __init__(
         self,
         model_name: str = "anthropic:claude-sonnet-4-0",
-        dependencies: Optional[AgentDependencies] = None,
+        dependencies: AgentDependencies | None = None,
     ):
         super().__init__(
             agent_type=AgentType.ORCHESTRATOR,
@@ -509,10 +517,10 @@ class AdaptivePatternAgent(BaseAgent):
     async def execute_adaptive_workflow(
         self,
         question: str,
-        available_agents: Dict[str, AgentType],
-        agent_executors: Dict[str, Any],
+        available_agents: dict[str, AgentType],
+        agent_executors: dict[str, Any],
         max_attempts: int = 3,
-        config: Optional[Dict[str, Any]] = None,
+        config: dict[str, Any] | None = None,
     ) -> AgentResult:
         """Execute workflow with adaptive pattern selection."""
         try:
@@ -544,7 +552,9 @@ class AdaptivePatternAgent(BaseAgent):
 
                 # Keep track of the best result
                 if result.success:
-                    if best_result is None or self._is_better_result(result, best_result):
+                    if best_result is None or self._is_better_result(
+                        result, best_result
+                    ):
                         best_result = result
 
             execution_time = time.time() - start_time
@@ -556,27 +566,29 @@ class AdaptivePatternAgent(BaseAgent):
                     "best_pattern": best_result.data.get("pattern"),
                     "total_execution_time": execution_time,
                     "pattern_attempts": {
-                        pattern: attempt_result.success for pattern, attempt_result in pattern_attempts.items()
+                        pattern: attempt_result.success
+                        for pattern, attempt_result in pattern_attempts.items()
                     },
                 }
 
                 return best_result
-            else:
-                # Return the last attempt if all failed
-                last_attempt = list(pattern_attempts.values())[-1] if pattern_attempts else None
-                if last_attempt:
-                    return last_attempt
+            # Return the last attempt if all failed
+            last_attempt = (
+                list(pattern_attempts.values())[-1] if pattern_attempts else None
+            )
+            if last_attempt:
+                return last_attempt
 
-                return AgentResult(
-                    success=False,
-                    error="All pattern attempts failed",
-                    agent_type=self.agent_type,
-                )
+            return AgentResult(
+                success=False,
+                error="All pattern attempts failed",
+                agent_type=self.agent_type,
+            )
 
         except Exception as e:
             return AgentResult(
                 success=False,
-                error=f"Adaptive workflow execution failed: {str(e)}",
+                error=f"Adaptive workflow execution failed: {e!s}",
                 agent_type=self.agent_type,
             )
 
@@ -585,19 +597,18 @@ class AdaptivePatternAgent(BaseAgent):
         # Simple heuristic: compare execution time and success
         if not result1.success and not result2.success:
             return result1.execution_time < result2.execution_time
-        elif result1.success and not result2.success:
+        if result1.success and not result2.success:
             return True
-        elif not result1.success and result2.success:
+        if not result1.success and result2.success:
             return False
-        else:
-            # Both successful, compare execution time
-            return result1.execution_time < result2.execution_time
+        # Both successful, compare execution time
+        return result1.execution_time < result2.execution_time
 
 
 # Factory functions for creating pattern agents
 def create_collaborative_agent(
     model_name: str = "anthropic:claude-sonnet-4-0",
-    dependencies: Optional[AgentDependencies] = None,
+    dependencies: AgentDependencies | None = None,
 ) -> CollaborativePatternAgent:
     """Create a collaborative pattern agent."""
     return CollaborativePatternAgent(model_name, dependencies)
@@ -605,7 +616,7 @@ def create_collaborative_agent(
 
 def create_sequential_agent(
     model_name: str = "anthropic:claude-sonnet-4-0",
-    dependencies: Optional[AgentDependencies] = None,
+    dependencies: AgentDependencies | None = None,
 ) -> SequentialPatternAgent:
     """Create a sequential pattern agent."""
     return SequentialPatternAgent(model_name, dependencies)
@@ -613,7 +624,7 @@ def create_sequential_agent(
 
 def create_hierarchical_agent(
     model_name: str = "anthropic:claude-sonnet-4-0",
-    dependencies: Optional[AgentDependencies] = None,
+    dependencies: AgentDependencies | None = None,
 ) -> HierarchicalPatternAgent:
     """Create a hierarchical pattern agent."""
     return HierarchicalPatternAgent(model_name, dependencies)
@@ -621,7 +632,7 @@ def create_hierarchical_agent(
 
 def create_pattern_orchestrator(
     model_name: str = "anthropic:claude-sonnet-4-0",
-    dependencies: Optional[AgentDependencies] = None,
+    dependencies: AgentDependencies | None = None,
 ) -> PatternOrchestratorAgent:
     """Create a pattern orchestrator agent."""
     return PatternOrchestratorAgent(model_name, dependencies)
@@ -629,7 +640,7 @@ def create_pattern_orchestrator(
 
 def create_adaptive_pattern_agent(
     model_name: str = "anthropic:claude-sonnet-4-0",
-    dependencies: Optional[AgentDependencies] = None,
+    dependencies: AgentDependencies | None = None,
 ) -> AdaptivePatternAgent:
     """Create an adaptive pattern agent."""
     return AdaptivePatternAgent(model_name, dependencies)
@@ -637,15 +648,15 @@ def create_adaptive_pattern_agent(
 
 # Export all agents
 __all__ = [
-    "WorkflowPatternAgent",
+    "AdaptivePatternAgent",
     "CollaborativePatternAgent",
-    "SequentialPatternAgent",
     "HierarchicalPatternAgent",
     "PatternOrchestratorAgent",
-    "AdaptivePatternAgent",
+    "SequentialPatternAgent",
+    "WorkflowPatternAgent",
+    "create_adaptive_pattern_agent",
     "create_collaborative_agent",
-    "create_sequential_agent",
     "create_hierarchical_agent",
     "create_pattern_orchestrator",
-    "create_adaptive_pattern_agent",
+    "create_sequential_agent",
 ]

@@ -19,10 +19,7 @@ class TestAgentsPromptsVLLM(VLLMPromptTestBase):
         """Test all prompts from agents module with VLLM."""
         # Run tests for agents module
         results = self.run_module_prompt_tests(
-            "agents",
-            vllm_tester,
-            max_tokens=256,
-            temperature=0.7
+            "agents", vllm_tester, max_tokens=256, temperature=0.7
         )
 
         # Assert minimum success rate
@@ -33,15 +30,15 @@ class TestAgentsPromptsVLLM(VLLMPromptTestBase):
 
         # Log container info
         container_info = vllm_tester.get_container_info()
-        pytest.custom_logger.info(f"VLLM container info: {container_info}")
+        print(f"VLLM container info: {container_info}")
 
     @pytest.mark.vllm
     @pytest.mark.optional
     def test_base_agent_prompts(self, vllm_tester):
         """Test base agent prompts specifically."""
         from DeepResearch.src.prompts.agents import (
-            BASE_AGENT_SYSTEM_PROMPT,
             BASE_AGENT_INSTRUCTIONS,
+            BASE_AGENT_SYSTEM_PROMPT,
         )
 
         # Test base system prompt
@@ -50,7 +47,7 @@ class TestAgentsPromptsVLLM(VLLMPromptTestBase):
             "BASE_AGENT_SYSTEM_PROMPT",
             BASE_AGENT_SYSTEM_PROMPT,
             max_tokens=128,
-            temperature=0.5
+            temperature=0.5,
         )
 
         assert result["success"]
@@ -63,7 +60,7 @@ class TestAgentsPromptsVLLM(VLLMPromptTestBase):
             "BASE_AGENT_INSTRUCTIONS",
             BASE_AGENT_INSTRUCTIONS,
             max_tokens=128,
-            temperature=0.5
+            temperature=0.5,
         )
 
         assert result["success"]
@@ -73,8 +70,8 @@ class TestAgentsPromptsVLLM(VLLMPromptTestBase):
     def test_parser_agent_prompts(self, vllm_tester):
         """Test parser agent prompts specifically."""
         from DeepResearch.src.prompts.agents import (
-            PARSER_AGENT_SYSTEM_PROMPT,
             PARSER_AGENT_INSTRUCTIONS,
+            PARSER_AGENT_SYSTEM_PROMPT,
         )
 
         # Test parser system prompt
@@ -84,7 +81,7 @@ class TestAgentsPromptsVLLM(VLLMPromptTestBase):
             PARSER_AGENT_SYSTEM_PROMPT,
             expected_placeholders=["question", "context"],
             max_tokens=128,
-            temperature=0.5
+            temperature=0.5,
         )
 
         assert result["success"]
@@ -96,7 +93,7 @@ class TestAgentsPromptsVLLM(VLLMPromptTestBase):
             "PARSER_AGENT_INSTRUCTIONS",
             PARSER_AGENT_INSTRUCTIONS,
             max_tokens=128,
-            temperature=0.5
+            temperature=0.5,
         )
 
         assert result["success"]
@@ -106,8 +103,8 @@ class TestAgentsPromptsVLLM(VLLMPromptTestBase):
     def test_planner_agent_prompts(self, vllm_tester):
         """Test planner agent prompts specifically."""
         from DeepResearch.src.prompts.agents import (
-            PLANNER_AGENT_SYSTEM_PROMPT,
             PLANNER_AGENT_INSTRUCTIONS,
+            PLANNER_AGENT_SYSTEM_PROMPT,
         )
 
         # Test planner system prompt
@@ -116,7 +113,7 @@ class TestAgentsPromptsVLLM(VLLMPromptTestBase):
             "PLANNER_AGENT_SYSTEM_PROMPT",
             PLANNER_AGENT_SYSTEM_PROMPT,
             max_tokens=128,
-            temperature=0.5
+            temperature=0.5,
         )
 
         assert result["success"]
@@ -127,7 +124,7 @@ class TestAgentsPromptsVLLM(VLLMPromptTestBase):
             "PLANNER_AGENT_INSTRUCTIONS",
             PLANNER_AGENT_INSTRUCTIONS,
             max_tokens=128,
-            temperature=0.5
+            temperature=0.5,
         )
 
         assert result["success"]
@@ -137,8 +134,8 @@ class TestAgentsPromptsVLLM(VLLMPromptTestBase):
     def test_executor_agent_prompts(self, vllm_tester):
         """Test executor agent prompts specifically."""
         from DeepResearch.src.prompts.agents import (
-            EXECUTOR_AGENT_SYSTEM_PROMPT,
             EXECUTOR_AGENT_INSTRUCTIONS,
+            EXECUTOR_AGENT_SYSTEM_PROMPT,
         )
 
         # Test executor system prompt
@@ -147,7 +144,7 @@ class TestAgentsPromptsVLLM(VLLMPromptTestBase):
             "EXECUTOR_AGENT_SYSTEM_PROMPT",
             EXECUTOR_AGENT_SYSTEM_PROMPT,
             max_tokens=128,
-            temperature=0.5
+            temperature=0.5,
         )
 
         assert result["success"]
@@ -158,7 +155,7 @@ class TestAgentsPromptsVLLM(VLLMPromptTestBase):
             "EXECUTOR_AGENT_INSTRUCTIONS",
             EXECUTOR_AGENT_INSTRUCTIONS,
             max_tokens=128,
-            temperature=0.5
+            temperature=0.5,
         )
 
         assert result["success"]
@@ -168,8 +165,8 @@ class TestAgentsPromptsVLLM(VLLMPromptTestBase):
     def test_search_agent_prompts(self, vllm_tester):
         """Test search agent prompts specifically."""
         from DeepResearch.src.prompts.agents import (
-            SEARCH_AGENT_SYSTEM_PROMPT,
             SEARCH_AGENT_INSTRUCTIONS,
+            SEARCH_AGENT_SYSTEM_PROMPT,
         )
 
         # Test search system prompt
@@ -178,7 +175,7 @@ class TestAgentsPromptsVLLM(VLLMPromptTestBase):
             "SEARCH_AGENT_SYSTEM_PROMPT",
             SEARCH_AGENT_SYSTEM_PROMPT,
             max_tokens=128,
-            temperature=0.5
+            temperature=0.5,
         )
 
         assert result["success"]
@@ -189,7 +186,7 @@ class TestAgentsPromptsVLLM(VLLMPromptTestBase):
             "SEARCH_AGENT_INSTRUCTIONS",
             SEARCH_AGENT_INSTRUCTIONS,
             max_tokens=128,
-            temperature=0.5
+            temperature=0.5,
         )
 
         assert result["success"]
@@ -199,8 +196,8 @@ class TestAgentsPromptsVLLM(VLLMPromptTestBase):
     def test_rag_agent_prompts(self, vllm_tester):
         """Test RAG agent prompts specifically."""
         from DeepResearch.src.prompts.agents import (
-            RAG_AGENT_SYSTEM_PROMPT,
             RAG_AGENT_INSTRUCTIONS,
+            RAG_AGENT_SYSTEM_PROMPT,
         )
 
         # Test RAG system prompt
@@ -209,7 +206,7 @@ class TestAgentsPromptsVLLM(VLLMPromptTestBase):
             "RAG_AGENT_SYSTEM_PROMPT",
             RAG_AGENT_SYSTEM_PROMPT,
             max_tokens=128,
-            temperature=0.5
+            temperature=0.5,
         )
 
         assert result["success"]
@@ -220,7 +217,7 @@ class TestAgentsPromptsVLLM(VLLMPromptTestBase):
             "RAG_AGENT_INSTRUCTIONS",
             RAG_AGENT_INSTRUCTIONS,
             max_tokens=128,
-            temperature=0.5
+            temperature=0.5,
         )
 
         assert result["success"]
@@ -230,8 +227,8 @@ class TestAgentsPromptsVLLM(VLLMPromptTestBase):
     def test_bioinformatics_agent_prompts(self, vllm_tester):
         """Test bioinformatics agent prompts specifically."""
         from DeepResearch.src.prompts.agents import (
-            BIOINFORMATICS_AGENT_SYSTEM_PROMPT,
             BIOINFORMATICS_AGENT_INSTRUCTIONS,
+            BIOINFORMATICS_AGENT_SYSTEM_PROMPT,
         )
 
         # Test bioinformatics system prompt
@@ -240,7 +237,7 @@ class TestAgentsPromptsVLLM(VLLMPromptTestBase):
             "BIOINFORMATICS_AGENT_SYSTEM_PROMPT",
             BIOINFORMATICS_AGENT_SYSTEM_PROMPT,
             max_tokens=128,
-            temperature=0.5
+            temperature=0.5,
         )
 
         assert result["success"]
@@ -251,7 +248,7 @@ class TestAgentsPromptsVLLM(VLLMPromptTestBase):
             "BIOINFORMATICS_AGENT_INSTRUCTIONS",
             BIOINFORMATICS_AGENT_INSTRUCTIONS,
             max_tokens=128,
-            temperature=0.5
+            temperature=0.5,
         )
 
         assert result["success"]
@@ -261,8 +258,8 @@ class TestAgentsPromptsVLLM(VLLMPromptTestBase):
     def test_deepsearch_agent_prompts(self, vllm_tester):
         """Test deepsearch agent prompts specifically."""
         from DeepResearch.src.prompts.agents import (
-            DEEPSEARCH_AGENT_SYSTEM_PROMPT,
             DEEPSEARCH_AGENT_INSTRUCTIONS,
+            DEEPSEARCH_AGENT_SYSTEM_PROMPT,
         )
 
         # Test deepsearch system prompt
@@ -271,7 +268,7 @@ class TestAgentsPromptsVLLM(VLLMPromptTestBase):
             "DEEPSEARCH_AGENT_SYSTEM_PROMPT",
             DEEPSEARCH_AGENT_SYSTEM_PROMPT,
             max_tokens=128,
-            temperature=0.5
+            temperature=0.5,
         )
 
         assert result["success"]
@@ -282,7 +279,7 @@ class TestAgentsPromptsVLLM(VLLMPromptTestBase):
             "DEEPSEARCH_AGENT_INSTRUCTIONS",
             DEEPSEARCH_AGENT_INSTRUCTIONS,
             max_tokens=128,
-            temperature=0.5
+            temperature=0.5,
         )
 
         assert result["success"]
@@ -292,8 +289,8 @@ class TestAgentsPromptsVLLM(VLLMPromptTestBase):
     def test_evaluator_agent_prompts(self, vllm_tester):
         """Test evaluator agent prompts specifically."""
         from DeepResearch.src.prompts.agents import (
-            EVALUATOR_AGENT_SYSTEM_PROMPT,
             EVALUATOR_AGENT_INSTRUCTIONS,
+            EVALUATOR_AGENT_SYSTEM_PROMPT,
         )
 
         # Test evaluator system prompt
@@ -302,7 +299,7 @@ class TestAgentsPromptsVLLM(VLLMPromptTestBase):
             "EVALUATOR_AGENT_SYSTEM_PROMPT",
             EVALUATOR_AGENT_SYSTEM_PROMPT,
             max_tokens=128,
-            temperature=0.5
+            temperature=0.5,
         )
 
         assert result["success"]
@@ -313,7 +310,7 @@ class TestAgentsPromptsVLLM(VLLMPromptTestBase):
             "EVALUATOR_AGENT_INSTRUCTIONS",
             EVALUATOR_AGENT_INSTRUCTIONS,
             max_tokens=128,
-            temperature=0.5
+            temperature=0.5,
         )
 
         assert result["success"]
@@ -343,7 +340,10 @@ class TestAgentsPromptsVLLM(VLLMPromptTestBase):
         assert len(instructions) > 0
 
         # Test with dummy data
-        dummy_data = {"question": "What is AI?", "context": "AI is artificial intelligence"}
+        dummy_data = {
+            "question": "What is AI?",
+            "context": "AI is artificial intelligence",
+        }
         formatted_prompt = parser_prompts["system"].format(**dummy_data)
         assert isinstance(formatted_prompt, str)
         assert len(formatted_prompt) > 0

@@ -1,6 +1,255 @@
-# DeepCritical - Hydra + Pydantic Graph Deep Research with PRIME Architecture
+# 🚀 DeepCritical: Building a Highly Configurable Deep Research Agent Ecosystem
 
-A comprehensive research automation platform that replicates the PRIME (Protein Research Intelligent Multi-Agent Environment) architecture for autonomous scientific discovery workflows.
+[![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://deepcritical.github.io/DeepCritical)
+
+## Vision: From Single Questions to Research Field Generation
+
+**DeepCritical** isn't just another research assistant—it's a framework for building entire research ecosystems. While a typical user asks one question, DeepCritical generates datasets of hypotheses, tests them systematically, runs simulations, and produces comprehensive reports—all through configurable Hydra-based workflows.
+
+### The Big Picture
+
+```yaml
+# Hydra makes this possible - single config generates entire research workflows
+flows:
+  hypothesis_generation: {enabled: true, batch_size: 100}
+  hypothesis_testing: {enabled: true, validation_environments: ["simulation", "real_world"]}
+  validation: {enabled: true, methods: ["statistical", "experimental"]}
+  simulation: {enabled: true, frameworks: ["python", "docker"]}
+  reporting: {enabled: true, formats: ["academic_paper", "dpo_dataset"]}
+```
+
+## 🏗️ Current Architecture Overview
+
+### Hydra + Pydantic AI Integration
+- **Hydra Configuration**: `configs/` directory with flow-based composition
+- **Pydantic Graph**: Stateful workflow execution with `ResearchState`
+- **Pydantic AI Agents**: Multi-agent orchestration with `@defer` tools
+- **Flow Routing**: Dynamic composition based on `flows.*.enabled` flags
+
+### Existing Flow Infrastructure
+The project already has the foundation for your vision:
+
+```yaml
+# Current flow configurations (configs/statemachines/flows/)
+- hypothesis_generation.yaml    # Generate hypothesis datasets
+- hypothesis_testing.yaml       # Test hypothesis environments
+- execution.yaml               # Run experiments/simulations
+- reporting.yaml              # Generate research outputs
+- bioinformatics.yaml         # Multi-source data fusion
+- rag.yaml                   # Retrieval-augmented workflows
+- deepsearch.yaml            # Web research automation
+```
+
+### Agent Orchestration System
+```python
+@dataclass
+class AgentOrchestrator:
+    """Spawns nested REACT loops, manages subgraphs, coordinates multi-agent workflows"""
+    config: AgentOrchestratorConfig
+    nested_loops: Dict[str, NestedReactConfig]
+    subgraphs: Dict[str, SubgraphConfig]
+    break_conditions: List[BreakCondition]  # Loss functions for smart termination
+```
+
+## 🎯 Core Capabilities Already Built
+
+### 1. **Hypothesis Dataset Generation**
+```python
+class HypothesisDataset(BaseModel):
+    dataset_id: str
+    hypotheses: List[Dict[str, Any]]  # Generated hypothesis batches
+    source_workflows: List[str]
+    metadata: Dict[str, Any]
+```
+
+### 2. **Testing Environment Management**
+```python
+class HypothesisTestingEnvironment(BaseModel):
+    environment_id: str
+    hypothesis: Dict[str, Any]
+    test_configuration: Dict[str, Any]
+    expected_outcomes: List[str]
+    success_criteria: Dict[str, Any]
+```
+
+### 3. **Workflow-of-Workflows Architecture**
+- **Primary REACT**: Main orchestration workflow
+- **Sub-workflows**: Specialized execution paths (RAG, bioinformatics, search)
+- **Nested Loops**: Multi-level reasoning with configurable break conditions
+- **Subgraphs**: Modular workflow components
+
+### 4. **Tool Ecosystem**
+- **Bioinformatics**: Neo4j RAG, GO annotations, PubMed integration
+- **Search**: Web search, deep search, integrated retrieval
+- **Code Execution**: Docker sandbox, Python execution environments
+- **RAG**: Vector stores, document processing, embeddings
+- **Analytics**: Quality assessment, loss function evaluation
+
+## 🚧 Development Roadmap
+
+### Immediate Next Steps (1-2 weeks)
+
+#### 1. **Coding Agent Loop**
+```yaml
+# New flow configuration needed
+flows:
+  coding_agent:
+    enabled: true
+    languages: ["python", "r", "julia"]
+    frameworks: ["pytorch", "tensorflow", "scikit-learn"]
+    execution_environments: ["docker", "local", "cloud"]
+```
+
+#### 2. **Writing/Report Agent System**
+```yaml
+# Extend reporting.yaml
+reporting:
+  formats: ["academic_paper", "blog_post", "technical_report", "dpo_dataset"]
+  agents:
+    - role: "structure_organizer"
+    - role: "content_writer"
+    - role: "editor_reviewer"
+    - role: "formatter_publisher"
+```
+
+#### 3. **Database & Data Source Integration**
+- **Persistent State**: Non-agentics datasets for workflow state
+- **Trace Logging**: Execution traces → formatted datasets
+- **Ana's Neo4j RAG**: Agent-based knowledge base management
+
+#### 4. **"Final" Agent System**
+```python
+class MetaAgent(BaseModel):
+    """Agent that uses DeepCritical to build and answer with custom agents"""
+    def create_custom_agent(self, specification: AgentSpecification) -> Agent:
+        # Generate agent configuration
+        # Build agent with tools, prompts, capabilities
+        # Deploy and execute
+        pass
+```
+
+### Configuration-Driven Development
+
+The beauty of Hydra integration means we can build this incrementally:
+
+```bash
+# Start with hypothesis generation
+deepresearch flows.hypothesis_generation.enabled=true question="machine learning"
+
+# Add hypothesis testing
+deepresearch flows.hypothesis_testing.enabled=true question="test ML hypothesis"
+
+# Enable full research pipeline
+deepresearch flows="{hypothesis_generation,testing,validation,simulation,reporting}"
+```
+
+## 🔧 Technical Implementation Strategy
+
+### 1. **Hydra Flow Composition**
+```yaml
+# configs/config.yaml - Main composition point
+defaults:
+  - hypothesis_generation: default
+  - hypothesis_testing: default
+  - execution: default
+  - reporting: default
+
+flows:
+  hypothesis_generation: {enabled: true, batch_size: 50}
+  hypothesis_testing: {enabled: true, validation_frameworks: ["simulation"]}
+  execution: {enabled: true, compute_backends: ["docker", "local"]}
+  reporting: {enabled: true, output_formats: ["markdown", "json"]}
+```
+
+### 2. **Pydantic Graph Integration**
+```python
+@dataclass
+class ResearchPipeline(BaseNode[ResearchState]):
+    async def run(self, ctx: GraphRunContext[ResearchState]) -> NextNode:
+        # Check enabled flows and compose dynamically
+        if ctx.state.config.flows.hypothesis_generation.enabled:
+            return HypothesisGenerationNode()
+        elif ctx.state.config.flows.hypothesis_testing.enabled:
+            return HypothesisTestingNode()
+        # ... etc
+```
+
+### 3. **Agent-Tool Integration**
+```python
+@defer
+def generate_hypothesis_dataset(
+    ctx: RunContext[AgentDependencies],
+    research_question: str,
+    batch_size: int
+) -> HypothesisDataset:
+    """Generate a dataset of testable hypotheses"""
+    # Implementation using existing tools and agents
+    return dataset
+```
+
+## 🎨 Use Cases Enabled
+
+### 1. **Literature Review Automation**
+```bash
+deepresearch question="CRISPR applications in cancer therapy" \
+  flows.hypothesis_generation.enabled=true \
+  flows.reporting.format="literature_review"
+```
+
+### 2. **Experiment Design & Simulation**
+```bash
+deepresearch question="protein folding prediction improvements" \
+  flows.hypothesis_generation.enabled=true \
+  flows.hypothesis_testing.enabled=true \
+  flows.simulation.enabled=true
+```
+
+### 3. **Research Field Development**
+```bash
+# Generate entire research program from minimal input
+deepresearch question="novel therapeutic approaches for Alzheimer's" \
+  flows="{hypothesis_generation,testing,validation,reporting}" \
+  outputs.enable_dpo_datasets=true
+```
+
+## 🤝 Collaboration Opportunities
+
+This project provides a foundation for:
+
+1. **Domain-Specific Research Agents**: Biology, chemistry, physics, social sciences
+2. **Publication Pipeline Automation**: From hypothesis → experiment → paper
+3. **Collaborative Research Platforms**: Multi-researcher workflow coordination
+4. **AI Research on AI**: Using the system to improve itself
+
+## 🚀 Getting Started
+
+The framework is ready for extension:
+
+```bash
+# Current capabilities
+uv run deepresearch --help
+
+# Enable specific flows
+uv run deepresearch question="your question" flows.hypothesis_generation.enabled=true
+
+# Configure for batch processing
+uv run deepresearch --config-name=config_with_modes \
+  question="batch research questions" \
+  app_mode=multi_level_react
+```
+
+## 💡 Questions for Discussion
+
+1. **How should we structure the "final" meta-agent system?** (Self-improving, agent factories, etc.)
+2. **What database backends for persistent state?** (SQLite, PostgreSQL, vector stores?)
+3. **How to handle multi-researcher collaboration?** (Access control, workflow sharing, etc.)
+4. **What loss functions and judges for research quality?** (Novelty, rigor, impact, etc.)
+
+This is a sketchpad for building the future of autonomous research—let's collaborate on making it a reality! 🔬✨
+
+# DeepCritical - Hydra + Pydantic Graph Deep Research with Critical Review Tools
+
+A comprehensive research automation platform architecture for autonomous scientific discovery workflows.
 
 ## 🚀 Quickstart
 
@@ -169,10 +418,6 @@ python -m deepresearch.app flows.prime.params.manual_confirmation=true
 python -m deepresearch.app flows.prime.params.adaptive_replanning=false
 ```
 
-⚠️ **Known Issues:**
-- Circular import issues in some tool modules (bioinformatics_tools, deep_agent_tools)
-- These issues are being addressed and will be resolved in future updates
-
 ## 🏗️ Architecture
 
 ### Core Components
@@ -193,7 +438,7 @@ python -m deepresearch.app flows.prime.params.adaptive_replanning=false
 ```
 
 1. **Parse** → `QueryParser` - Semantic/syntactic analysis of research queries
-2. **Plan** → `PlanGenerator` - DAG workflow construction with 65+ tools  
+2. **Plan** → `PlanGenerator` - DAG workflow construction with 65+ tools
 3. **Execute** → `ToolExecutor` - Adaptive re-planning with strategic/tactical recovery
 
 ## 🧬 PRIME Features
@@ -265,7 +510,7 @@ Plan → Route to Flow → Execute Subflow → Synthesize Results
   │
   ├─ PRIME: Parse → Plan → Execute → Evaluate
   ├─ Bioinformatics: Parse → Fuse → Assess → Reason → Synthesize
-  ├─ DeepSearch: DSPlan → DSExecute → DSAnalyze → DSSynthesize  
+  ├─ DeepSearch: DSPlan → DSExecute → DSAnalyze → DSSynthesize
   └─ Challenge: PrepareChallenge → RunChallenge → EvaluateChallenge
 ```
 
@@ -325,7 +570,7 @@ Each flow has its own configuration file:
 
 - `configs/statemachines/flows/prime.yaml` - PRIME flow parameters
 - `configs/statemachines/flows/bioinformatics.yaml` - Bioinformatics flow parameters
-- `configs/statemachines/flows/deepsearch.yaml` - DeepSearch parameters  
+- `configs/statemachines/flows/deepsearch.yaml` - DeepSearch parameters
 - `configs/statemachines/flows/hypothesis_generation.yaml` - Hypothesis flow
 - `configs/statemachines/flows/execution.yaml` - Execution flow
 - `configs/statemachines/flows/reporting.yaml` - Reporting flow
@@ -338,100 +583,6 @@ Prompt templates in `configs/prompts/`:
 - `configs/prompts/prime_planner.yaml` - Workflow planning prompts
 - `configs/prompts/prime_executor.yaml` - Tool execution prompts
 - `configs/prompts/prime_evaluator.yaml` - Result evaluation prompts
-
-### LLM Model Configuration
-
-DeepCritical supports multiple LLM providers through Hydra configuration:
-
-#### Available Model Providers
-
-- **vLLM** - Production-grade local inference with PagedAttention
-- **llama.cpp** - Lightweight C++ inference (GGUF format)
-- **Text Generation Inference (TGI)** - Hugging Face's optimized server
-- **OpenAI-compatible** - Any server implementing OpenAI Chat Completions API
-
-#### Configuration Files
-
-Model configurations in `configs/llm/`:
-
-- `configs/llm/vllm_pydantic.yaml` - vLLM server configuration
-- `configs/llm/llamacpp_local.yaml` - llama.cpp server configuration
-- `configs/llm/tgi_local.yaml` - TGI server configuration
-
-#### Usage with Hydra
-
-```python
-from hydra import compose, initialize
-from DeepResearch.src.models import OpenAICompatibleModel
-
-# Initialize Hydra
-with initialize(config_path="../configs"):
-    cfg = compose(config_name="config", overrides=["llm=vllm_pydantic"])
-
-    # Create model from config
-    model = OpenAICompatibleModel.from_config(cfg.llm)
-
-    # Or use specific factory method
-    model = OpenAICompatibleModel.from_vllm(config=cfg.llm)
-```
-
-#### Direct Parameter Usage
-
-For testing or simple cases, you can also use direct parameters:
-
-```python
-from DeepResearch.src.models import VLLMModel, LlamaCppModel
-
-# vLLM
-model = VLLMModel.from_vllm(
-    base_url="http://localhost:8000/v1",
-    model_name="meta-llama/Llama-3-8B"
-)
-
-# llama.cpp
-model = LlamaCppModel.from_llamacpp(
-    base_url="http://localhost:8080/v1",
-    model_name="llama-3-8b.gguf"
-)
-```
-
-#### Configuration Structure
-
-Example `vllm_pydantic.yaml`:
-
-```yaml
-# Basic connection settings
-provider: "vllm"
-model_name: "meta-llama/Llama-3-8B"
-base_url: "http://localhost:8000/v1"
-api_key: null  # or use environment variable LLM_API_KEY
-
-# Generation parameters
-generation:
-  temperature: 0.7
-  max_tokens: 512
-  top_p: 0.9
-  frequency_penalty: 0.0
-  presence_penalty: 0.0
-
-# Connection settings
-timeout: 60.0
-max_retries: 3
-retry_delay: 1.0
-```
-
-#### Environment Variables
-
-You can override config values with environment variables:
-
-- `LLM_BASE_URL` - Override base_url from config
-- `LLM_API_KEY` - Override api_key from config
-
-```bash
-export LLM_BASE_URL="http://localhost:8000/v1"
-export LLM_API_KEY="your-api-key"
-uv run deepresearch
-```
 
 ## 🔧 Development
 
@@ -544,7 +695,7 @@ DeepCritical/
 1. **Create Data Types**:
    ```python
    from pydantic import BaseModel, Field
-   
+
    class GOAnnotation(BaseModel):
        pmid: str = Field(..., description="PubMed ID")
        gene_id: str = Field(..., description="Gene identifier")
@@ -555,7 +706,7 @@ DeepCritical/
 2. **Implement Agents**:
    ```python
    from pydantic_ai import Agent
-   
+
    class DataFusionAgent:
        def __init__(self, model_name: str):
            self.agent = Agent(
@@ -623,4 +774,3 @@ print(f"Tools used: {summary['tools_used']}")
 - [PRIME Paper](https://doi.org/10.1101/2025.09.22.677756) - Original research paper
 - [Bioinformatics Integration](docs/bioinformatics_integration.md) - Multi-source data fusion guide
 - [Protein Engineering Tools](https://github.com/facebookresearch/hydra) - Tool ecosystem reference
-

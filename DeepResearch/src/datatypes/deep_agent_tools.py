@@ -8,15 +8,17 @@ and related data structures that align with DeepCritical's architecture.
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field, validator
+
+from pydantic import BaseModel, Field, field_validator
 
 
 class WriteTodosRequest(BaseModel):
     """Request for writing todos."""
 
-    todos: List[Dict[str, Any]] = Field(..., description="List of todos to write")
+    todos: list[dict[str, Any]] = Field(..., description="List of todos to write")
 
-    @validator("todos")
+    @field_validator("todos")
+    @classmethod
     def validate_todos(cls, v):
         if not v:
             raise ValueError("Todos list cannot be empty")
@@ -39,7 +41,7 @@ class WriteTodosResponse(BaseModel):
 class ListFilesResponse(BaseModel):
     """Response from listing files."""
 
-    files: List[str] = Field(..., description="List of file paths")
+    files: list[str] = Field(..., description="List of file paths")
     count: int = Field(..., description="Number of files")
 
 
@@ -50,7 +52,8 @@ class ReadFileRequest(BaseModel):
     offset: int = Field(0, ge=0, description="Line offset to start reading from")
     limit: int = Field(2000, gt=0, description="Maximum number of lines to read")
 
-    @validator("file_path")
+    @field_validator("file_path")
+    @classmethod
     def validate_file_path(cls, v):
         if not v or not v.strip():
             raise ValueError("File path cannot be empty")
@@ -72,7 +75,8 @@ class WriteFileRequest(BaseModel):
     file_path: str = Field(..., description="Path to the file to write")
     content: str = Field(..., description="Content to write to the file")
 
-    @validator("file_path")
+    @field_validator("file_path")
+    @classmethod
     def validate_file_path(cls, v):
         if not v or not v.strip():
             raise ValueError("File path cannot be empty")
@@ -96,13 +100,15 @@ class EditFileRequest(BaseModel):
     new_string: str = Field(..., description="Replacement string")
     replace_all: bool = Field(False, description="Whether to replace all occurrences")
 
-    @validator("file_path")
+    @field_validator("file_path")
+    @classmethod
     def validate_file_path(cls, v):
         if not v or not v.strip():
             raise ValueError("File path cannot be empty")
         return v.strip()
 
-    @validator("old_string")
+    @field_validator("old_string")
+    @classmethod
     def validate_old_string(cls, v):
         if not v:
             raise ValueError("Old string cannot be empty")
@@ -123,17 +129,19 @@ class TaskRequestModel(BaseModel):
 
     description: str = Field(..., description="Task description")
     subagent_type: str = Field(..., description="Type of subagent to use")
-    parameters: Dict[str, Any] = Field(
+    parameters: dict[str, Any] = Field(
         default_factory=dict, description="Task parameters"
     )
 
-    @validator("description")
+    @field_validator("description")
+    @classmethod
     def validate_description(cls, v):
         if not v or not v.strip():
             raise ValueError("Task description cannot be empty")
         return v.strip()
 
-    @validator("subagent_type")
+    @field_validator("subagent_type")
+    @classmethod
     def validate_subagent_type(cls, v):
         if not v or not v.strip():
             raise ValueError("Subagent type cannot be empty")
@@ -145,5 +153,5 @@ class TaskResponse(BaseModel):
 
     success: bool = Field(..., description="Whether task succeeded")
     task_id: str = Field(..., description="Task identifier")
-    result: Optional[Dict[str, Any]] = Field(None, description="Task result")
+    result: dict[str, Any] | None = Field(None, description="Task result")
     message: str = Field(..., description="Response message")

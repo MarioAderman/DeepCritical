@@ -27,7 +27,7 @@ try:
             model: str = "microsoft/DialoGPT-medium",
             host_port: int = 8000,
             container_port: int = 8000,
-            **kwargs
+            **kwargs,
         ):
             super().__init__(image, **kwargs)
             self.model = model
@@ -54,22 +54,26 @@ try:
 
 except ImportError:
     VLLM_AVAILABLE = False
+
     # Create a mock VLLMContainer for when testcontainers is not available
     class VLLMContainer:
         def __init__(self, *args, **kwargs):
-            raise ImportError("testcontainers is not available. Please install it with: pip install testcontainers")
+            raise ImportError(
+                "testcontainers is not available. Please install it with: pip install testcontainers"
+            )
+
 
 # Set up logging for test artifacts
-log_dir = Path('test_artifacts')
+log_dir = Path("test_artifacts")
 log_dir.mkdir(exist_ok=True)
 
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler(log_dir / 'vllm_prompt_tests.log'),
-        logging.StreamHandler()
-    ]
+        logging.FileHandler(log_dir / "vllm_prompt_tests.log"),
+        logging.StreamHandler(),
+    ],
 )
 logger = logging.getLogger(__name__)
 
@@ -79,11 +83,11 @@ class VLLMPromptTester:
 
     def __init__(
         self,
-        config: Optional[DictConfig] = None,
-        model_name: Optional[str] = None,
-        container_timeout: Optional[int] = None,
-        max_tokens: Optional[int] = None,
-        temperature: Optional[float] = None
+        config: DictConfig | None = None,
+        model_name: str | None = None,
+        container_timeout: int | None = None,
+        max_tokens: int | None = None,
+        temperature: float | None = None,
     ):
         """Initialize VLLM prompt tester with Hydra configuration.
 
@@ -100,14 +104,25 @@ class VLLMPromptTester:
 
         # Use provided config or create default
         if config is None:
-            from hydra import compose, initialize_config_dir
             from pathlib import Path
+
+            from hydra import compose, initialize_config_dir
 
             config_dir = Path("configs")
             if config_dir.exists():
                 try:
-                    with initialize_config_dir(config_dir=str(config_dir), version_base=None):
-                        config = compose(config_name="vllm_tests", overrides=["model=local_model", "performance=balanced", "testing=comprehensive", "output=structured"])
+                    with initialize_config_dir(
+                        config_dir=str(config_dir), version_base=None
+                    ):
+                        config = compose(
+                            config_name="vllm_tests",
+                            overrides=[
+                                "model=local_model",
+                                "performance=balanced",
+                                "testing=comprehensive",
+                                "output=structured",
+                            ],
+                        )
                 except Exception as e:
                     logger.warning(f"Could not load Hydra config, using defaults: {e}")
                     config = self._create_default_config()
@@ -119,40 +134,57 @@ class VLLMPromptTester:
         self.docker_available = self._check_docker_availability()
 
         # Extract configuration values with overrides
-        vllm_config = config.get("vllm_tests", {})
-        model_config = config.get("model", {})
-        performance_config = config.get("performance", {})
+        vllm_config = config.get("vllm_tests", {}) if config else {}
+        model_config = config.get("model", {}) if config else {}
+        performance_config = config.get("performance", {}) if config else {}
 
         # Apply configuration with overrides
-        self.model_name = model_name or model_config.get("name", "microsoft/DialoGPT-medium")
-        self.container_timeout = container_timeout or performance_config.get("max_container_startup_time", 120)
-        self.max_tokens = max_tokens or model_config.get("generation", {}).get("max_tokens", 256)
-        self.temperature = temperature or model_config.get("generation", {}).get("temperature", 0.7)
+        self.model_name = model_name or model_config.get(
+            "name", "microsoft/DialoGPT-medium"
+        )
+        self.container_timeout = container_timeout or performance_config.get(
+            "max_container_startup_time", 120
+        )
+        self.max_tokens = max_tokens or model_config.get("generation", {}).get(
+            "max_tokens", 256
+        )
+        self.temperature = temperature or model_config.get("generation", {}).get(
+            "temperature", 0.7
+        )
 
         # Container and artifact settings
-        self.container: Optional[VLLMContainer] = None
+        self.container: VLLMContainer | None = None
         artifacts_config = vllm_config.get("artifacts", {})
-        self.artifacts_dir = Path(artifacts_config.get("base_directory", "test_artifacts/vllm_tests"))
+        self.artifacts_dir = Path(
+            artifacts_config.get("base_directory", "test_artifacts/vllm_tests")
+        )
         self.artifacts_dir.mkdir(parents=True, exist_ok=True)
 
         # Performance monitoring
         monitoring_config = vllm_config.get("monitoring", {})
         self.enable_monitoring = monitoring_config.get("enabled", True)
-        self.max_execution_time_per_module = monitoring_config.get("max_execution_time_per_module", 300)
+        self.max_execution_time_per_module = monitoring_config.get(
+            "max_execution_time_per_module", 300
+        )
 
         # Error handling
         error_config = vllm_config.get("error_handling", {})
         self.graceful_degradation = error_config.get("graceful_degradation", True)
-        self.continue_on_module_failure = error_config.get("continue_on_module_failure", True)
+        self.continue_on_module_failure = error_config.get(
+            "continue_on_module_failure", True
+        )
         self.retry_failed_prompts = error_config.get("retry_failed_prompts", True)
         self.max_retries_per_prompt = error_config.get("max_retries_per_prompt", 2)
 
-        logger.info(f"VLLMPromptTester initialized with model: {self.model_name}, VLLM available: {self.vllm_available}, Docker available: {self.docker_available}")
+        logger.info(
+            f"VLLMPromptTester initialized with model: {self.model_name}, VLLM available: {self.vllm_available}, Docker available: {self.docker_available}"
+        )
 
     def _check_docker_availability(self) -> bool:
         """Check if Docker is available and running."""
         try:
             import docker
+
             client = docker.from_env()
             # Try to ping the Docker daemon
             client.ping()
@@ -240,11 +272,15 @@ class VLLMPromptTester:
                 "VLLM_MODEL": self.model_name,
                 "VLLM_HOST": server_config.get("host", "0.0.0.0"),
                 "VLLM_PORT": str(server_config.get("port", 8000)),
-                "VLLM_MAX_TOKENS": str(generation_config.get("max_tokens", self.max_tokens)),
-                "VLLM_TEMPERATURE": str(generation_config.get("temperature", self.temperature)),
+                "VLLM_MAX_TOKENS": str(
+                    generation_config.get("max_tokens", self.max_tokens)
+                ),
+                "VLLM_TEMPERATURE": str(
+                    generation_config.get("temperature", self.temperature)
+                ),
                 # Additional environment variables from config
                 **container_config.get("environment", {}),
-            }
+            },
         )
 
         # Set resource limits if configured
@@ -270,12 +306,14 @@ class VLLMPromptTester:
             self.container.stop()
             self.container = None
 
-    def _wait_for_ready(self, timeout: Optional[int] = None):
+    def _wait_for_ready(self, timeout: int | None = None):
         """Wait for VLLM container to be ready."""
         import requests
 
         # Use configured timeout or default
-        health_check_config = self.config.get("model", {}).get("server", {}).get("health_check", {})
+        health_check_config = (
+            self.config.get("model", {}).get("server", {}).get("health_check", {})
+        )
         check_timeout = timeout or health_check_config.get("timeout_seconds", 5)
         max_retries = health_check_config.get("max_retries", 3)
         interval = health_check_config.get("interval_seconds", 10)
@@ -284,7 +322,8 @@ class VLLMPromptTester:
         url = f"{self.container.get_connection_url()}{health_check_config.get('endpoint', '/health')}"
 
         retry_count = 0
-        while time.time() - start_time < timeout and retry_count < max_retries:
+        timeout_seconds = timeout or 300  # Default 5 minutes
+        while time.time() - start_time < timeout_seconds and retry_count < max_retries:
             try:
                 response = requests.get(url, timeout=check_timeout)
                 if response.status_code == 200:
@@ -297,7 +336,9 @@ class VLLMPromptTester:
                     time.sleep(interval)
 
         total_time = time.time() - start_time
-        raise TimeoutError(f"VLLM container not ready after {total_time:.1f} seconds (timeout: {timeout}s)")
+        raise TimeoutError(
+            f"VLLM container not ready after {total_time:.1f} seconds (timeout: {timeout}s)"
+        )
 
     def _validate_prompt_structure(self, prompt: str, prompt_name: str):
         """Validate that a prompt has proper structure using configuration."""
@@ -314,12 +355,20 @@ class VLLMPromptTester:
             # Check for instructions or role definition
             has_instructions = any(
                 pattern in prompt.lower()
-                for pattern in ["you are", "your role", "please", "instructions:", "task:"]
+                for pattern in [
+                    "you are",
+                    "your role",
+                    "please",
+                    "instructions:",
+                    "task:",
+                ]
             )
 
             # Most prompts should have some form of instructions
             if not has_instructions and len(prompt) > 50:
-                logger.warning(f"Prompt {prompt_name} might be missing clear instructions")
+                logger.warning(
+                    f"Prompt {prompt_name} might be missing clear instructions"
+                )
 
     def _validate_response_structure(self, response: str, prompt_name: str):
         """Validate that a response has proper structure using configuration."""
@@ -333,7 +382,9 @@ class VLLMPromptTester:
         # Check minimum response length
         min_length = assertions_config.get("min_response_length", 10)
         if len(response.strip()) < min_length:
-            logger.warning(f"Response for prompt {prompt_name} is shorter than expected: {len(response)} chars")
+            logger.warning(
+                f"Response for prompt {prompt_name} is shorter than expected: {len(response)} chars"
+            )
 
         # Check for empty response
         if not response.strip():
@@ -343,15 +394,17 @@ class VLLMPromptTester:
         if validation_config.get("validate_response_content", True):
             # Check for coherent response (basic heuristic)
             if len(response.split()) < 3 and len(response) > 20:
-                logger.warning(f"Response for prompt {prompt_name} might be too short or fragmented")
+                logger.warning(
+                    f"Response for prompt {prompt_name} might be too short or fragmented"
+                )
 
     def test_prompt(
         self,
         prompt: str,
         prompt_name: str,
-        dummy_data: Dict[str, Any],
-        **generation_kwargs
-    ) -> Dict[str, Any]:
+        dummy_data: dict[str, Any],
+        **generation_kwargs,
+    ) -> dict[str, Any]:
         """Test a prompt with VLLM and parse reasoning using configuration.
 
         Args:
@@ -397,12 +450,16 @@ class VLLMPromptTester:
         response = None
         for attempt in range(self.max_retries_per_prompt + 1):
             try:
-                response = self._generate_response(formatted_prompt, **final_generation_kwargs)
+                response = self._generate_response(
+                    formatted_prompt, **final_generation_kwargs
+                )
                 break  # Success, exit retry loop
 
             except Exception as e:
                 if attempt < self.max_retries_per_prompt and self.retry_failed_prompts:
-                    logger.warning(f"Attempt {attempt + 1} failed for prompt {prompt_name}: {e}")
+                    logger.warning(
+                        f"Attempt {attempt + 1} failed for prompt {prompt_name}: {e}"
+                    )
                     if self.graceful_degradation:
                         time.sleep(1)  # Brief delay before retry
                         continue
@@ -437,8 +494,12 @@ class VLLMPromptTester:
             "model_used": self.model_name,
             "generation_config": final_generation_kwargs,
             # Configuration metadata
-            "config_source": "hydra" if hasattr(self.config, "_metadata") else "default",
-            "test_config_version": getattr(self.config, "_metadata", {}).get("version", "unknown"),
+            "config_source": (
+                "hydra" if hasattr(self.config, "_metadata") else "default"
+            ),
+            "test_config_version": getattr(self.config, "_metadata", {}).get(
+                "version", "unknown"
+            ),
         }
 
         # Save artifact if enabled
@@ -477,7 +538,7 @@ class VLLMPromptTester:
             url,
             json=gen_params,
             headers={"Content-Type": "application/json"},
-            timeout=60
+            timeout=60,
         )
 
         response.raise_for_status()
@@ -494,23 +555,22 @@ class VLLMPromptTester:
 
         if "hello" in prompt_lower or "hi" in prompt_lower:
             return "Hello! I'm a mock AI assistant. How can I help you today?"
-        elif "what is" in prompt_lower:
+        if "what is" in prompt_lower:
             return "Based on the mock analysis, this appears to be a question about something. The mock system suggests that the answer involves understanding the fundamental concepts and applying them in practice."
-        elif "how" in prompt_lower:
+        if "how" in prompt_lower:
             return "This is a mock response to a 'how' question. The mock system suggests following these steps: 1) Understand the problem, 2) Gather information, 3) Apply the solution, 4) Verify the results."
-        elif "why" in prompt_lower:
+        if "why" in prompt_lower:
             return "This is a mock response to a 'why' question. The mock reasoning suggests that this happens because of underlying principles and mechanisms that can be explained through careful analysis."
-        else:
-            # Generic mock response
-            responses = [
-                "This is a mock response generated for testing purposes. The system is working correctly but using simulated data.",
-                "Mock AI response: I understand your query and I'm processing it with mock data. The result suggests a comprehensive approach is needed.",
-                "Testing mode: This response is generated as a placeholder. In a real scenario, this would contain actual AI-generated content based on the prompt.",
-                "Mock analysis complete. The system has processed your request and generated this placeholder response for testing validation."
-            ]
-            return random.choice(responses)
+        # Generic mock response
+        responses = [
+            "This is a mock response generated for testing purposes. The system is working correctly but using simulated data.",
+            "Mock AI response: I understand your query and I'm processing it with mock data. The result suggests a comprehensive approach is needed.",
+            "Testing mode: This response is generated as a placeholder. In a real scenario, this would contain actual AI-generated content based on the prompt.",
+            "Mock analysis complete. The system has processed your request and generated this placeholder response for testing validation.",
+        ]
+        return random.choice(responses)
 
-    def _parse_reasoning(self, response: str) -> Dict[str, Any]:
+    def _parse_reasoning(self, response: str) -> dict[str, Any]:
         """Parse reasoning and tool calls from response.
 
         This implements basic reasoning parsing based on VLLM reasoning outputs.
@@ -520,7 +580,7 @@ class VLLMPromptTester:
             "reasoning_steps": [],
             "tool_calls": [],
             "final_answer": response,
-            "reasoning_format": "unknown"
+            "reasoning_format": "unknown",
         }
 
         # Look for reasoning markers (common patterns)
@@ -552,11 +612,13 @@ class VLLMPromptTester:
             matches = re.findall(pattern, response, re.IGNORECASE)
             if matches:
                 for tool_name, params in matches:
-                    reasoning_data["tool_calls"].append({
-                        "tool_name": tool_name.strip(),
-                        "parameters": params.strip(),
-                        "confidence": 0.8  # Default confidence
-                    })
+                    reasoning_data["tool_calls"].append(
+                        {
+                            "tool_name": tool_name.strip(),
+                            "parameters": params.strip(),
+                            "confidence": 0.8,  # Default confidence
+                        }
+                    )
 
         if reasoning_data["tool_calls"]:
             reasoning_data["reasoning_format"] = "tool_calls"
@@ -569,28 +631,26 @@ class VLLMPromptTester:
                 final_answer = final_answer.replace(step, "").strip()
 
             # Clean up extra whitespace
-            final_answer = re.sub(r'\n\s*\n\s*\n', '\n\n', final_answer)
+            final_answer = re.sub(r"\n\s*\n\s*\n", "\n\n", final_answer)
             reasoning_data["final_answer"] = final_answer.strip()
 
         return reasoning_data
 
-    def _save_artifact(self, result: Dict[str, Any]):
+    def _save_artifact(self, result: dict[str, Any]):
         """Save test result as artifact."""
         timestamp = int(result.get("timestamp", time.time()))
         filename = f"{result['prompt_name']}_{timestamp}.json"
 
         artifact_path = self.artifacts_dir / filename
 
-        with open(artifact_path, 'w', encoding='utf-8') as f:
+        with open(artifact_path, "w", encoding="utf-8") as f:
             json.dump(result, f, indent=2, ensure_ascii=False)
 
         logger.info(f"Saved artifact: {artifact_path}")
 
     def batch_test_prompts(
-        self,
-        prompts: List[Tuple[str, str, Dict[str, Any]]],
-        **generation_kwargs
-    ) -> List[Dict[str, Any]]:
+        self, prompts: list[tuple[str, str, dict[str, Any]]], **generation_kwargs
+    ) -> list[dict[str, Any]]:
         """Test multiple prompts in batch.
 
         Args:
@@ -604,23 +664,24 @@ class VLLMPromptTester:
 
         for prompt_name, prompt_template, dummy_data in prompts:
             result = self.test_prompt(
-                prompt_template,
-                prompt_name,
-                dummy_data,
-                **generation_kwargs
+                prompt_template, prompt_name, dummy_data, **generation_kwargs
             )
             results.append(result)
 
         return results
 
-    def get_container_info(self) -> Dict[str, Any]:
+    def get_container_info(self) -> dict[str, Any]:
         """Get information about the VLLM container."""
         if not self.vllm_available or not self.docker_available:
-            reason = "testcontainers not available" if not self.vllm_available else "Docker not available"
+            reason = (
+                "testcontainers not available"
+                if not self.vllm_available
+                else "Docker not available"
+            )
             return {
                 "status": "mock_mode",
                 "model": self.model_name,
-                "note": f"{reason}, using mock responses"
+                "note": f"{reason}, using mock responses",
             }
 
         if not self.container:
@@ -630,11 +691,15 @@ class VLLMPromptTester:
             "status": "running",
             "model": self.model_name,
             "connection_url": self.container.get_connection_url(),
-            "container_id": getattr(self.container, '_container', {}).get('Id', 'unknown')[:12]
+            "container_id": getattr(self.container, "_container", {}).get(
+                "Id", "unknown"
+            )[:12],
         }
 
 
-def create_dummy_data_for_prompt(prompt: str, config: Optional[DictConfig] = None) -> Dict[str, Any]:
+def create_dummy_data_for_prompt(
+    prompt: str, config: DictConfig | None = None
+) -> dict[str, Any]:
     """Create dummy data for a prompt based on its placeholders, configurable through Hydra.
 
     Args:
@@ -645,13 +710,14 @@ def create_dummy_data_for_prompt(prompt: str, config: Optional[DictConfig] = Non
         Dictionary of dummy data for the prompt
     """
     # Extract placeholders from prompt
-    placeholders = set(re.findall(r'\{(\w+)\}', prompt))
+    placeholders = set(re.findall(r"\{(\w+)\}", prompt))
 
     dummy_data = {}
 
     # Get dummy data configuration
     if config is None:
         from omegaconf import OmegaConf
+
         config = OmegaConf.create({"data_generation": {"strategy": "realistic"}})
 
     data_gen_config = config.get("data_generation", {})
@@ -675,147 +741,146 @@ def _create_realistic_dummy_data(placeholder: str) -> Any:
     """Create realistic dummy data for testing."""
     placeholder_lower = placeholder.lower()
 
-    if 'query' in placeholder_lower:
+    if "query" in placeholder_lower:
         return "What is the meaning of life?"
-    elif 'context' in placeholder_lower:
+    if "context" in placeholder_lower:
         return "This is some context information for testing."
-    elif 'code' in placeholder_lower:
+    if "code" in placeholder_lower:
         return "print('Hello, World!')"
-    elif 'text' in placeholder_lower:
+    if "text" in placeholder_lower:
         return "This is sample text for testing."
-    elif 'content' in placeholder_lower:
+    if "content" in placeholder_lower:
         return "Sample content for testing purposes."
-    elif 'question' in placeholder_lower:
+    if "question" in placeholder_lower:
         return "What is machine learning?"
-    elif 'answer' in placeholder_lower:
+    if "answer" in placeholder_lower:
         return "Machine learning is a subset of AI."
-    elif 'task' in placeholder_lower:
+    if "task" in placeholder_lower:
         return "Complete this research task."
-    elif 'description' in placeholder_lower:
+    if "description" in placeholder_lower:
         return "A detailed description of the task."
-    elif 'error' in placeholder_lower:
+    if "error" in placeholder_lower:
         return "An error occurred during processing."
-    elif 'sequence' in placeholder_lower:
+    if "sequence" in placeholder_lower:
         return "Step 1: Analyze, Step 2: Process, Step 3: Complete"
-    elif 'results' in placeholder_lower:
+    if "results" in placeholder_lower:
         return "Search results from web query."
-    elif 'data' in placeholder_lower:
+    if "data" in placeholder_lower:
         return {"key": "value", "number": 42}
-    elif 'examples' in placeholder_lower:
+    if "examples" in placeholder_lower:
         return "Example 1, Example 2, Example 3"
-    elif 'articles' in placeholder_lower:
+    if "articles" in placeholder_lower:
         return "Article content for aggregation."
-    elif 'topic' in placeholder_lower:
+    if "topic" in placeholder_lower:
         return "artificial intelligence"
-    elif 'problem' in placeholder_lower:
+    if "problem" in placeholder_lower:
         return "Solve this complex problem."
-    elif 'solution' in placeholder_lower:
+    if "solution" in placeholder_lower:
         return "The solution involves multiple steps."
-    elif 'system' in placeholder_lower:
+    if "system" in placeholder_lower:
         return "You are a helpful assistant."
-    elif 'user' in placeholder_lower:
+    if "user" in placeholder_lower:
         return "Please help me with this task."
-    elif 'current_time' in placeholder_lower:
+    if "current_time" in placeholder_lower:
         return "2024-01-01T12:00:00Z"
-    elif 'current_date' in placeholder_lower:
+    if "current_date" in placeholder_lower:
         return "Mon, 01 Jan 2024 12:00:00 GMT"
-    elif 'current_year' in placeholder_lower:
+    if "current_year" in placeholder_lower:
         return "2024"
-    elif 'current_month' in placeholder_lower:
+    if "current_month" in placeholder_lower:
         return "1"
-    elif 'language' in placeholder_lower:
+    if "language" in placeholder_lower:
         return "en"
-    elif 'style' in placeholder_lower:
+    if "style" in placeholder_lower:
         return "formal"
-    elif 'team_size' in placeholder_lower:
+    if "team_size" in placeholder_lower:
         return "5"
-    elif 'available_vars' in placeholder_lower:
+    if "available_vars" in placeholder_lower:
         return "numbers, threshold"
-    elif 'knowledge' in placeholder_lower:
+    if "knowledge" in placeholder_lower:
         return "General knowledge about the topic."
-    elif 'knowledge_str' in placeholder_lower:
+    if "knowledge_str" in placeholder_lower:
         return "String representation of knowledge."
-    elif 'knowledge_items' in placeholder_lower:
+    if "knowledge_items" in placeholder_lower:
         return "Item 1, Item 2, Item 3"
-    elif 'serp_data' in placeholder_lower:
+    if "serp_data" in placeholder_lower:
         return "Search engine results page data."
-    elif 'workflow_description' in placeholder_lower:
+    if "workflow_description" in placeholder_lower:
         return "A comprehensive research workflow."
-    elif 'coordination_strategy' in placeholder_lower:
+    if "coordination_strategy" in placeholder_lower:
         return "collaborative"
-    elif 'agent_count' in placeholder_lower:
+    if "agent_count" in placeholder_lower:
         return "3"
-    elif 'max_rounds' in placeholder_lower:
+    if "max_rounds" in placeholder_lower:
         return "5"
-    elif 'consensus_threshold' in placeholder_lower:
+    if "consensus_threshold" in placeholder_lower:
         return "0.8"
-    elif 'task_description' in placeholder_lower:
+    if "task_description" in placeholder_lower:
         return "Complete the assigned task."
-    elif 'workflow_type' in placeholder_lower:
+    if "workflow_type" in placeholder_lower:
         return "research"
-    elif 'workflow_name' in placeholder_lower:
+    if "workflow_name" in placeholder_lower:
         return "test_workflow"
-    elif 'input_data' in placeholder_lower:
+    if "input_data" in placeholder_lower:
         return {"test": "data"}
-    elif 'evaluation_criteria' in placeholder_lower:
+    if "evaluation_criteria" in placeholder_lower:
         return "quality, accuracy, completeness"
-    elif 'selected_workflows' in placeholder_lower:
+    if "selected_workflows" in placeholder_lower:
         return "workflow1, workflow2"
-    elif 'name' in placeholder_lower:
+    if "name" in placeholder_lower:
         return "test_name"
-    elif 'hypothesis' in placeholder_lower:
+    if "hypothesis" in placeholder_lower:
         return "Test hypothesis for validation."
-    elif 'messages' in placeholder_lower:
+    if "messages" in placeholder_lower:
         return [{"role": "user", "content": "Hello"}]
-    elif 'model' in placeholder_lower:
+    if "model" in placeholder_lower:
         return "test-model"
-    elif 'top_p' in placeholder_lower:
+    if "top_p" in placeholder_lower:
         return "0.9"
-    elif 'frequency_penalty' in placeholder_lower:
+    if (
+        "frequency_penalty" in placeholder_lower
+        or "presence_penalty" in placeholder_lower
+    ):
         return "0.0"
-    elif 'presence_penalty' in placeholder_lower:
-        return "0.0"
-    elif 'texts' in placeholder_lower:
+    if "texts" in placeholder_lower:
         return ["Text 1", "Text 2"]
-    elif 'model_name' in placeholder_lower:
+    if "model_name" in placeholder_lower:
         return "test-model"
-    elif 'token_ids' in placeholder_lower:
+    if "token_ids" in placeholder_lower:
         return "[1, 2, 3, 4, 5]"
-    elif 'server_url' in placeholder_lower:
+    if "server_url" in placeholder_lower:
         return "http://localhost:8000"
-    elif 'timeout' in placeholder_lower:
+    if "timeout" in placeholder_lower:
         return "30"
-    else:
-        return f"dummy_{placeholder_lower}"
+    return f"dummy_{placeholder_lower}"
 
 
 def _create_minimal_dummy_data(placeholder: str) -> Any:
     """Create minimal dummy data for quick testing."""
     placeholder_lower = placeholder.lower()
 
-    if 'data' in placeholder_lower or 'content' in placeholder_lower:
+    if "data" in placeholder_lower or "content" in placeholder_lower:
         return {"key": "value"}
-    elif 'list' in placeholder_lower or 'items' in placeholder_lower:
+    if "list" in placeholder_lower or "items" in placeholder_lower:
         return ["item1", "item2"]
-    elif 'text' in placeholder_lower or 'description' in placeholder_lower:
+    if "text" in placeholder_lower or "description" in placeholder_lower:
         return f"Test {placeholder_lower}"
-    elif 'number' in placeholder_lower or 'count' in placeholder_lower:
+    if "number" in placeholder_lower or "count" in placeholder_lower:
         return 42
-    elif 'boolean' in placeholder_lower or 'flag' in placeholder_lower:
+    if "boolean" in placeholder_lower or "flag" in placeholder_lower:
         return True
-    else:
-        return f"test_{placeholder_lower}"
+    return f"test_{placeholder_lower}"
 
 
 def _create_comprehensive_dummy_data(placeholder: str) -> Any:
     """Create comprehensive dummy data for thorough testing."""
     placeholder_lower = placeholder.lower()
 
-    if 'query' in placeholder_lower:
+    if "query" in placeholder_lower:
         return "What is the fundamental nature of consciousness and how does it relate to quantum mechanics in biological systems?"
-    elif 'context' in placeholder_lower:
+    if "context" in placeholder_lower:
         return "This analysis examines the intersection of quantum biology and consciousness studies, focusing on microtubule-based quantum computation theories and their implications for understanding subjective experience."
-    elif 'code' in placeholder_lower:
+    if "code" in placeholder_lower:
         return '''
 import numpy as np
 import matplotlib.pyplot as plt
@@ -843,55 +908,62 @@ def quantum_gate_operation(state):
 result = quantum_consciousness_simulation()
 print(f"Final quantum state norm: {np.linalg.norm(result)}")
 '''
-    elif 'text' in placeholder_lower:
+    if "text" in placeholder_lower:
         return "This is a comprehensive text sample for testing purposes, containing multiple sentences and demonstrating various linguistic patterns that might be encountered in real-world applications of natural language processing systems."
-    elif 'data' in placeholder_lower:
+    if "data" in placeholder_lower:
         return {
             "research_findings": [
-                {"topic": "quantum_consciousness", "confidence": 0.87, "evidence": "experimental"},
-                {"topic": "microtubule_computation", "confidence": 0.72, "evidence": "theoretical"}
+                {
+                    "topic": "quantum_consciousness",
+                    "confidence": 0.87,
+                    "evidence": "experimental",
+                },
+                {
+                    "topic": "microtubule_computation",
+                    "confidence": 0.72,
+                    "evidence": "theoretical",
+                },
             ],
             "methodology": {
                 "approach": "multi_modal_analysis",
                 "tools": ["quantum_simulation", "consciousness_modeling"],
-                "validation": "cross_domain_verification"
+                "validation": "cross_domain_verification",
             },
             "conclusions": [
                 "Consciousness may involve quantum processes",
                 "Microtubules could serve as quantum computers",
-                "Integration of physics and neuroscience needed"
-            ]
+                "Integration of physics and neuroscience needed",
+            ],
         }
-    elif 'examples' in placeholder_lower:
+    if "examples" in placeholder_lower:
         return [
             "Quantum microtubule theory of consciousness",
             "Orchestrated objective reduction (Orch-OR)",
             "Penrose-Hameroff hypothesis",
             "Quantum effects in biological systems",
-            "Consciousness and quantum mechanics"
+            "Consciousness and quantum mechanics",
         ]
-    elif 'articles' in placeholder_lower:
+    if "articles" in placeholder_lower:
         return [
             {
                 "title": "Quantum Aspects of Consciousness",
                 "authors": ["Penrose, R.", "Hameroff, S."],
                 "journal": "Physics of Life Reviews",
                 "year": 2014,
-                "abstract": "Theoretical framework linking consciousness to quantum processes in microtubules."
+                "abstract": "Theoretical framework linking consciousness to quantum processes in microtubules.",
             },
             {
                 "title": "Microtubules as Quantum Computers",
                 "authors": ["Hameroff, S."],
                 "journal": "Frontiers in Physics",
                 "year": 2019,
-                "abstract": "Exploration of microtubule-based quantum computation in neurons."
-            }
+                "abstract": "Exploration of microtubule-based quantum computation in neurons.",
+            },
         ]
-    else:
-        return _create_realistic_dummy_data(placeholder)
+    return _create_realistic_dummy_data(placeholder)
 
 
-def get_all_prompts_with_modules() -> List[Tuple[str, str, str]]:
+def get_all_prompts_with_modules() -> list[tuple[str, str, str]]:
     """Get all prompts from all prompt modules.
 
     Returns:
@@ -925,9 +997,13 @@ def get_all_prompts_with_modules() -> List[Tuple[str, str, str]]:
                     # Extract prompts from dictionary
                     for prompt_key, prompt_value in attr.items():
                         if isinstance(prompt_value, str):
-                            all_prompts.append((module_name, f"{attr_name}.{prompt_key}", prompt_value))
+                            all_prompts.append(
+                                (module_name, f"{attr_name}.{prompt_key}", prompt_value)
+                            )
 
-                elif isinstance(attr, str) and ("PROMPT" in attr_name or "SYSTEM" in attr_name):
+                elif isinstance(attr, str) and (
+                    "PROMPT" in attr_name or "SYSTEM" in attr_name
+                ):
                     # Individual prompt strings
                     all_prompts.append((module_name, attr_name, attr))
 
@@ -935,7 +1011,9 @@ def get_all_prompts_with_modules() -> List[Tuple[str, str, str]]:
                     # Classes with PROMPTS attribute
                     for prompt_key, prompt_value in attr.PROMPTS.items():
                         if isinstance(prompt_value, str):
-                            all_prompts.append((module_name, f"{attr_name}.{prompt_key}", prompt_value))
+                            all_prompts.append(
+                                (module_name, f"{attr_name}.{prompt_key}", prompt_value)
+                            )
 
         except ImportError as e:
             logger.warning(f"Could not import module {module_name}: {e}")

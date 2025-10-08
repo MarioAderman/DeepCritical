@@ -15,28 +15,25 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING, Any, TypeAlias
 
-if TYPE_CHECKING:
-    pass
-
 __all__ = [
-    "WorkflowEventSource",
-    "WorkflowEvent",
-    "WorkflowStartedEvent",
-    "WorkflowWarningEvent",
-    "WorkflowErrorEvent",
-    "WorkflowRunState",
-    "WorkflowStatusEvent",
-    "WorkflowFailedEvent",
-    "RequestInfoEvent",
-    "WorkflowOutputEvent",
-    "ExecutorEvent",
-    "ExecutorInvokedEvent",
-    "ExecutorCompletedEvent",
-    "ExecutorFailedEvent",
-    "AgentRunUpdateEvent",
     "AgentRunEvent",
-    "WorkflowLifecycleEvent",
+    "AgentRunUpdateEvent",
+    "ExecutorCompletedEvent",
+    "ExecutorEvent",
+    "ExecutorFailedEvent",
+    "ExecutorInvokedEvent",
+    "RequestInfoEvent",
     "WorkflowErrorDetails",
+    "WorkflowErrorEvent",
+    "WorkflowEvent",
+    "WorkflowEventSource",
+    "WorkflowFailedEvent",
+    "WorkflowLifecycleEvent",
+    "WorkflowOutputEvent",
+    "WorkflowRunState",
+    "WorkflowStartedEvent",
+    "WorkflowStatusEvent",
+    "WorkflowWarningEvent",
     "_framework_event_origin",
 ]
 
@@ -44,7 +41,9 @@ __all__ = [
 class WorkflowEventSource(str, Enum):
     """Identifies whether a workflow event came from the framework or an executor."""
 
-    FRAMEWORK = "FRAMEWORK"  # Framework-owned orchestration, regardless of module location
+    FRAMEWORK = (
+        "FRAMEWORK"  # Framework-owned orchestration, regardless of module location
+    )
     EXECUTOR = "EXECUTOR"  # User-supplied executor code and callbacks
 
 
@@ -85,8 +84,6 @@ class WorkflowEvent:
 class WorkflowStartedEvent(WorkflowEvent):
     """Built-in lifecycle event emitted when a workflow run begins."""
 
-    ...
-
 
 class WorkflowWarningEvent(WorkflowEvent):
     """Executor-origin event signaling a warning surfaced by user code."""
@@ -115,11 +112,17 @@ class WorkflowErrorEvent(WorkflowEvent):
 class WorkflowRunState(str, Enum):
     """Run-level state of a workflow execution."""
 
-    STARTED = "STARTED"  # Explicit pre-work phase (rarely emitted as status; see note above)
+    STARTED = (
+        "STARTED"  # Explicit pre-work phase (rarely emitted as status; see note above)
+    )
     IN_PROGRESS = "IN_PROGRESS"  # Active execution is underway
-    IN_PROGRESS_PENDING_REQUESTS = "IN_PROGRESS_PENDING_REQUESTS"  # Active execution with outstanding requests
+    IN_PROGRESS_PENDING_REQUESTS = (
+        "IN_PROGRESS_PENDING_REQUESTS"  # Active execution with outstanding requests
+    )
     IDLE = "IDLE"  # No active work and no outstanding requests
-    IDLE_WITH_PENDING_REQUESTS = "IDLE_WITH_PENDING_REQUESTS"  # Paused awaiting external responses
+    IDLE_WITH_PENDING_REQUESTS = (
+        "IDLE_WITH_PENDING_REQUESTS"  # Paused awaiting external responses
+    )
     FAILED = "FAILED"  # Finished with an error
     CANCELLED = "CANCELLED"  # Finished due to cancellation
 
@@ -157,7 +160,7 @@ class WorkflowErrorDetails:
         *,
         executor_id: str | None = None,
         extra: dict[str, Any] | None = None,
-    ) -> "WorkflowErrorDetails":
+    ) -> WorkflowErrorDetails:
         tb = None
         try:
             tb = "".join(_traceback.format_exception(type(exc), exc, exc.__traceback__))
@@ -299,4 +302,6 @@ class AgentRunEvent(ExecutorEvent):
         return f"{self.__class__.__name__}(executor_id={self.executor_id}, data={self.data})"
 
 
-WorkflowLifecycleEvent: TypeAlias = WorkflowStartedEvent | WorkflowStatusEvent | WorkflowFailedEvent
+WorkflowLifecycleEvent: TypeAlias = (
+    WorkflowStartedEvent | WorkflowStatusEvent | WorkflowFailedEvent
+)

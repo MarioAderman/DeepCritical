@@ -6,30 +6,33 @@ into the existing Pydantic Graph state machine architecture.
 """
 
 from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, Field
+
 # Optional import for pydantic_graph
 try:
-    from pydantic_graph import Graph, BaseNode, End
+    from pydantic_graph import BaseNode, End, Graph
 except ImportError:
     # Create placeholder classes for when pydantic_graph is not available
-    from typing import TypeVar, Generic
-    
-    T = TypeVar('T')
-    
+    from typing import Generic, TypeVar
+
+    T = TypeVar("T")
+
     class Graph:
         def __init__(self, *args, **kwargs):
             pass
-    
+
     class BaseNode(Generic[T]):
         def __init__(self, *args, **kwargs):
             pass
-    
+
     class End:
         def __init__(self, *args, **kwargs):
             pass
 
+
+from ..datatypes.rag import Chunk, Document
 from ..tools.integrated_search_tools import IntegratedSearchTool
-from ..datatypes.rag import Document, Chunk
 from ..utils.execution_status import ExecutionStatus
 
 
@@ -43,10 +46,10 @@ class SearchWorkflowState(BaseModel):
     chunk_overlap: int = Field(0, description="Chunk overlap")
 
     # Results
-    raw_content: Optional[str] = Field(None, description="Raw search content")
-    documents: List[Document] = Field(default_factory=list, description="RAG documents")
-    chunks: List[Chunk] = Field(default_factory=list, description="RAG chunks")
-    search_result: Optional[Dict[str, Any]] = Field(
+    raw_content: str | None = Field(None, description="Raw search content")
+    documents: list[Document] = Field(default_factory=list, description="RAG documents")
+    chunks: list[Chunk] = Field(default_factory=list, description="RAG chunks")
+    search_result: dict[str, Any] | None = Field(
         None, description="Agent search results"
     )
 
@@ -60,7 +63,7 @@ class SearchWorkflowState(BaseModel):
     status: ExecutionStatus = Field(
         ExecutionStatus.PENDING, description="Execution status"
     )
-    errors: List[str] = Field(
+    errors: list[str] = Field(
         default_factory=list, description="Any errors encountered"
     )
 
@@ -83,7 +86,7 @@ class SearchWorkflowState(BaseModel):
         }
 
 
-class InitializeSearch(BaseNode[SearchWorkflowState]):
+class InitializeSearch(BaseNode[SearchWorkflowState]):  # type: ignore[unsupported-base]
     """Initialize the search workflow."""
 
     def run(self, state: SearchWorkflowState) -> Any:
@@ -109,12 +112,12 @@ class InitializeSearch(BaseNode[SearchWorkflowState]):
             return PerformWebSearch()
 
         except Exception as e:
-            state.errors.append(f"Initialization failed: {str(e)}")
+            state.errors.append(f"Initialization failed: {e!s}")
             state.status = ExecutionStatus.FAILED
-            return End(f"Search failed: {str(e)}")
+            return End(f"Search failed: {e!s}")
 
 
-class PerformWebSearch(BaseNode[SearchWorkflowState]):
+class PerformWebSearch(BaseNode[SearchWorkflowState]):  # type: ignore[unsupported-base]
     """Perform web search using the SearchAgent."""
 
     async def run(self, state: SearchWorkflowState) -> Any:
@@ -122,37 +125,37 @@ class PerformWebSearch(BaseNode[SearchWorkflowState]):
         try:
             # Import here to avoid circular import
             from ..agents import SearchAgent
+            from ..datatypes.search_agent import SearchAgentConfig
 
-            # Create SearchAgent
-            search_agent = SearchAgent()
-            await search_agent.initialize()
+            # Create SearchAgent with config
+            search_config = SearchAgentConfig(
+                model="anthropic:claude-sonnet-4-0",
+                default_num_results=state.num_results,
+            )
+            search_agent = SearchAgent(search_config)
 
             # Execute search using agent
-            agent_result = await search_agent.search_web(
-                {
-                    "query": state.query,
-                    "search_type": state.search_type,
-                    "num_results": state.num_results,
-                    "chunk_size": state.chunk_size,
-                    "chunk_overlap": state.chunk_overlap,
-                    "enable_analytics": True,
-                    "convert_to_rag": True,
-                }
+            from ..datatypes.search_agent import SearchQuery
+
+            search_query = SearchQuery(
+                query=state.query,
+                search_type=state.search_type,
+                num_results=state.num_results,
+                use_rag=True,
             )
+            agent_result = await search_agent.search(search_query)
 
             if agent_result.success:
                 # Update state with agent results
-                state.search_result = agent_result.data
-                state.documents = [
-                    Document(**doc) for doc in agent_result.data.get("documents", [])
-                ]
-                state.chunks = [
-                    Chunk(**chunk) for chunk in agent_result.data.get("chunks", [])
-                ]
-                state.analytics_recorded = agent_result.data.get(
-                    "analytics_recorded", False
+                state.search_result = (
+                    {"content": agent_result.content}
+                    if hasattr(agent_result, "content")
+                    else {}
                 )
-                state.processing_time = agent_result.data.get("processing_time", 0.0)
+                state.documents = []  # SearchResult doesn't have documents field
+                state.chunks = []  # SearchResult doesn't have chunks field
+                state.analytics_recorded = agent_result.analytics_recorded
+                state.processing_time = agent_result.processing_time or 0.0
             else:
                 # Fallback to integrated search tool
                 tool = IntegratedSearchTool()
@@ -186,12 +189,12 @@ class PerformWebSearch(BaseNode[SearchWorkflowState]):
             return ProcessResults()
 
         except Exception as e:
-            state.errors.append(f"Web search failed: {str(e)}")
+            state.errors.append(f"Web search failed: {e!s}")
             state.status = ExecutionStatus.FAILED
-            return End(f"Search failed: {str(e)}")
+            return End(f"Search failed: {e!s}")
 
 
-class ProcessResults(BaseNode[SearchWorkflowState]):
+class ProcessResults(BaseNode[SearchWorkflowState]):  # type: ignore[unsupported-base]
     """Process and validate search results."""
 
     def run(self, state: SearchWorkflowState) -> Any:
@@ -210,11 +213,11 @@ class ProcessResults(BaseNode[SearchWorkflowState]):
             return GenerateFinalResponse()
 
         except Exception as e:
-            state.errors.append(f"Result processing failed: {str(e)}")
+            state.errors.append(f"Result processing failed: {e!s}")
             state.status = ExecutionStatus.FAILED
-            return End(f"Search failed: {str(e)}")
+            return End(f"Search failed: {e!s}")
 
-    def _create_summary(self, documents: List[Document], chunks: List[Chunk]) -> str:
+    def _create_summary(self, documents: list[Document], chunks: list[Chunk]) -> str:
         """Create a summary of search results."""
         summary_parts = []
 
@@ -236,7 +239,7 @@ class ProcessResults(BaseNode[SearchWorkflowState]):
         return "\n".join(summary_parts)
 
 
-class GenerateFinalResponse(BaseNode[SearchWorkflowState]):
+class GenerateFinalResponse(BaseNode[SearchWorkflowState]):  # type: ignore[unsupported-base]
     """Generate the final response."""
 
     def run(self, state: SearchWorkflowState) -> Any:
@@ -247,8 +250,8 @@ class GenerateFinalResponse(BaseNode[SearchWorkflowState]):
                 "query": state.query,
                 "search_type": state.search_type,
                 "num_results": state.num_results,
-                "documents": [doc.dict() for doc in state.documents],
-                "chunks": [chunk.dict() for chunk in state.chunks],
+                "documents": [doc.model_dump() for doc in state.documents],
+                "chunks": [],  # No chunks available from SearchResult
                 "summary": state.raw_content,
                 "analytics_recorded": state.analytics_recorded,
                 "processing_time": state.processing_time,
@@ -266,12 +269,12 @@ class GenerateFinalResponse(BaseNode[SearchWorkflowState]):
             return End(response)
 
         except Exception as e:
-            state.errors.append(f"Response generation failed: {str(e)}")
+            state.errors.append(f"Response generation failed: {e!s}")
             state.status = ExecutionStatus.FAILED
-            return End(f"Search failed: {str(e)}")
+            return End(f"Search failed: {e!s}")
 
 
-class SearchWorkflowError(BaseNode[SearchWorkflowState]):
+class SearchWorkflowError(BaseNode[SearchWorkflowState]):  # type: ignore[unsupported-base]
     """Handle search workflow errors."""
 
     def run(self, state: SearchWorkflowState) -> Any:
@@ -295,9 +298,9 @@ class SearchWorkflowError(BaseNode[SearchWorkflowState]):
 
 
 # Create the search workflow graph
-def create_search_workflow() -> Graph[SearchWorkflowState]:
+def create_search_workflow() -> Graph:
     """Create the search workflow graph."""
-    return Graph[SearchWorkflowState](
+    return Graph(
         nodes=[
             InitializeSearch(),
             PerformWebSearch(),
@@ -315,7 +318,7 @@ async def run_search_workflow(
     num_results: int = 4,
     chunk_size: int = 1000,
     chunk_overlap: int = 0,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Run the search workflow with the given parameters."""
 
     # Create initial state
@@ -329,9 +332,9 @@ async def run_search_workflow(
 
     # Create and run workflow
     workflow = create_search_workflow()
-    result = await workflow.run(state)
+    result = await workflow.run(InitializeSearch(), state=state)  # type: ignore
 
-    return result
+    return result.output if hasattr(result, "output") else {"error": "No output"}  # type: ignore
 
 
 # Example usage

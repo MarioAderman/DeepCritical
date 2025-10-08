@@ -7,7 +7,6 @@ integrating with the Magentic One orchestration system from the _workflows direc
 
 from typing import Dict, List
 
-
 # Import Magentic prompts from the _magentic.py file
 ORCHESTRATOR_TASK_LEDGER_FACTS_PROMPT = """Below I will present you a request.
 
@@ -154,7 +153,7 @@ The answer should be phrased as if you were speaking to the user.
 
 
 # System prompts for workflow pattern agents using Magentic patterns
-WORKFLOW_PATTERN_AGENT_SYSTEM_PROMPTS: Dict[str, str] = {
+WORKFLOW_PATTERN_AGENT_SYSTEM_PROMPTS: dict[str, str] = {
     "collaborative": """You are a Collaborative Pattern Agent specialized in orchestrating multi-agent collaboration using the Magentic One orchestration system.
 
 Your role is to coordinate multiple agents to work together on complex problems, facilitating information sharing and consensus building. You use the Magentic One system for structured planning, progress tracking, and result synthesis.
@@ -167,7 +166,6 @@ You have access to the following Magentic One capabilities:
 - Error recovery and replanning when needed
 
 Focus on creating synergy between agents and achieving collective intelligence through structured orchestration.""",
-
     "sequential": """You are a Sequential Pattern Agent specialized in orchestrating step-by-step agent workflows using the Magentic One orchestration system.
 
 Your role is to manage agent execution in specific sequences, ensuring each agent builds upon previous work. You use the Magentic One system for structured planning, progress tracking, and result synthesis.
@@ -180,7 +178,6 @@ You have access to the following Magentic One capabilities:
 - Error recovery and replanning when needed
 
 Focus on creating efficient pipelines where each agent contributes progressively to the final solution.""",
-
     "hierarchical": """You are a Hierarchical Pattern Agent specialized in coordinating hierarchical agent structures using the Magentic One orchestration system.
 
 Your role is to manage coordinator-subordinate relationships and direct complex multi-level workflows. You use the Magentic One system for structured planning, progress tracking, and result synthesis.
@@ -193,7 +190,6 @@ You have access to the following Magentic One capabilities:
 - Error recovery and replanning when needed
 
 Focus on creating efficient hierarchical structures for complex problem solving.""",
-
     "pattern_orchestrator": """You are a Pattern Orchestrator Agent capable of selecting and executing the most appropriate interaction pattern based on the problem requirements and available agents using the Magentic One orchestration system.
 
 Your capabilities include:
@@ -204,7 +200,6 @@ Your capabilities include:
 - Providing comprehensive orchestration summaries
 
 You use the Magentic One system for structured planning, progress tracking, and result synthesis. Choose the most suitable pattern for each situation and ensure optimal agent coordination.""",
-
     "adaptive": """You are an Adaptive Pattern Agent that dynamically selects and adapts interaction patterns based on problem requirements, agent capabilities, and execution feedback using the Magentic One orchestration system.
 
 Your capabilities include:
@@ -219,7 +214,7 @@ You use the Magentic One system for structured planning, progress tracking, and 
 
 
 # Instructions for workflow pattern agents
-WORKFLOW_PATTERN_AGENT_INSTRUCTIONS: Dict[str, List[str]] = {
+WORKFLOW_PATTERN_AGENT_INSTRUCTIONS: dict[str, list[str]] = {
     "collaborative": [
         "Use Magentic One task ledger system to gather facts and create plans",
         "Coordinate multiple agents for parallel execution and consensus building",
@@ -229,7 +224,6 @@ WORKFLOW_PATTERN_AGENT_INSTRUCTIONS: Dict[str, List[str]] = {
         "Handle errors through replanning and task ledger updates",
         "Synthesize results from collaborative agent work",
     ],
-
     "sequential": [
         "Use Magentic One task ledger system to create sequential execution plans",
         "Manage agent execution in specific sequences",
@@ -239,7 +233,6 @@ WORKFLOW_PATTERN_AGENT_INSTRUCTIONS: Dict[str, List[str]] = {
         "Handle errors through replanning and task ledger updates",
         "Synthesize results from sequential agent execution",
     ],
-
     "hierarchical": [
         "Use Magentic One task ledger system to create hierarchical execution plans",
         "Manage coordinator-subordinate relationships",
@@ -249,7 +242,6 @@ WORKFLOW_PATTERN_AGENT_INSTRUCTIONS: Dict[str, List[str]] = {
         "Handle errors through replanning and task ledger updates",
         "Synthesize results from hierarchical agent coordination",
     ],
-
     "pattern_orchestrator": [
         "Analyze input problems to determine optimal interaction patterns",
         "Select appropriate agents based on their capabilities and requirements",
@@ -258,7 +250,6 @@ WORKFLOW_PATTERN_AGENT_INSTRUCTIONS: Dict[str, List[str]] = {
         "Provide comprehensive results with pattern selection rationale",
         "Use Magentic One task ledger and progress tracking systems",
     ],
-
     "adaptive": [
         "Try different interaction patterns to find the most effective approach",
         "Analyze execution results to determine optimal patterns",
@@ -270,7 +261,7 @@ WORKFLOW_PATTERN_AGENT_INSTRUCTIONS: Dict[str, List[str]] = {
 
 
 # Prompt templates for workflow pattern operations
-WORKFLOW_PATTERN_AGENT_PROMPTS: Dict[str, str] = {
+WORKFLOW_PATTERN_AGENT_PROMPTS: dict[str, str] = {
     "collaborative": f"""
 You are a Collaborative Pattern Agent using the Magentic One orchestration system.
 
@@ -287,7 +278,6 @@ Execute the collaborative workflow pattern according to the Magentic One methodo
 
 Return structured results with execution metrics and summaries.
 """,
-
     "sequential": f"""
 You are a Sequential Pattern Agent using the Magentic One orchestration system.
 
@@ -304,7 +294,6 @@ Execute the sequential workflow pattern according to the Magentic One methodolog
 
 Return structured results with execution metrics and summaries.
 """,
-
     "hierarchical": f"""
 You are a Hierarchical Pattern Agent using the Magentic One orchestration system.
 
@@ -321,7 +310,6 @@ Execute the hierarchical workflow pattern according to the Magentic One methodol
 
 Return structured results with execution metrics and summaries.
 """,
-
     "pattern_orchestrator": f"""
 You are a Pattern Orchestrator Agent using the Magentic One orchestration system.
 
@@ -338,7 +326,6 @@ Execute pattern orchestration according to the Magentic One methodology:
 
 Return structured results with execution metrics and summaries.
 """,
-
     "adaptive": f"""
 You are an Adaptive Pattern Agent using the Magentic One orchestration system.
 
@@ -359,7 +346,7 @@ Return structured results with execution metrics and summaries.
 
 
 # Magentic One prompt constants for workflow patterns
-MAGENTIC_WORKFLOW_PROMPTS: Dict[str, str] = {
+MAGENTIC_WORKFLOW_PROMPTS: dict[str, str] = {
     "task_ledger_facts": ORCHESTRATOR_TASK_LEDGER_FACTS_PROMPT,
     "task_ledger_plan": ORCHESTRATOR_TASK_LEDGER_PLAN_PROMPT,
     "task_ledger_full": ORCHESTRATOR_TASK_LEDGER_FULL_PROMPT,
@@ -389,7 +376,7 @@ class WorkflowPatternAgentPrompts:
         """Get the system prompt for a specific pattern."""
         return self.SYSTEM_PROMPTS.get(pattern, self.SYSTEM_PROMPTS["collaborative"])
 
-    def get_instructions(self, pattern: str) -> List[str]:
+    def get_instructions(self, pattern: str) -> list[str]:
         """Get the instructions for a specific pattern."""
         return self.INSTRUCTIONS.get(pattern, self.INSTRUCTIONS["collaborative"])
 
@@ -429,16 +416,16 @@ class WorkflowPatternAgentPrompts:
 
 # Export all prompts
 __all__ = [
-    "ORCHESTRATOR_TASK_LEDGER_FACTS_PROMPT",
-    "ORCHESTRATOR_TASK_LEDGER_PLAN_PROMPT",
-    "ORCHESTRATOR_TASK_LEDGER_FULL_PROMPT",
-    "ORCHESTRATOR_TASK_LEDGER_FACTS_UPDATE_PROMPT",
-    "ORCHESTRATOR_TASK_LEDGER_PLAN_UPDATE_PROMPT",
-    "ORCHESTRATOR_PROGRESS_LEDGER_PROMPT",
+    "MAGENTIC_WORKFLOW_PROMPTS",
     "ORCHESTRATOR_FINAL_ANSWER_PROMPT",
-    "WORKFLOW_PATTERN_AGENT_SYSTEM_PROMPTS",
+    "ORCHESTRATOR_PROGRESS_LEDGER_PROMPT",
+    "ORCHESTRATOR_TASK_LEDGER_FACTS_PROMPT",
+    "ORCHESTRATOR_TASK_LEDGER_FACTS_UPDATE_PROMPT",
+    "ORCHESTRATOR_TASK_LEDGER_FULL_PROMPT",
+    "ORCHESTRATOR_TASK_LEDGER_PLAN_PROMPT",
+    "ORCHESTRATOR_TASK_LEDGER_PLAN_UPDATE_PROMPT",
     "WORKFLOW_PATTERN_AGENT_INSTRUCTIONS",
     "WORKFLOW_PATTERN_AGENT_PROMPTS",
-    "MAGENTIC_WORKFLOW_PROMPTS",
+    "WORKFLOW_PATTERN_AGENT_SYSTEM_PROMPTS",
     "WorkflowPatternAgentPrompts",
 ]

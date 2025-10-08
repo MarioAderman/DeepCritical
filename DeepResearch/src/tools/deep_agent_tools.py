@@ -10,30 +10,32 @@ from __future__ import annotations
 
 import uuid
 from typing import Any, Dict
+
 from pydantic_ai import RunContext
 
+# Note: defer decorator is not available in current pydantic-ai version
 # Import existing DeepCritical types
 from ..datatypes.deep_agent_state import (
-    TaskStatus,
     DeepAgentState,
-    create_todo,
+    TaskStatus,
     create_file_info,
+    create_todo,
 )
-from ..datatypes.deep_agent_types import TaskRequest
 from ..datatypes.deep_agent_tools import (
-    WriteTodosRequest,
-    WriteTodosResponse,
+    EditFileRequest,
+    EditFileResponse,
     ListFilesResponse,
     ReadFileRequest,
     ReadFileResponse,
-    WriteFileRequest,
-    WriteFileResponse,
-    EditFileRequest,
-    EditFileResponse,
     TaskRequestModel,
     TaskResponse,
+    WriteFileRequest,
+    WriteFileResponse,
+    WriteTodosRequest,
+    WriteTodosResponse,
 )
-from .base import ToolRunner, ToolSpec, ExecutionResult
+from ..datatypes.deep_agent_types import TaskRequest
+from .base import ExecutionResult, ToolRunner, ToolSpec
 
 
 # Pydantic AI tool functions
@@ -60,7 +62,10 @@ def write_todos_tool(
                     todo.status = TaskStatus.PENDING
 
             # Add to state
-            ctx.state.add_todo(todo)
+            if hasattr(ctx, "state") and hasattr(ctx.state, "add_todo"):
+                add_todo_method = getattr(ctx.state, "add_todo", None)
+                if add_todo_method is not None and callable(add_todo_method):
+                    add_todo_method(todo)
             todos_created += 1
 
         return WriteTodosResponse(
@@ -71,14 +76,20 @@ def write_todos_tool(
 
     except Exception as e:
         return WriteTodosResponse(
-            success=False, todos_created=0, message=f"Error creating todos: {str(e)}"
+            success=False, todos_created=0, message=f"Error creating todos: {e!s}"
         )
 
 
 def list_files_tool(ctx: RunContext[DeepAgentState]) -> ListFilesResponse:
     """Tool for listing files in the filesystem."""
     try:
-        files = list(ctx.state.files.keys())
+        files = []
+        if hasattr(ctx, "state") and hasattr(ctx.state, "files"):
+            files_dict = getattr(ctx.state, "files", None)
+            if files_dict is not None and hasattr(files_dict, "keys"):
+                keys_method = getattr(files_dict, "keys", None)
+                if keys_method is not None and callable(keys_method):
+                    files = list(keys_method())
         return ListFilesResponse(files=files, count=len(files))
     except Exception:
         return ListFilesResponse(files=[], count=0)
@@ -89,7 +100,11 @@ def read_file_tool(
 ) -> ReadFileResponse:
     """Tool for reading a file from the filesystem."""
     try:
-        file_info = ctx.state.get_file(request.file_path)
+        file_info = None
+        if hasattr(ctx, "state") and hasattr(ctx.state, "get_file"):
+            get_file_method = getattr(ctx.state, "get_file", None)
+            if get_file_method is not None and callable(get_file_method):
+                file_info = get_file_method(request.file_path)
         if not file_info:
             return ReadFileResponse(
                 content=f"Error: File '{request.file_path}' not found",
@@ -149,7 +164,7 @@ def read_file_tool(
 
     except Exception as e:
         return ReadFileResponse(
-            content=f"Error reading file: {str(e)}",
+            content=f"Error reading file: {e!s}",
             file_path=request.file_path,
             lines_read=0,
             total_lines=0,
@@ -165,7 +180,10 @@ def write_file_tool(
         file_info = create_file_info(path=request.file_path, content=request.content)
 
         # Add to state
-        ctx.state.add_file(file_info)
+        if hasattr(ctx, "state") and hasattr(ctx.state, "add_file"):
+            add_file_method = getattr(ctx.state, "add_file", None)
+            if add_file_method is not None and callable(add_file_method):
+                add_file_method(file_info)
 
         return WriteFileResponse(
             success=True,
@@ -179,7 +197,7 @@ def write_file_tool(
             success=False,
             file_path=request.file_path,
             bytes_written=0,
-            message=f"Error writing file: {str(e)}",
+            message=f"Error writing file: {e!s}",
         )
 
 
@@ -188,7 +206,11 @@ def edit_file_tool(
 ) -> EditFileResponse:
     """Tool for editing a file in the filesystem."""
     try:
-        file_info = ctx.state.get_file(request.file_path)
+        file_info = None
+        if hasattr(ctx, "state") and hasattr(ctx.state, "get_file"):
+            get_file_method = getattr(ctx.state, "get_file", None)
+            if get_file_method is not None and callable(get_file_method):
+                file_info = get_file_method(request.file_path)
         if not file_info:
             return EditFileResponse(
                 success=False,
@@ -216,7 +238,7 @@ def edit_file_tool(
                     replacements_made=0,
                     message=f"Error: String '{request.old_string}' appears {occurrences} times in file. Use replace_all=True to replace all instances, or provide a more specific string with surrounding context.",
                 )
-            elif occurrences == 0:
+            if occurrences == 0:
                 return EditFileResponse(
                     success=False,
                     file_path=request.file_path,
@@ -239,7 +261,10 @@ def edit_file_tool(
             result_msg = f"Successfully replaced string in '{request.file_path}'"
 
         # Update the file
-        ctx.state.update_file_content(request.file_path, new_content)
+        if hasattr(ctx, "state") and hasattr(ctx.state, "update_file_content"):
+            update_method = getattr(ctx.state, "update_file_content", None)
+            if update_method is not None and callable(update_method):
+                update_method(request.file_path, new_content)
 
         return EditFileResponse(
             success=True,
@@ -253,7 +278,7 @@ def edit_file_tool(
             success=False,
             file_path=request.file_path,
             replacements_made=0,
-            message=f"Error editing file: {str(e)}",
+            message=f"Error editing file: {e!s}",
         )
 
 
@@ -274,7 +299,12 @@ def task_tool(
         )
 
         # Add to active tasks
-        ctx.state.active_tasks.append(task_id)
+        if hasattr(ctx, "state") and hasattr(ctx.state, "active_tasks"):
+            active_tasks = getattr(ctx.state, "active_tasks", None)
+            if active_tasks is not None and hasattr(active_tasks, "append"):
+                append_method = getattr(active_tasks, "append", None)
+                if append_method is not None and callable(append_method):
+                    append_method(task_id)
 
         # TODO: Implement actual subagent execution
         # For now, return a placeholder response
@@ -287,9 +317,27 @@ def task_tool(
         }
 
         # Move from active to completed
-        if task_id in ctx.state.active_tasks:
-            ctx.state.active_tasks.remove(task_id)
-        ctx.state.completed_tasks.append(task_id)
+        if (
+            hasattr(ctx, "state")
+            and hasattr(ctx.state, "active_tasks")
+            and hasattr(ctx.state, "completed_tasks")
+        ):
+            active_tasks = getattr(ctx.state, "active_tasks", None)
+            completed_tasks = getattr(ctx.state, "completed_tasks", None)
+
+            if active_tasks is not None and hasattr(active_tasks, "remove"):
+                remove_method = getattr(active_tasks, "remove", None)
+                if (
+                    remove_method is not None
+                    and callable(remove_method)
+                    and task_id in active_tasks
+                ):
+                    remove_method(task_id)
+
+            if completed_tasks is not None and hasattr(completed_tasks, "append"):
+                append_method = getattr(completed_tasks, "append", None)
+                if append_method is not None and callable(append_method):
+                    append_method(task_id)
 
         return TaskResponse(
             success=True,
@@ -303,7 +351,7 @@ def task_tool(
             success=False,
             task_id="",
             result=None,
-            message=f"Error executing task: {str(e)}",
+            message=f"Error executing task: {e!s}",
         )
 
 
@@ -327,7 +375,7 @@ class WriteTodosToolRunner(ToolRunner):
             )
         )
 
-    def run(self, params: Dict[str, Any]) -> ExecutionResult:
+    def run(self, params: dict[str, Any]) -> ExecutionResult:
         try:
             todos_data = params.get("todos", [])
             WriteTodosRequest(todos=todos_data)
@@ -359,7 +407,7 @@ class ListFilesToolRunner(ToolRunner):
             )
         )
 
-    def run(self, params: Dict[str, Any]) -> ExecutionResult:
+    def run(self, params: dict[str, Any]) -> ExecutionResult:
         try:
             # This would normally be called through Pydantic AI
             # For now, return a mock result
@@ -386,7 +434,7 @@ class ReadFileToolRunner(ToolRunner):
             )
         )
 
-    def run(self, params: Dict[str, Any]) -> ExecutionResult:
+    def run(self, params: dict[str, Any]) -> ExecutionResult:
         try:
             request = ReadFileRequest(
                 file_path=params.get("file_path", ""),
@@ -427,7 +475,7 @@ class WriteFileToolRunner(ToolRunner):
             )
         )
 
-    def run(self, params: Dict[str, Any]) -> ExecutionResult:
+    def run(self, params: dict[str, Any]) -> ExecutionResult:
         try:
             request = WriteFileRequest(
                 file_path=params.get("file_path", ""), content=params.get("content", "")
@@ -471,7 +519,7 @@ class EditFileToolRunner(ToolRunner):
             )
         )
 
-    def run(self, params: Dict[str, Any]) -> ExecutionResult:
+    def run(self, params: dict[str, Any]) -> ExecutionResult:
         try:
             request = EditFileRequest(
                 file_path=params.get("file_path", ""),
@@ -517,7 +565,7 @@ class TaskToolRunner(ToolRunner):
             )
         )
 
-    def run(self, params: Dict[str, Any]) -> ExecutionResult:
+    def run(self, params: dict[str, Any]) -> ExecutionResult:
         try:
             request = TaskRequestModel(
                 description=params.get("description", ""),
@@ -548,18 +596,18 @@ class TaskToolRunner(ToolRunner):
 
 # Export all tools
 __all__ = [
-    # Pydantic AI tools
-    "write_todos_tool",
-    "list_files_tool",
-    "read_file_tool",
-    "write_file_tool",
-    "edit_file_tool",
-    "task_tool",
-    # Tool runners
-    "WriteTodosToolRunner",
+    "EditFileToolRunner",
     "ListFilesToolRunner",
     "ReadFileToolRunner",
-    "WriteFileToolRunner",
-    "EditFileToolRunner",
     "TaskToolRunner",
+    "WriteFileToolRunner",
+    # Tool runners
+    "WriteTodosToolRunner",
+    "edit_file_tool",
+    "list_files_tool",
+    "read_file_tool",
+    "task_tool",
+    "write_file_tool",
+    # Pydantic AI tools
+    "write_todos_tool",
 ]

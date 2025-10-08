@@ -20,12 +20,13 @@ def _extract_function_name(func: Callable[..., Any]) -> str:
     """Map a Python callable to a concise, human-focused identifier."""
     if hasattr(func, "__name__"):
         name = func.__name__
-        return name if name != "<lambda>" else "<lambda>"
+        return str(name) if name != "<lambda>" else "<lambda>"
     return "<callable>"
 
 
 def _missing_callable(name: str) -> Callable[..., Any]:
     """Create a defensive placeholder for callables that cannot be restored."""
+
     def _raise(*_: Any, **__: Any) -> Any:
         raise RuntimeError(f"Callable '{name}' is unavailable after serialization")
 
@@ -41,7 +42,9 @@ class Edge:
     source_id: str
     target_id: str
     condition_name: str | None
-    _condition: Callable[[Any], bool] | None = field(default=None, repr=False, compare=False)
+    _condition: Callable[[Any], bool] | None = field(
+        default=None, repr=False, compare=False
+    )
 
     def __init__(
         self,
@@ -59,7 +62,11 @@ class Edge:
         self.source_id = source_id
         self.target_id = target_id
         self._condition = condition
-        self.condition_name = _extract_function_name(condition) if condition is not None else condition_name
+        self.condition_name = (
+            _extract_function_name(condition)
+            if condition is not None
+            else condition_name
+        )
 
     @property
     def id(self) -> str:
@@ -80,7 +87,7 @@ class Edge:
         return payload
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "Edge":
+    def from_dict(cls, data: dict[str, Any]) -> Edge:
         """Reconstruct an Edge from its serialised dictionary form."""
         return cls(
             source_id=data["source_id"],
@@ -113,7 +120,7 @@ class EdgeGroup:
     type: str
     edges: list[Edge]
 
-    _TYPE_REGISTRY: ClassVar[dict[str, type["EdgeGroup"]]] = {}
+    _TYPE_REGISTRY: ClassVar[dict[str, type[EdgeGroup]]] = {}
 
     def __init__(
         self,
@@ -146,13 +153,13 @@ class EdgeGroup:
         }
 
     @classmethod
-    def register(cls, subclass: type["EdgeGroup"]) -> type["EdgeGroup"]:
+    def register(cls, subclass: type[EdgeGroup]) -> type[EdgeGroup]:
         """Register a subclass so deserialisation can recover the right type."""
         cls._TYPE_REGISTRY[subclass.__name__] = subclass
         return subclass
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "EdgeGroup":
+    def from_dict(cls, data: dict[str, Any]) -> EdgeGroup:
         """Hydrate the correct EdgeGroup subclass from serialised state."""
         group_type = data.get("type", "EdgeGroup")
         target_cls = cls._TYPE_REGISTRY.get(group_type, EdgeGroup)
@@ -174,11 +181,15 @@ class EdgeGroup:
         # Handle SwitchCaseEdgeGroup-specific attributes
         if isinstance(obj, SwitchCaseEdgeGroup):
             cases_payload = data.get("cases", [])
-            restored_cases: list[SwitchCaseEdgeGroupCase | SwitchCaseEdgeGroupDefault] = []
+            restored_cases: list[
+                SwitchCaseEdgeGroupCase | SwitchCaseEdgeGroupDefault
+            ] = []
             for case_data in cases_payload:
                 case_type = case_data.get("type")
                 if case_type == "Default":
-                    restored_cases.append(SwitchCaseEdgeGroupDefault.from_dict(case_data))
+                    restored_cases.append(
+                        SwitchCaseEdgeGroupDefault.from_dict(case_data)
+                    )
                 else:
                     restored_cases.append(SwitchCaseEdgeGroupCase.from_dict(case_data))
             obj.cases = restored_cases
@@ -233,7 +244,9 @@ class FanOutEdgeGroup(EdgeGroup):
         self._target_ids = list(target_ids)
         self._selection_func = selection_func
         self.selection_func_name = (
-            _extract_function_name(selection_func) if selection_func is not None else selection_func_name
+            _extract_function_name(selection_func)
+            if selection_func is not None
+            else selection_func_name
         )
 
     @property
@@ -258,7 +271,9 @@ class FanOutEdgeGroup(EdgeGroup):
 class FanInEdgeGroup(EdgeGroup):
     """Represent a converging set of edges that feed a single downstream executor."""
 
-    def __init__(self, source_ids: Sequence[str], target_id: str, *, id: str | None = None) -> None:
+    def __init__(
+        self, source_ids: Sequence[str], target_id: str, *, id: str | None = None
+    ) -> None:
         """Build a fan-in mapping that merges several sources into one target."""
         if len(source_ids) <= 1:
             raise ValueError("FanInEdgeGroup must contain at least two sources.")
@@ -309,7 +324,7 @@ class SwitchCaseEdgeGroupCase:
         return payload
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "SwitchCaseEdgeGroupCase":
+    def from_dict(cls, data: dict[str, Any]) -> SwitchCaseEdgeGroupCase:
         """Instantiate a case from its serialised dictionary payload."""
         return cls(
             condition=None,
@@ -337,7 +352,7 @@ class SwitchCaseEdgeGroupDefault:
         return {"target_id": self.target_id, "type": self.type}
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "SwitchCaseEdgeGroupDefault":
+    def from_dict(cls, data: dict[str, Any]) -> SwitchCaseEdgeGroupDefault:
         """Recreate the default branch from its persisted form."""
         return cls(target_id=data["target_id"])
 
@@ -358,11 +373,17 @@ class SwitchCaseEdgeGroup(FanOutEdgeGroup):
     ) -> None:
         """Configure a switch/case routing structure for a single source executor."""
         if len(cases) < 2:
-            raise ValueError("SwitchCaseEdgeGroup must contain at least two cases (including the default case).")
+            raise ValueError(
+                "SwitchCaseEdgeGroup must contain at least two cases (including the default case)."
+            )
 
-        default_cases = [case for case in cases if isinstance(case, SwitchCaseEdgeGroupDefault)]
+        default_cases = [
+            case for case in cases if isinstance(case, SwitchCaseEdgeGroupDefault)
+        ]
         if len(default_cases) != 1:
-            raise ValueError("SwitchCaseEdgeGroup must contain exactly one default case.")
+            raise ValueError(
+                "SwitchCaseEdgeGroup must contain exactly one default case."
+            )
 
         if not isinstance(cases[-1], SwitchCaseEdgeGroupDefault):
             logger.warning(
@@ -378,7 +399,11 @@ class SwitchCaseEdgeGroup(FanOutEdgeGroup):
                     if case.condition(message):
                         return [case.target_id]
                 except Exception as exc:
-                    logger.warning("Error evaluating condition for case %s: %s", case.target_id, exc)
+                    logger.warning(
+                        "Error evaluating condition for case %s: %s",
+                        case.target_id,
+                        exc,
+                    )
             raise RuntimeError("No matching case found in SwitchCaseEdgeGroup")
 
         target_ids = [case.target_id for case in cases]
@@ -401,16 +426,16 @@ class SwitchCaseEdgeGroup(FanOutEdgeGroup):
 
 # Export all edge components
 __all__ = [
+    "Case",
+    "Default",
     "Edge",
     "EdgeGroup",
-    "SingleEdgeGroup",
-    "FanOutEdgeGroup",
     "FanInEdgeGroup",
+    "FanOutEdgeGroup",
+    "SingleEdgeGroup",
     "SwitchCaseEdgeGroup",
     "SwitchCaseEdgeGroupCase",
     "SwitchCaseEdgeGroupDefault",
-    "Case",
-    "Default",
     "_extract_function_name",
     "_missing_callable",
 ]

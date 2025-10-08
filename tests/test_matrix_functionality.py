@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Test script to verify VLLM test matrix functionality.
 
@@ -13,11 +12,13 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
+
 def test_script_exists():
     """Test that the VLLM test matrix script exists."""
     script_path = project_root / "scripts" / "prompt_testing" / "vllm_test_matrix.sh"
     assert script_path.exists(), f"Script not found: {script_path}"
     print("✅ VLLM test matrix script exists")
+
 
 def test_config_files_exist():
     """Test that required configuration files exist."""
@@ -34,6 +35,7 @@ def test_config_files_exist():
         config_path = project_root / config_file
         assert config_path.exists(), f"Config file not found: {config_path}"
         print(f"✅ Config file exists: {config_file}")
+
 
 def test_test_files_exist():
     """Test that test files exist."""
@@ -56,6 +58,7 @@ def test_test_files_exist():
         assert test_path.exists(), f"Test file not found: {test_path}"
         print(f"✅ Test file exists: {test_file}")
 
+
 def test_prompt_modules_exist():
     """Test that prompt modules exist."""
     prompt_modules = [
@@ -75,6 +78,7 @@ def test_prompt_modules_exist():
         assert prompt_path.exists(), f"Prompt module not found: {prompt_path}"
         print(f"✅ Prompt module exists: {prompt_module}")
 
+
 def test_hydra_config_loading():
     """Test that Hydra configuration can be loaded."""
     try:
@@ -92,13 +96,17 @@ def test_hydra_config_loading():
     except Exception as e:
         print(f"⚠️ Hydra test failed: {e}")
 
+
 def test_json_test_data():
     """Test that test data JSON is valid."""
-    test_data_file = project_root / "scripts" / "prompt_testing" / "test_data_matrix.json"
+    test_data_file = (
+        project_root / "scripts" / "prompt_testing" / "test_data_matrix.json"
+    )
 
     if test_data_file.exists():
         import json
-        with open(test_data_file, 'r') as f:
+
+        with open(test_data_file) as f:
             data = json.load(f)
 
         assert "test_scenarios" in data
@@ -107,6 +115,7 @@ def test_json_test_data():
         print("✅ Test data JSON is valid")
     else:
         print("⚠️ Test data JSON not found")
+
 
 def main():
     """Run all tests."""
@@ -127,15 +136,19 @@ def main():
         print("\n📋 Usage Examples:")
         print("  # Run full test matrix")
         print("  ./scripts/prompt_testing/vllm_test_matrix.sh --full-matrix")
-        print("")
+        print()
         print("  # Run specific configurations")
         print("  ./scripts/prompt_testing/vllm_test_matrix.sh baseline fast quality")
-        print("")
+        print()
         print("  # Test specific modules")
-        print("  ./scripts/prompt_testing/vllm_test_matrix.sh --modules agents,code_exec baseline")
-        print("")
+        print(
+            "  ./scripts/prompt_testing/vllm_test_matrix.sh --modules agents,code_exec baseline"
+        )
+        print()
         print("  # Use Hydra configuration")
-        print("  ./scripts/prompt_testing/vllm_test_matrix.sh --full-matrix --use-matrix-config")
+        print(
+            "  ./scripts/prompt_testing/vllm_test_matrix.sh --full-matrix --use-matrix-config"
+        )
 
     except AssertionError as e:
         print(f"❌ Test failed: {e}")
@@ -143,6 +156,7 @@ def main():
     except Exception as e:
         print(f"❌ Unexpected error: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

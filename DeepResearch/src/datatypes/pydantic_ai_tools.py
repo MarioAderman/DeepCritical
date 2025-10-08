@@ -10,12 +10,21 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict
 
+from ..utils.pydantic_ai_utils import (
+    build_agent as _build_agent,
+)
+from ..utils.pydantic_ai_utils import (
+    build_builtin_tools as _build_builtin_tools,
+)
+from ..utils.pydantic_ai_utils import (
+    build_toolsets as _build_toolsets,
+)
+
 # Import utility functions from utils module
 from ..utils.pydantic_ai_utils import (
     get_pydantic_ai_config as _get_cfg,
-    build_builtin_tools as _build_builtin_tools,
-    build_toolsets as _build_toolsets,
-    build_agent as _build_agent,
+)
+from ..utils.pydantic_ai_utils import (
     run_agent_sync as _run_sync,
 )
 
@@ -29,7 +38,7 @@ class WebSearchBuiltinRunner:
 
     def __init__(self):
         # Import base classes locally to avoid circular imports
-        from ..tools.base import ToolSpec, ToolRunner
+        from ..tools.base import ToolRunner, ToolSpec
 
         ToolRunner.__init__(
             self,
@@ -41,14 +50,14 @@ class WebSearchBuiltinRunner:
             ),
         )
 
-    def run(self, params: Dict[str, Any]) -> Any:
+    def run(self, params: dict[str, Any]) -> dict[str, Any]:
         ok, err = self.validate(params)
         if not ok:
-            return Any(success=False, error=err)
+            return {"success": False, "error": err}
 
         q = str(params.get("query", "")).strip()
         if not q:
-            return Any(success=False, error="Empty query")
+            return {"success": False, "error": "Empty query"}
 
         cfg = _get_cfg()
         builtin_tools = _build_builtin_tools(cfg)
@@ -62,18 +71,19 @@ class WebSearchBuiltinRunner:
 
                 builtin_tools.append(WebSearchTool())
             except Exception:
-                return Any(success=False, error="pydantic_ai not available")
+                return {"success": False, "error": "pydantic_ai not available"}
 
         toolsets = _build_toolsets(cfg)
         agent, _ = _build_agent(cfg, builtin_tools, toolsets)
         if agent is None:
-            return Any(
-                success=False, error="pydantic_ai not available or misconfigured"
-            )
+            return {
+                "success": False,
+                "error": "pydantic_ai not available or misconfigured",
+            }
 
         result = _run_sync(agent, q)
         if not result:
-            return Any(success=False, error="web search failed")
+            return {"success": False, "error": "web search failed"}
 
         text = getattr(result, "output", "")
         # Best-effort extract sources when provider supports it; keep as string
@@ -87,7 +97,7 @@ class WebSearchBuiltinRunner:
         except Exception:
             pass
 
-        return Any(success=True, data={"results": text, "sources": sources})
+        return {"success": True, "data": {"results": text, "sources": sources}}
 
 
 @dataclass
@@ -96,7 +106,7 @@ class CodeExecBuiltinRunner:
 
     def __init__(self):
         # Import base classes locally to avoid circular imports
-        from ..tools.base import ToolSpec, ToolRunner
+        from ..tools.base import ToolRunner, ToolSpec
 
         ToolRunner.__init__(
             self,
@@ -108,14 +118,14 @@ class CodeExecBuiltinRunner:
             ),
         )
 
-    def run(self, params: Dict[str, Any]) -> Any:
+    def run(self, params: dict[str, Any]) -> dict[str, Any]:
         ok, err = self.validate(params)
         if not ok:
-            return Any(success=False, error=err)
+            return {"success": False, "error": err}
 
         code = str(params.get("code", "")).strip()
         if not code:
-            return Any(success=False, error="Empty code")
+            return {"success": False, "error": "Empty code"}
 
         cfg = _get_cfg()
         builtin_tools = _build_builtin_tools(cfg)
@@ -129,14 +139,15 @@ class CodeExecBuiltinRunner:
 
                 builtin_tools.append(CodeExecutionTool())
             except Exception:
-                return Any(success=False, error="pydantic_ai not available")
+                return {"success": False, "error": "pydantic_ai not available"}
 
         toolsets = _build_toolsets(cfg)
         agent, _ = _build_agent(cfg, builtin_tools, toolsets)
         if agent is None:
-            return Any(
-                success=False, error="pydantic_ai not available or misconfigured"
-            )
+            return {
+                "success": False,
+                "error": "pydantic_ai not available or misconfigured",
+            }
 
         # Load system prompt from Hydra (if available)
         try:
@@ -155,8 +166,8 @@ class CodeExecBuiltinRunner:
 
         result = _run_sync(agent, prompt)
         if not result:
-            return Any(success=False, error="code execution failed")
-        return Any(success=True, data={"output": getattr(result, "output", "")})
+            return {"success": False, "error": "code execution failed"}
+        return {"success": True, "data": {"output": getattr(result, "output", "")}}
 
 
 @dataclass
@@ -165,7 +176,7 @@ class UrlContextBuiltinRunner:
 
     def __init__(self):
         # Import base classes locally to avoid circular imports
-        from ..tools.base import ToolSpec, ToolRunner
+        from ..tools.base import ToolRunner, ToolSpec
 
         ToolRunner.__init__(
             self,
@@ -177,14 +188,14 @@ class UrlContextBuiltinRunner:
             ),
         )
 
-    def run(self, params: Dict[str, Any]) -> Any:
+    def run(self, params: dict[str, Any]) -> dict[str, Any]:
         ok, err = self.validate(params)
         if not ok:
-            return Any(success=False, error=err)
+            return {"success": False, "error": err}
 
         url = str(params.get("url", "")).strip()
         if not url:
-            return Any(success=False, error="Empty url")
+            return {"success": False, "error": "Empty url"}
 
         cfg = _get_cfg()
         builtin_tools = _build_builtin_tools(cfg)
@@ -198,22 +209,23 @@ class UrlContextBuiltinRunner:
 
                 builtin_tools.append(UrlContextTool())
             except Exception:
-                return Any(success=False, error="pydantic_ai not available")
+                return {"success": False, "error": "pydantic_ai not available"}
 
         toolsets = _build_toolsets(cfg)
         agent, _ = _build_agent(cfg, builtin_tools, toolsets)
         if agent is None:
-            return Any(
-                success=False, error="pydantic_ai not available or misconfigured"
-            )
+            return {
+                "success": False,
+                "error": "pydantic_ai not available or misconfigured",
+            }
 
         prompt = (
             f"What is this? {url}\n\nExtract the main content or a concise summary."
         )
         result = _run_sync(agent, prompt)
         if not result:
-            return Any(success=False, error="url context failed")
-        return Any(success=True, data={"content": getattr(result, "output", "")})
+            return {"success": False, "error": "url context failed"}
+        return {"success": True, "data": {"content": getattr(result, "output", "")}}
 
 
 # Registry overrides and additions
