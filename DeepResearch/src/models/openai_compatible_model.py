@@ -19,7 +19,7 @@ from omegaconf import DictConfig, OmegaConf
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.ollama import OllamaProvider
 
-from ..datatypes.llm_models import LLMModelConfig, GenerationConfig
+from ..datatypes.llm_models import GenerationConfig, LLMModelConfig
 
 
 class OpenAICompatibleModel(OpenAIChatModel):
@@ -39,11 +39,11 @@ class OpenAICompatibleModel(OpenAIChatModel):
     def from_config(
         cls,
         config: DictConfig | dict | LLMModelConfig,
-        model_name: Optional[str] = None,
-        base_url: Optional[str] = None,
-        api_key: Optional[str] = None,
+        model_name: str | None = None,
+        base_url: str | None = None,
+        api_key: str | None = None,
         **kwargs: Any,
-    ) -> "OpenAICompatibleModel":
+    ) -> OpenAICompatibleModel:
         """Create a model from Hydra configuration.
 
         Args:
@@ -62,7 +62,14 @@ class OpenAICompatibleModel(OpenAIChatModel):
         else:
             # Convert DictConfig to dict if needed
             if isinstance(config, DictConfig):
-                config = OmegaConf.to_container(config, resolve=True)
+                config_dict = OmegaConf.to_container(config, resolve=True)
+                if not isinstance(config_dict, dict):
+                    raise ValueError(
+                        f"Expected dict after OmegaConf.to_container, got {type(config_dict)}"
+                    )
+                config = config_dict
+            elif not isinstance(config, dict):
+                raise ValueError(f"Expected dict or DictConfig, got {type(config)}")
 
             # Build config dict with fallbacks for validation
             config_dict = {
@@ -72,7 +79,9 @@ class OpenAICompatibleModel(OpenAIChatModel):
                     or config.get("model_name")
                     or config.get("model", {}).get("name", "gpt-3.5-turbo")
                 ),
-                "base_url": base_url or config.get("base_url") or os.getenv("LLM_BASE_URL", ""),
+                "base_url": base_url
+                or config.get("base_url")
+                or os.getenv("LLM_BASE_URL", ""),
                 "api_key": api_key or config.get("api_key") or os.getenv("LLM_API_KEY"),
                 "timeout": config.get("timeout", 60.0),
                 "max_retries": config.get("max_retries", 3),
@@ -93,9 +102,19 @@ class OpenAICompatibleModel(OpenAIChatModel):
         # Extract and validate generation settings from config
         settings = kwargs.pop("settings", {})
 
-        if isinstance(config, (dict, DictConfig)) and not isinstance(config, LLMModelConfig):
+        if isinstance(config, (dict, DictConfig)) and not isinstance(
+            config, LLMModelConfig
+        ):
             if isinstance(config, DictConfig):
-                config = OmegaConf.to_container(config, resolve=True)
+                config_dict = OmegaConf.to_container(config, resolve=True)
+                if not isinstance(config_dict, dict):
+                    raise ValueError(
+                        f"Expected dict after OmegaConf.to_container, got {type(config_dict)}"
+                    )
+                config = config_dict
+            elif not isinstance(config, dict):
+                raise ValueError(f"Expected dict or DictConfig, got {type(config)}")
+
             generation_config_dict = config.get("generation", {})
 
             # Validate generation parameters that are present in config
@@ -122,12 +141,12 @@ class OpenAICompatibleModel(OpenAIChatModel):
     @classmethod
     def from_vllm(
         cls,
-        config: Optional[DictConfig | dict] = None,
-        model_name: Optional[str] = None,
-        base_url: Optional[str] = None,
-        api_key: Optional[str] = None,
+        config: DictConfig | dict | None = None,
+        model_name: str | None = None,
+        base_url: str | None = None,
+        api_key: str | None = None,
         **kwargs: Any,
-    ) -> "OpenAICompatibleModel":
+    ) -> OpenAICompatibleModel:
         """Create a model for a vLLM server.
 
         Args:
@@ -158,12 +177,12 @@ class OpenAICompatibleModel(OpenAIChatModel):
     @classmethod
     def from_llamacpp(
         cls,
-        config: Optional[DictConfig | dict] = None,
-        model_name: Optional[str] = None,
-        base_url: Optional[str] = None,
-        api_key: Optional[str] = None,
+        config: DictConfig | dict | None = None,
+        model_name: str | None = None,
+        base_url: str | None = None,
+        api_key: str | None = None,
         **kwargs: Any,
-    ) -> "OpenAICompatibleModel":
+    ) -> OpenAICompatibleModel:
         """Create a model for a llama.cpp server.
 
         Args:
@@ -195,12 +214,12 @@ class OpenAICompatibleModel(OpenAIChatModel):
     @classmethod
     def from_tgi(
         cls,
-        config: Optional[DictConfig | dict] = None,
-        model_name: Optional[str] = None,
-        base_url: Optional[str] = None,
-        api_key: Optional[str] = None,
+        config: DictConfig | dict | None = None,
+        model_name: str | None = None,
+        base_url: str | None = None,
+        api_key: str | None = None,
         **kwargs: Any,
-    ) -> "OpenAICompatibleModel":
+    ) -> OpenAICompatibleModel:
         """Create a model for a Text Generation Inference (TGI) server.
 
         Args:
@@ -231,12 +250,12 @@ class OpenAICompatibleModel(OpenAIChatModel):
     @classmethod
     def from_custom(
         cls,
-        config: Optional[DictConfig | dict] = None,
-        model_name: Optional[str] = None,
-        base_url: Optional[str] = None,
-        api_key: Optional[str] = None,
+        config: DictConfig | dict | None = None,
+        model_name: str | None = None,
+        base_url: str | None = None,
+        api_key: str | None = None,
         **kwargs: Any,
-    ) -> "OpenAICompatibleModel":
+    ) -> OpenAICompatibleModel:
         """Create a model for any custom OpenAI-compatible server.
 
         Args:
