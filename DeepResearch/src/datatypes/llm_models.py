@@ -8,7 +8,8 @@ This module defines Pydantic models for configuring various LLM providers
 from __future__ import annotations
 
 from enum import Enum
-from typing import Optional, Dict
+from typing import Dict, Optional
+
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -33,10 +34,12 @@ class LLMModelConfig(BaseModel):
     provider: LLMProvider = Field(..., description="Model provider type")
     model_name: str = Field(..., min_length=1, description="Model identifier")
     base_url: str = Field(..., description="Server base URL")
-    api_key: Optional[str] = Field(None, description="API key for authentication")
+    api_key: str | None = Field(None, description="API key for authentication")
     timeout: float = Field(60.0, gt=0, le=600, description="Request timeout in seconds")
     max_retries: int = Field(3, ge=0, le=10, description="Maximum retry attempts")
-    retry_delay: float = Field(1.0, gt=0, le=60, description="Delay between retries in seconds")
+    retry_delay: float = Field(
+        1.0, gt=0, le=60, description="Delay between retries in seconds"
+    )
 
     @field_validator("model_name")
     @classmethod
@@ -56,6 +59,7 @@ class LLMModelConfig(BaseModel):
 
     class Config:
         """Pydantic configuration."""
+
         use_enum_values = True
 
 
@@ -70,31 +74,19 @@ class GenerationConfig(BaseModel):
         0.7,
         ge=0.0,
         le=2.0,
-        description="Sampling temperature (0.0 = deterministic, 2.0 = very random)"
+        description="Sampling temperature (0.0 = deterministic, 2.0 = very random)",
     )
     max_tokens: int = Field(
-        512,
-        gt=0,
-        le=32000,
-        description="Maximum number of tokens to generate"
+        512, gt=0, le=32000, description="Maximum number of tokens to generate"
     )
     top_p: float = Field(
-        0.9,
-        ge=0.0,
-        le=1.0,
-        description="Top-p (nucleus) sampling parameter"
+        0.9, ge=0.0, le=1.0, description="Top-p (nucleus) sampling parameter"
     )
     frequency_penalty: float = Field(
-        0.0,
-        ge=-2.0,
-        le=2.0,
-        description="Frequency penalty for reducing repetition"
+        0.0, ge=-2.0, le=2.0, description="Frequency penalty for reducing repetition"
     )
     presence_penalty: float = Field(
-        0.0,
-        ge=-2.0,
-        le=2.0,
-        description="Presence penalty for encouraging diversity"
+        0.0, ge=-2.0, le=2.0, description="Presence penalty for encouraging diversity"
     )
 
 
@@ -105,7 +97,6 @@ class LLMConnectionConfig(BaseModel):
     max_retries: int = Field(3, ge=0, le=10, description="Maximum retry attempts")
     retry_delay: float = Field(1.0, gt=0, le=60, description="Delay between retries")
     verify_ssl: bool = Field(True, description="Verify SSL certificates")
-    custom_headers: Dict[str, str] = Field(
-        default_factory=dict,
-        description="Custom HTTP headers"
+    custom_headers: dict[str, str] = Field(
+        default_factory=dict, description="Custom HTTP headers"
     )

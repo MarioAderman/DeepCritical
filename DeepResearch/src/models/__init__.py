@@ -28,13 +28,13 @@ Usage:
 """
 
 from .openai_compatible_model import (
+    LlamaCppModel,
     OpenAICompatibleModel,
     VLLMModel,
-    LlamaCppModel,
 )
 
 __all__ = [
+    "LlamaCppModel",
     "OpenAICompatibleModel",
     "VLLMModel",
-    "LlamaCppModel",
 ]
