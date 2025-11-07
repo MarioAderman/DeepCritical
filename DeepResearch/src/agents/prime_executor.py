@@ -1,27 +1,18 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any, Dict, Optional
 import time
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any
 
+from DeepResearch.src.datatypes.execution import ExecutionContext
+from DeepResearch.src.datatypes.tools import ExecutionResult
+from DeepResearch.src.utils.execution_history import ExecutionHistory, ExecutionItem
+from DeepResearch.src.utils.execution_status import ExecutionStatus
 
 from .prime_planner import WorkflowDAG, WorkflowStep
-from ..utils.execution_history import ExecutionHistory, ExecutionItem
-from ..utils.execution_status import ExecutionStatus
-from ..utils.tool_registry import ToolRegistry, ExecutionResult
 
-
-@dataclass
-class ExecutionContext:
-    """Context for workflow execution."""
-
-    workflow: WorkflowDAG
-    history: ExecutionHistory
-    data_bag: Dict[str, Any] = field(default_factory=dict)
-    current_step: int = 0
-    max_retries: int = 3
-    manual_confirmation: bool = False
-    adaptive_replanning: bool = True
+if TYPE_CHECKING:
+    from DeepResearch.src.utils.tool_registry import ToolRegistry
 
 
 @dataclass
@@ -33,7 +24,7 @@ class ToolExecutor:
         self.retries = retries
         self.validation_enabled = True
 
-    def execute_workflow(self, context: ExecutionContext) -> Dict[str, Any]:
+    def execute_workflow(self, context: ExecutionContext) -> dict[str, Any]:
         """
         Execute a complete workflow with adaptive re-planning.
 
@@ -147,7 +138,7 @@ class ToolExecutor:
                 if attempt == self.retries:
                     return ExecutionResult(
                         success=False,
-                        error=f"Execution failed after {self.retries} retries: {str(e)}",
+                        error=f"Execution failed after {self.retries} retries: {e!s}",
                         data={},
                     )
 
@@ -243,7 +234,7 @@ class ToolExecutor:
 
     def _prepare_parameters(
         self, step: WorkflowStep, context: ExecutionContext
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Prepare parameters with data substitution."""
         parameters = step.parameters.copy()
 
@@ -286,28 +277,20 @@ class ToolExecutor:
         return result
 
     def _request_manual_confirmation(
-        self, step: WorkflowStep, parameters: Dict[str, Any]
+        self, step: WorkflowStep, parameters: dict[str, Any]
     ) -> bool:
         """Request manual confirmation for step execution."""
-        print("\n=== Manual Confirmation Required ===")
-        print(f"Tool: {step.tool}")
-        print(f"Parameters: {parameters}")
-        print(f"Success Criteria: {step.success_criteria}")
 
         response = input("Proceed with execution? (y/n): ").lower().strip()
         return response in ["y", "yes"]
 
     def _handle_failure_with_replanning(
         self, failed_step: WorkflowStep, context: ExecutionContext
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Handle step failure with adaptive re-planning."""
         # Strategic re-planning: substitute with alternative tool
         alternative_tool = self._find_alternative_tool(failed_step.tool)
         if alternative_tool:
-            print(
-                f"Strategic re-planning: substituting {failed_step.tool} with {alternative_tool}"
-            )
-
             # Create new step with alternative tool
             new_step = WorkflowStep(
                 tool=alternative_tool,
@@ -326,8 +309,6 @@ class ToolExecutor:
         # Tactical re-planning: adjust parameters
         adjusted_params = self._adjust_parameters_tactically(failed_step)
         if adjusted_params:
-            print(f"Tactical re-planning: adjusting parameters for {failed_step.tool}")
-
             # Create new step with adjusted parameters
             new_step = WorkflowStep(
                 tool=failed_step.tool,
@@ -345,7 +326,7 @@ class ToolExecutor:
 
         return None
 
-    def _find_alternative_tool(self, tool_name: str) -> Optional[str]:
+    def _find_alternative_tool(self, tool_name: str) -> str | None:
         """Find alternative tool for strategic re-planning."""
         alternatives = {
             "blast_search": "prot_trek",
@@ -360,7 +341,7 @@ class ToolExecutor:
 
     def _adjust_parameters_tactically(
         self, step: WorkflowStep
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Adjust parameters for tactical re-planning."""
         adjusted = step.parameters.copy()
 
@@ -395,10 +376,7 @@ class ToolExecutor:
         failed_steps = sum(
             1 for item in context.history.items if item.status == ExecutionStatus.FAILED
         )
-        if failed_steps > len(context.workflow.steps) // 2:
-            return False
-
-        return True
+        return not failed_steps > len(context.workflow.steps) // 2
 
 
 def execute_workflow(
@@ -406,7 +384,7 @@ def execute_workflow(
     registry: ToolRegistry,
     manual_confirmation: bool = False,
     adaptive_replanning: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Convenience function to execute a workflow."""
     executor = ToolExecutor(registry)
     history = ExecutionHistory()

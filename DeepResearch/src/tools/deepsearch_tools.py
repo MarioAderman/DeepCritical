@@ -12,63 +12,27 @@ import json
 import logging
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 from urllib.parse import urlparse
+
 import requests
 from bs4 import BeautifulSoup
 
-from .base import ToolSpec, ToolRunner, ExecutionResult, registry
-from ..utils.deepsearch_schemas import (
-    DeepSearchSchemas,
-    SearchTimeFilter,
-    MAX_URLS_PER_STEP,
+from DeepResearch.src.datatypes.deepsearch import (
     MAX_QUERIES_PER_STEP,
     MAX_REFLECT_PER_STEP,
+    MAX_URLS_PER_STEP,
+    ReflectionQuestion,
+    SearchResult,
+    SearchTimeFilter,
+    URLVisitResult,
+    WebSearchRequest,
 )
+
+from .base import ExecutionResult, ToolRunner, ToolSpec, registry
 
 # Configure logging
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class SearchResult:
-    """Individual search result."""
-
-    title: str
-    url: str
-    snippet: str
-    score: float = 0.0
-
-
-@dataclass
-class WebSearchRequest:
-    """Web search request parameters."""
-
-    query: str
-    time_filter: Optional[SearchTimeFilter] = None
-    location: Optional[str] = None
-    max_results: int = 10
-
-
-@dataclass
-class URLVisitResult:
-    """Result of visiting a URL."""
-
-    url: str
-    title: str
-    content: str
-    success: bool
-    error: Optional[str] = None
-    processing_time: float = 0.0
-
-
-@dataclass
-class ReflectionQuestion:
-    """Reflection question for deep search."""
-
-    question: str
-    priority: int = 1
-    context: Optional[str] = None
 
 
 class WebSearchTool(ToolRunner):
@@ -92,9 +56,8 @@ class WebSearchTool(ToolRunner):
                 },
             )
         )
-        self.schemas = DeepSearchSchemas()
 
-    def run(self, params: Dict[str, Any]) -> ExecutionResult:
+    def run(self, params: dict[str, Any]) -> ExecutionResult:
         """Execute web search."""
         ok, err = self.validate(params)
         if not ok:
@@ -116,7 +79,7 @@ class WebSearchTool(ToolRunner):
                 try:
                     time_filter = SearchTimeFilter(time_filter_str)
                 except ValueError:
-                    logger.warning(f"Invalid time filter: {time_filter_str}")
+                    logger.warning("Invalid time filter: %s", time_filter_str)
 
             # Create search request
             search_request = WebSearchRequest(
@@ -141,10 +104,10 @@ class WebSearchTool(ToolRunner):
             )
 
         except Exception as e:
-            logger.error(f"Web search failed: {e}")
-            return ExecutionResult(success=False, error=f"Web search failed: {str(e)}")
+            logger.exception("Web search failed")
+            return ExecutionResult(success=False, error=f"Web search failed: {e}")
 
-    def _perform_search(self, request: WebSearchRequest) -> List[SearchResult]:
+    def _perform_search(self, request: WebSearchRequest) -> list[SearchResult]:
         """Perform the actual web search."""
         # Mock implementation - in real implementation, this would use
         # Google Search API, Bing API, or other search engines
@@ -174,7 +137,7 @@ class WebSearchTool(ToolRunner):
         # Limit results
         return mock_results[: request.max_results]
 
-    def _result_to_dict(self, result: SearchResult) -> Dict[str, Any]:
+    def _result_to_dict(self, result: SearchResult) -> dict[str, Any]:
         """Convert SearchResult to dictionary."""
         return {
             "title": result.title,
@@ -204,9 +167,8 @@ class URLVisitTool(ToolRunner):
                 },
             )
         )
-        self.schemas = DeepSearchSchemas()
 
-    def run(self, params: Dict[str, Any]) -> ExecutionResult:
+    def run(self, params: dict[str, Any]) -> ExecutionResult:
         """Execute URL visits."""
         ok, err = self.validate(params)
         if not ok:
@@ -222,10 +184,7 @@ class URLVisitTool(ToolRunner):
                 return ExecutionResult(success=False, error="No URLs provided")
 
             # Parse URLs
-            if isinstance(urls_data, str):
-                urls = json.loads(urls_data)
-            else:
-                urls = urls_data
+            urls = json.loads(urls_data) if isinstance(urls_data, str) else urls_data
 
             if not isinstance(urls, list):
                 return ExecutionResult(success=False, error="URLs must be a list")
@@ -257,8 +216,8 @@ class URLVisitTool(ToolRunner):
             )
 
         except Exception as e:
-            logger.error(f"URL visit failed: {e}")
-            return ExecutionResult(success=False, error=f"URL visit failed: {str(e)}")
+            logger.exception("URL visit failed")
+            return ExecutionResult(success=False, error=f"URL visit failed: {e!s}")
 
     def _visit_url(
         self, url: str, max_content_length: int, timeout: int
@@ -345,7 +304,7 @@ class URLVisitTool(ToolRunner):
         lines = [line for line in lines if line]  # Remove empty lines
         return "\n".join(lines)
 
-    def _result_to_dict(self, result: URLVisitResult) -> Dict[str, Any]:
+    def _result_to_dict(self, result: URLVisitResult) -> dict[str, Any]:
         """Convert URLVisitResult to dictionary."""
         return {
             "url": result.url,
@@ -373,9 +332,8 @@ class ReflectionTool(ToolRunner):
                 outputs={"reflection_questions": "JSON", "knowledge_gaps": "JSON"},
             )
         )
-        self.schemas = DeepSearchSchemas()
 
-    def run(self, params: Dict[str, Any]) -> ExecutionResult:
+    def run(self, params: dict[str, Any]) -> ExecutionResult:
         """Generate reflection questions."""
         ok, err = self.validate(params)
         if not ok:
@@ -419,17 +377,17 @@ class ReflectionTool(ToolRunner):
             )
 
         except Exception as e:
-            logger.error(f"Reflection generation failed: {e}")
+            logger.exception("Reflection generation failed")
             return ExecutionResult(
-                success=False, error=f"Reflection generation failed: {str(e)}"
+                success=False, error=f"Reflection generation failed: {e!s}"
             )
 
     def _generate_reflection_questions(
         self,
         original_question: str,
         current_knowledge: str,
-        search_results: List[Dict[str, Any]],
-    ) -> List[ReflectionQuestion]:
+        search_results: list[dict[str, Any]],
+    ) -> list[ReflectionQuestion]:
         """Generate reflection questions based on current state."""
         questions = []
 
@@ -498,16 +456,14 @@ class ReflectionTool(ToolRunner):
             )
 
         # Limit to max reflection questions
-        questions = sorted(questions, key=lambda q: q.priority)[:MAX_REFLECT_PER_STEP]
-
-        return questions
+        return sorted(questions, key=lambda q: q.priority)[:MAX_REFLECT_PER_STEP]
 
     def _identify_knowledge_gaps(
         self,
         original_question: str,
         current_knowledge: str,
-        search_results: List[Dict[str, Any]],
-    ) -> List[str]:
+        search_results: list[dict[str, Any]],
+    ) -> list[str]:
         """Identify specific knowledge gaps."""
         gaps = []
 
@@ -531,7 +487,7 @@ class ReflectionTool(ToolRunner):
 
         return gaps
 
-    def _question_to_dict(self, question: ReflectionQuestion) -> Dict[str, Any]:
+    def _question_to_dict(self, question: ReflectionQuestion) -> dict[str, Any]:
         """Convert ReflectionQuestion to dictionary."""
         return {
             "question": question.question,
@@ -557,9 +513,8 @@ class AnswerGeneratorTool(ToolRunner):
                 outputs={"answer": "TEXT", "confidence": "FLOAT", "sources": "JSON"},
             )
         )
-        self.schemas = DeepSearchSchemas()
 
-    def run(self, params: Dict[str, Any]) -> ExecutionResult:
+    def run(self, params: dict[str, Any]) -> ExecutionResult:
         """Generate comprehensive answer."""
         ok, err = self.validate(params)
         if not ok:
@@ -604,18 +559,18 @@ class AnswerGeneratorTool(ToolRunner):
             )
 
         except Exception as e:
-            logger.error(f"Answer generation failed: {e}")
+            logger.exception("Answer generation failed")
             return ExecutionResult(
-                success=False, error=f"Answer generation failed: {str(e)}"
+                success=False, error=f"Answer generation failed: {e!s}"
             )
 
     def _generate_answer(
         self,
         original_question: str,
-        collected_knowledge: Dict[str, Any],
-        search_results: List[Dict[str, Any]],
-        visited_urls: List[Dict[str, Any]],
-    ) -> tuple[str, float, List[Dict[str, Any]]]:
+        collected_knowledge: dict[str, Any],
+        search_results: list[dict[str, Any]],
+        visited_urls: list[dict[str, Any]],
+    ) -> tuple[str, float, list[dict[str, Any]]]:
         """Generate comprehensive answer from collected information."""
 
         # Build answer components
@@ -697,7 +652,7 @@ class AnswerGeneratorTool(ToolRunner):
         return final_answer, overall_confidence, sources
 
     def _extract_main_answer(
-        self, collected_knowledge: Dict[str, Any], question: str
+        self, collected_knowledge: dict[str, Any], question: str
     ) -> str:
         """Extract main answer from collected knowledge."""
         # This would use AI to synthesize the collected knowledge
@@ -736,9 +691,8 @@ class QueryRewriterTool(ToolRunner):
                 outputs={"rewritten_queries": "JSON", "search_strategies": "JSON"},
             )
         )
-        self.schemas = DeepSearchSchemas()
 
-    def run(self, params: Dict[str, Any]) -> ExecutionResult:
+    def run(self, params: dict[str, Any]) -> ExecutionResult:
         """Rewrite search queries."""
         ok, err = self.validate(params)
         if not ok:
@@ -770,14 +724,14 @@ class QueryRewriterTool(ToolRunner):
             )
 
         except Exception as e:
-            logger.error(f"Query rewriting failed: {e}")
+            logger.exception("Query rewriting failed")
             return ExecutionResult(
-                success=False, error=f"Query rewriting failed: {str(e)}"
+                success=False, error=f"Query rewriting failed: {e!s}"
             )
 
     def _rewrite_queries(
-        self, original_query: str, search_context: str, target_language: Optional[str]
-    ) -> List[Dict[str, Any]]:
+        self, original_query: str, search_context: str, target_language: str | None
+    ) -> list[dict[str, Any]]:
         """Rewrite queries for better search results."""
         queries = []
 
@@ -790,7 +744,7 @@ class QueryRewriterTool(ToolRunner):
             queries.append(
                 {
                     "q": specific_query,
-                    "tbs": SearchTimeFilter.PAST_YEAR.value,
+                    "tbs": getattr(SearchTimeFilter.PAST_YEAR, "value", None),
                     "location": None,
                 }
             )
@@ -803,7 +757,7 @@ class QueryRewriterTool(ToolRunner):
         queries.append(
             {
                 "q": f"{original_query} 2024",
-                "tbs": SearchTimeFilter.PAST_YEAR.value,
+                "tbs": getattr(SearchTimeFilter.PAST_YEAR, "value", None),
                 "location": None,
             }
         )
@@ -825,15 +779,14 @@ class QueryRewriterTool(ToolRunner):
             return " ".join(words[:3])
         return query
 
-    def _generate_search_strategies(self, original_query: str) -> List[str]:
+    def _generate_search_strategies(self, original_query: str) -> list[str]:
         """Generate search strategies for the query."""
-        strategies = [
+        return [
             "Direct keyword search",
             "Synonym and related term search",
             "Recent developments search",
             "Academic and research sources search",
         ]
-        return strategies
 
 
 # Register all deep search tools
@@ -851,7 +804,7 @@ class DeepSearchTool(ToolRunner):
             )
         )
 
-    def run(self, params: Dict[str, str]) -> ExecutionResult:
+    def run(self, params: dict[str, str]) -> ExecutionResult:
         query = params.get("query", "")
         max_steps = int(params.get("max_steps", "10"))
 

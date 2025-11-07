@@ -7,12 +7,13 @@ integrating with the existing tool registry and datatypes.
 
 import asyncio
 import json
-from typing import Dict, Any, List, Optional
-from pydantic import BaseModel, Field
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field
 from pydantic_ai import RunContext
 
-from .base import ToolSpec, ToolRunner, ExecutionResult
-from .websearch_cleaned import search_web, search_and_chunk
+from .base import ExecutionResult, ToolRunner, ToolSpec
+from .websearch_cleaned import search_and_chunk, search_web
 
 
 class WebSearchRequest(BaseModel):
@@ -20,18 +21,9 @@ class WebSearchRequest(BaseModel):
 
     query: str = Field(..., description="Search query")
     search_type: str = Field("search", description="Type of search: 'search' or 'news'")
-    num_results: Optional[int] = Field(
-        4, description="Number of results to fetch (1-20)"
-    )
+    num_results: int | None = Field(4, description="Number of results to fetch (1-20)")
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "query": "artificial intelligence developments 2024",
-                "search_type": "news",
-                "num_results": 5,
-            }
-        }
+    model_config = ConfigDict(json_schema_extra={})
 
 
 class WebSearchResponse(BaseModel):
@@ -42,19 +34,9 @@ class WebSearchResponse(BaseModel):
     num_results: int = Field(..., description="Number of results requested")
     content: str = Field(..., description="Extracted content from search results")
     success: bool = Field(..., description="Whether the search was successful")
-    error: Optional[str] = Field(None, description="Error message if search failed")
+    error: str | None = Field(None, description="Error message if search failed")
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "query": "artificial intelligence developments 2024",
-                "search_type": "news",
-                "num_results": 5,
-                "content": "## AI Breakthrough in 2024\n**Source:** TechCrunch   **Date:** 2024-01-15\n...",
-                "success": True,
-                "error": None,
-            }
-        }
+    model_config = ConfigDict(json_schema_extra={})
 
 
 class ChunkedSearchRequest(BaseModel):
@@ -62,9 +44,7 @@ class ChunkedSearchRequest(BaseModel):
 
     query: str = Field(..., description="Search query")
     search_type: str = Field("search", description="Type of search: 'search' or 'news'")
-    num_results: Optional[int] = Field(
-        4, description="Number of results to fetch (1-20)"
-    )
+    num_results: int | None = Field(4, description="Number of results to fetch (1-20)")
     tokenizer_or_token_counter: str = Field("character", description="Tokenizer type")
     chunk_size: int = Field(1000, description="Chunk size for processing")
     chunk_overlap: int = Field(0, description="Overlap between chunks")
@@ -77,46 +57,18 @@ class ChunkedSearchRequest(BaseModel):
     )
     clean_text: bool = Field(True, description="Whether to clean text")
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "query": "machine learning algorithms",
-                "search_type": "search",
-                "num_results": 3,
-                "chunk_size": 1000,
-                "chunk_overlap": 100,
-                "heading_level": 3,
-                "min_characters_per_chunk": 50,
-                "max_characters_per_section": 4000,
-                "clean_text": True,
-            }
-        }
+    model_config = ConfigDict(json_schema_extra={})
 
 
 class ChunkedSearchResponse(BaseModel):
     """Response model for chunked search operations."""
 
     query: str = Field(..., description="Original search query")
-    chunks: List[Dict[str, Any]] = Field(..., description="List of processed chunks")
+    chunks: list[dict[str, Any]] = Field(..., description="List of processed chunks")
     success: bool = Field(..., description="Whether the search was successful")
-    error: Optional[str] = Field(None, description="Error message if search failed")
+    error: str | None = Field(None, description="Error message if search failed")
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "query": "machine learning algorithms",
-                "chunks": [
-                    {
-                        "text": "Machine learning algorithms are...",
-                        "source_title": "ML Guide",
-                        "url": "https://example.com/ml-guide",
-                        "token_count": 150,
-                    }
-                ],
-                "success": True,
-                "error": None,
-            }
-        }
+    model_config = ConfigDict(json_schema_extra={})
 
 
 class WebSearchTool(ToolRunner):
@@ -131,7 +83,7 @@ class WebSearchTool(ToolRunner):
         )
         super().__init__(spec)
 
-    def run(self, params: Dict[str, Any]) -> ExecutionResult:
+    def run(self, params: dict[str, Any]) -> ExecutionResult:
         """Execute web search operation."""
         try:
             # Validate inputs
@@ -171,7 +123,7 @@ class WebSearchTool(ToolRunner):
             )
 
         except Exception as e:
-            return ExecutionResult(success=False, error=f"Web search failed: {str(e)}")
+            return ExecutionResult(success=False, error=f"Web search failed: {e!s}")
 
 
 class ChunkedSearchTool(ToolRunner):
@@ -196,7 +148,7 @@ class ChunkedSearchTool(ToolRunner):
         )
         super().__init__(spec)
 
-    def run(self, params: Dict[str, Any]) -> ExecutionResult:
+    def run(self, params: dict[str, Any]) -> ExecutionResult:
         """Execute chunked search operation."""
         try:
             # Validate inputs
@@ -261,9 +213,7 @@ class ChunkedSearchTool(ToolRunner):
             )
 
         except Exception as e:
-            return ExecutionResult(
-                success=False, error=f"Chunked search failed: {str(e)}"
-            )
+            return ExecutionResult(success=False, error=f"Chunked search failed: {e!s}")
 
 
 # Pydantic AI Tool Functions
@@ -292,8 +242,7 @@ def web_search_tool(ctx: RunContext[Any]) -> str:
 
     if result.success:
         return result.data.get("content", "No content returned")
-    else:
-        return f"Search failed: {result.error}"
+    return f"Search failed: {result.error}"
 
 
 def chunked_search_tool(ctx: RunContext[Any]) -> str:
@@ -326,8 +275,7 @@ def chunked_search_tool(ctx: RunContext[Any]) -> str:
 
     if result.success:
         return json.dumps(result.data.get("chunks", []))
-    else:
-        return f"Chunked search failed: {result.error}"
+    return f"Chunked search failed: {result.error}"
 
 
 # Register tools with the global registry

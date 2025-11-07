@@ -9,18 +9,22 @@ from __future__ import annotations
 
 import asyncio
 import json
-from typing import Any, Dict, List, Optional, AsyncGenerator
+from typing import TYPE_CHECKING, Any
+
 import aiohttp
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from .rag import (
+    EmbeddingModelType,
     Embeddings,
     EmbeddingsConfig,
-    EmbeddingModelType,
+    LLMModelType,
     LLMProvider,
     VLLMConfig,
-    LLMModelType,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
 
 
 class VLLMEmbeddings(Embeddings):
@@ -29,7 +33,7 @@ class VLLMEmbeddings(Embeddings):
     def __init__(self, config: EmbeddingsConfig):
         super().__init__(config)
         self.base_url = f"http://{config.base_url or 'localhost:8000'}"
-        self.session: Optional[aiohttp.ClientSession] = None
+        self.session: aiohttp.ClientSession | None = None
 
     async def __aenter__(self):
         """Async context manager entry."""
@@ -42,8 +46,8 @@ class VLLMEmbeddings(Embeddings):
             await self.session.close()
 
     async def _make_request(
-        self, endpoint: str, payload: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, endpoint: str, payload: dict[str, Any]
+    ) -> dict[str, Any]:
         """Make HTTP request to VLLM server."""
         if not self.session:
             self.session = aiohttp.ClientSession()
@@ -51,9 +55,9 @@ class VLLMEmbeddings(Embeddings):
         url = f"{self.base_url}/v1/{endpoint}"
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.config.api_key}"
-            if self.config.api_key
-            else "",
+            "Authorization": (
+                f"Bearer {self.config.api_key}" if self.config.api_key else ""
+            ),
         }
 
         async with self.session.post(url, json=payload, headers=headers) as response:
@@ -61,8 +65,8 @@ class VLLMEmbeddings(Embeddings):
             return await response.json()
 
     async def vectorize_documents(
-        self, document_chunks: List[str]
-    ) -> List[List[float]]:
+        self, document_chunks: list[str]
+    ) -> list[list[float]]:
         """Generate document embeddings for a list of chunks."""
         if not document_chunks:
             return []
@@ -85,22 +89,21 @@ class VLLMEmbeddings(Embeddings):
                 batch_embeddings = [item["embedding"] for item in response["data"]]
                 embeddings.extend(batch_embeddings)
             except Exception as e:
-                raise RuntimeError(
-                    f"Failed to generate embeddings for batch {i // batch_size}: {e}"
-                )
+                msg = f"Failed to generate embeddings for batch {i // batch_size}: {e}"
+                raise RuntimeError(msg)
 
         return embeddings
 
-    async def vectorize_query(self, text: str) -> List[float]:
+    async def vectorize_query(self, text: str) -> list[float]:
         """Generate embeddings for the query string."""
         embeddings = await self.vectorize_documents([text])
         return embeddings[0] if embeddings else []
 
-    def vectorize_documents_sync(self, document_chunks: List[str]) -> List[List[float]]:
+    def vectorize_documents_sync(self, document_chunks: list[str]) -> list[list[float]]:
         """Synchronous version of vectorize_documents()."""
         return asyncio.run(self.vectorize_documents(document_chunks))
 
-    def vectorize_query_sync(self, text: str) -> List[float]:
+    def vectorize_query_sync(self, text: str) -> list[float]:
         """Synchronous version of vectorize_query()."""
         return asyncio.run(self.vectorize_query(text))
 
@@ -111,7 +114,7 @@ class VLLMLLMProvider(LLMProvider):
     def __init__(self, config: VLLMConfig):
         super().__init__(config)
         self.base_url = f"http://{config.host}:{config.port}"
-        self.session: Optional[aiohttp.ClientSession] = None
+        self.session: aiohttp.ClientSession | None = None
 
     async def __aenter__(self):
         """Async context manager entry."""
@@ -124,8 +127,8 @@ class VLLMLLMProvider(LLMProvider):
             await self.session.close()
 
     async def _make_request(
-        self, endpoint: str, payload: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, endpoint: str, payload: dict[str, Any]
+    ) -> dict[str, Any]:
         """Make HTTP request to VLLM server."""
         if not self.session:
             self.session = aiohttp.ClientSession()
@@ -133,9 +136,9 @@ class VLLMLLMProvider(LLMProvider):
         url = f"{self.base_url}/v1/{endpoint}"
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.config.api_key}"
-            if self.config.api_key
-            else "",
+            "Authorization": (
+                f"Bearer {self.config.api_key}" if self.config.api_key else ""
+            ),
         }
 
         async with self.session.post(url, json=payload, headers=headers) as response:
@@ -143,7 +146,7 @@ class VLLMLLMProvider(LLMProvider):
             return await response.json()
 
     async def generate(
-        self, prompt: str, context: Optional[str] = None, **kwargs: Any
+        self, prompt: str, context: str | None = None, **kwargs: Any
     ) -> str:
         """Generate text using the LLM."""
         full_prompt = prompt
@@ -170,10 +173,11 @@ class VLLMLLMProvider(LLMProvider):
             response = await self._make_request("chat/completions", payload)
             return response["choices"][0]["message"]["content"]
         except Exception as e:
-            raise RuntimeError(f"Failed to generate text: {e}")
+            msg = f"Failed to generate text: {e}"
+            raise RuntimeError(msg)
 
     async def generate_stream(
-        self, prompt: str, context: Optional[str] = None, **kwargs: Any
+        self, prompt: str, context: str | None = None, **kwargs: Any
     ) -> AsyncGenerator[str, None]:
         """Generate streaming text using the LLM."""
         full_prompt = prompt
@@ -202,9 +206,9 @@ class VLLMLLMProvider(LLMProvider):
         url = f"{self.base_url}/v1/chat/completions"
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.config.api_key}"
-            if self.config.api_key
-            else "",
+            "Authorization": (
+                f"Bearer {self.config.api_key}" if self.config.api_key else ""
+            ),
         }
 
         try:
@@ -227,7 +231,8 @@ class VLLMLLMProvider(LLMProvider):
                         except json.JSONDecodeError:
                             continue
         except Exception as e:
-            raise RuntimeError(f"Failed to generate streaming text: {e}")
+            msg = f"Failed to generate streaming text: {e}"
+            raise RuntimeError(msg)
 
 
 class VLLMServerConfig(BaseModel):
@@ -240,9 +245,7 @@ class VLLMServerConfig(BaseModel):
     max_model_len: int = Field(4096, description="Maximum model length")
     dtype: str = Field("auto", description="Data type for model")
     trust_remote_code: bool = Field(False, description="Trust remote code")
-    download_dir: Optional[str] = Field(
-        None, description="Download directory for models"
-    )
+    download_dir: str | None = Field(None, description="Download directory for models")
     load_format: str = Field("auto", description="Model loading format")
     tensor_parallel_size: int = Field(1, description="Tensor parallel size")
     pipeline_parallel_size: int = Field(1, description="Pipeline parallel size")
@@ -250,11 +253,10 @@ class VLLMServerConfig(BaseModel):
     max_num_batched_tokens: int = Field(8192, description="Maximum batched tokens")
     max_paddings: int = Field(256, description="Maximum paddings")
     disable_log_stats: bool = Field(False, description="Disable log statistics")
-    revision: Optional[str] = Field(None, description="Model revision")
-    code_revision: Optional[str] = Field(None, description="Code revision")
-    tokenizer: Optional[str] = Field(None, description="Tokenizer name")
+    revision: str | None = Field(None, description="Model revision")
+    code_revision: str | None = Field(None, description="Code revision")
+    tokenizer: str | None = Field(None, description="Tokenizer name")
     tokenizer_mode: str = Field("auto", description="Tokenizer mode")
-    trust_remote_code: bool = Field(False, description="Trust remote code")
     skip_tokenizer_init: bool = Field(
         False, description="Skip tokenizer initialization"
     )
@@ -263,16 +265,17 @@ class VLLMServerConfig(BaseModel):
         8192, description="Max sequence length to capture"
     )
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
-                "model_name": "microsoft/DialoGPT-medium",
+                "model_name": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
                 "host": "0.0.0.0",
                 "port": 8000,
                 "gpu_memory_utilization": 0.9,
                 "max_model_len": 4096,
             }
         }
+    )
 
 
 class VLLMEmbeddingServerConfig(BaseModel):
@@ -285,9 +288,7 @@ class VLLMEmbeddingServerConfig(BaseModel):
     max_model_len: int = Field(512, description="Maximum model length for embeddings")
     dtype: str = Field("auto", description="Data type for model")
     trust_remote_code: bool = Field(False, description="Trust remote code")
-    download_dir: Optional[str] = Field(
-        None, description="Download directory for models"
-    )
+    download_dir: str | None = Field(None, description="Download directory for models")
     load_format: str = Field("auto", description="Model loading format")
     tensor_parallel_size: int = Field(1, description="Tensor parallel size")
     pipeline_parallel_size: int = Field(1, description="Pipeline parallel size")
@@ -296,8 +297,8 @@ class VLLMEmbeddingServerConfig(BaseModel):
     max_paddings: int = Field(256, description="Maximum paddings")
     disable_log_stats: bool = Field(False, description="Disable log statistics")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "model_name": "sentence-transformers/all-MiniLM-L6-v2",
                 "host": "0.0.0.0",
@@ -306,13 +307,14 @@ class VLLMEmbeddingServerConfig(BaseModel):
                 "max_model_len": 512,
             }
         }
+    )
 
 
 class VLLMDeployment(BaseModel):
     """VLLM deployment configuration and management."""
 
     llm_config: VLLMServerConfig = Field(..., description="LLM server configuration")
-    embedding_config: Optional[VLLMEmbeddingServerConfig] = Field(
+    embedding_config: VLLMEmbeddingServerConfig | None = Field(
         None, description="Embedding server configuration"
     )
     auto_start: bool = Field(True, description="Automatically start servers")
@@ -321,10 +323,13 @@ class VLLMDeployment(BaseModel):
     )
     max_retries: int = Field(3, description="Maximum retry attempts for health checks")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
-                "llm_config": {"model_name": "microsoft/DialoGPT-medium", "port": 8000},
+                "llm_config": {
+                    "model_name": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+                    "port": 8000,
+                },
                 "embedding_config": {
                     "model_name": "sentence-transformers/all-MiniLM-L6-v2",
                     "port": 8001,
@@ -332,6 +337,7 @@ class VLLMDeployment(BaseModel):
                 "auto_start": True,
             }
         }
+    )
 
     async def start_llm_server(self) -> bool:
         """Start the LLM server."""
@@ -391,10 +397,10 @@ class VLLMRAGSystem(BaseModel):
     """VLLM-based RAG system implementation."""
 
     deployment: VLLMDeployment = Field(..., description="VLLM deployment configuration")
-    embeddings: Optional[VLLMEmbeddings] = Field(
+    embeddings: VLLMEmbeddings | None = Field(
         None, description="VLLM embeddings provider"
     )
-    llm: Optional[VLLMLLMProvider] = Field(None, description="VLLM LLM provider")
+    llm: VLLMLLMProvider | None = Field(None, description="VLLM LLM provider")
 
     async def initialize(self) -> None:
         """Initialize the VLLM RAG system."""
@@ -406,7 +412,7 @@ class VLLMRAGSystem(BaseModel):
             embedding_config = EmbeddingsConfig(
                 model_type=EmbeddingModelType.CUSTOM,
                 model_name=self.deployment.embedding_config.model_name,
-                base_url=f"{self.deployment.embedding_config.host}:{self.deployment.embedding_config.port}",
+                base_url=f"http://{self.deployment.embedding_config.host}:{self.deployment.embedding_config.port}",  # type: ignore
                 num_dimensions=384,  # Default for sentence-transformers models
             )
             self.embeddings = VLLMEmbeddings(embedding_config)
@@ -420,5 +426,4 @@ class VLLMRAGSystem(BaseModel):
         )
         self.llm = VLLMLLMProvider(llm_config)
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)

@@ -9,162 +9,38 @@ DeepCritical's architecture.
 from __future__ import annotations
 
 import uuid
-from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field, validator
-from pydantic_ai import RunContext
+from typing import TYPE_CHECKING, Any
+
 # Note: defer decorator is not available in current pydantic-ai version
-
 # Import existing DeepCritical types
-from ..datatypes.deep_agent_state import (
-    TaskStatus,
+from DeepResearch.src.datatypes.deep_agent_state import (
     DeepAgentState,
-    create_todo,
+    TaskStatus,
     create_file_info,
+    create_todo,
 )
-from ..datatypes.deep_agent_types import TaskRequest
-from .base import ToolRunner, ToolSpec, ExecutionResult
+from DeepResearch.src.datatypes.deep_agent_tools import (
+    EditFileRequest,
+    EditFileResponse,
+    ListFilesResponse,
+    ReadFileRequest,
+    ReadFileResponse,
+    TaskRequestModel,
+    TaskResponse,
+    WriteFileRequest,
+    WriteFileResponse,
+    WriteTodosRequest,
+    WriteTodosResponse,
+)
+from DeepResearch.src.datatypes.deep_agent_types import TaskRequest
 
+from .base import ExecutionResult, ToolRunner, ToolSpec
 
-class WriteTodosRequest(BaseModel):
-    """Request for writing todos."""
-
-    todos: List[Dict[str, Any]] = Field(..., description="List of todos to write")
-
-    @validator("todos")
-    def validate_todos(cls, v):
-        if not v:
-            raise ValueError("Todos list cannot be empty")
-        for todo in v:
-            if not isinstance(todo, dict):
-                raise ValueError("Each todo must be a dictionary")
-            if "content" not in todo:
-                raise ValueError("Each todo must have 'content' field")
-        return v
-
-
-class WriteTodosResponse(BaseModel):
-    """Response from writing todos."""
-
-    success: bool = Field(..., description="Whether operation succeeded")
-    todos_created: int = Field(..., description="Number of todos created")
-    message: str = Field(..., description="Response message")
-
-
-class ListFilesResponse(BaseModel):
-    """Response from listing files."""
-
-    files: List[str] = Field(..., description="List of file paths")
-    count: int = Field(..., description="Number of files")
-
-
-class ReadFileRequest(BaseModel):
-    """Request for reading a file."""
-
-    file_path: str = Field(..., description="Path to the file to read")
-    offset: int = Field(0, ge=0, description="Line offset to start reading from")
-    limit: int = Field(2000, gt=0, description="Maximum number of lines to read")
-
-    @validator("file_path")
-    def validate_file_path(cls, v):
-        if not v or not v.strip():
-            raise ValueError("File path cannot be empty")
-        return v.strip()
-
-
-class ReadFileResponse(BaseModel):
-    """Response from reading a file."""
-
-    content: str = Field(..., description="File content")
-    file_path: str = Field(..., description="File path")
-    lines_read: int = Field(..., description="Number of lines read")
-    total_lines: int = Field(..., description="Total lines in file")
-
-
-class WriteFileRequest(BaseModel):
-    """Request for writing a file."""
-
-    file_path: str = Field(..., description="Path to the file to write")
-    content: str = Field(..., description="Content to write to the file")
-
-    @validator("file_path")
-    def validate_file_path(cls, v):
-        if not v or not v.strip():
-            raise ValueError("File path cannot be empty")
-        return v.strip()
-
-
-class WriteFileResponse(BaseModel):
-    """Response from writing a file."""
-
-    success: bool = Field(..., description="Whether operation succeeded")
-    file_path: str = Field(..., description="File path")
-    bytes_written: int = Field(..., description="Number of bytes written")
-    message: str = Field(..., description="Response message")
-
-
-class EditFileRequest(BaseModel):
-    """Request for editing a file."""
-
-    file_path: str = Field(..., description="Path to the file to edit")
-    old_string: str = Field(..., description="String to replace")
-    new_string: str = Field(..., description="Replacement string")
-    replace_all: bool = Field(False, description="Whether to replace all occurrences")
-
-    @validator("file_path")
-    def validate_file_path(cls, v):
-        if not v or not v.strip():
-            raise ValueError("File path cannot be empty")
-        return v.strip()
-
-    @validator("old_string")
-    def validate_old_string(cls, v):
-        if not v:
-            raise ValueError("Old string cannot be empty")
-        return v
-
-
-class EditFileResponse(BaseModel):
-    """Response from editing a file."""
-
-    success: bool = Field(..., description="Whether operation succeeded")
-    file_path: str = Field(..., description="File path")
-    replacements_made: int = Field(..., description="Number of replacements made")
-    message: str = Field(..., description="Response message")
-
-
-class TaskRequestModel(BaseModel):
-    """Request for task execution."""
-
-    description: str = Field(..., description="Task description")
-    subagent_type: str = Field(..., description="Type of subagent to use")
-    parameters: Dict[str, Any] = Field(
-        default_factory=dict, description="Task parameters"
-    )
-
-    @validator("description")
-    def validate_description(cls, v):
-        if not v or not v.strip():
-            raise ValueError("Task description cannot be empty")
-        return v.strip()
-
-    @validator("subagent_type")
-    def validate_subagent_type(cls, v):
-        if not v or not v.strip():
-            raise ValueError("Subagent type cannot be empty")
-        return v.strip()
-
-
-class TaskResponse(BaseModel):
-    """Response from task execution."""
-
-    success: bool = Field(..., description="Whether task succeeded")
-    task_id: str = Field(..., description="Task identifier")
-    result: Optional[Dict[str, Any]] = Field(None, description="Task result")
-    message: str = Field(..., description="Response message")
+if TYPE_CHECKING:
+    from pydantic_ai import RunContext
 
 
 # Pydantic AI tool functions
-# @defer - not available in current pydantic-ai version
 def write_todos_tool(
     request: WriteTodosRequest, ctx: RunContext[DeepAgentState]
 ) -> WriteTodosResponse:
@@ -188,7 +64,10 @@ def write_todos_tool(
                     todo.status = TaskStatus.PENDING
 
             # Add to state
-            ctx.state.add_todo(todo)
+            if hasattr(ctx, "state") and hasattr(ctx.state, "add_todo"):
+                add_todo_method = getattr(ctx.state, "add_todo", None)
+                if add_todo_method is not None and callable(add_todo_method):
+                    add_todo_method(todo)
             todos_created += 1
 
         return WriteTodosResponse(
@@ -199,27 +78,35 @@ def write_todos_tool(
 
     except Exception as e:
         return WriteTodosResponse(
-            success=False, todos_created=0, message=f"Error creating todos: {str(e)}"
+            success=False, todos_created=0, message=f"Error creating todos: {e!s}"
         )
 
 
-# @defer - not available in current pydantic-ai version
 def list_files_tool(ctx: RunContext[DeepAgentState]) -> ListFilesResponse:
     """Tool for listing files in the filesystem."""
     try:
-        files = list(ctx.state.files.keys())
+        files = []
+        if hasattr(ctx, "state") and hasattr(ctx.state, "files"):
+            files_dict = getattr(ctx.state, "files", None)
+            if files_dict is not None and hasattr(files_dict, "keys"):
+                keys_method = getattr(files_dict, "keys", None)
+                if keys_method is not None and callable(keys_method):
+                    files = list(keys_method())
         return ListFilesResponse(files=files, count=len(files))
     except Exception:
         return ListFilesResponse(files=[], count=0)
 
 
-# @defer - not available in current pydantic-ai version
 def read_file_tool(
     request: ReadFileRequest, ctx: RunContext[DeepAgentState]
 ) -> ReadFileResponse:
     """Tool for reading a file from the filesystem."""
     try:
-        file_info = ctx.state.get_file(request.file_path)
+        file_info = None
+        if hasattr(ctx, "state") and hasattr(ctx.state, "get_file"):
+            get_file_method = getattr(ctx.state, "get_file", None)
+            if get_file_method is not None and callable(get_file_method):
+                file_info = get_file_method(request.file_path)
         if not file_info:
             return ReadFileResponse(
                 content=f"Error: File '{request.file_path}' not found",
@@ -279,14 +166,13 @@ def read_file_tool(
 
     except Exception as e:
         return ReadFileResponse(
-            content=f"Error reading file: {str(e)}",
+            content=f"Error reading file: {e!s}",
             file_path=request.file_path,
             lines_read=0,
             total_lines=0,
         )
 
 
-# @defer - not available in current pydantic-ai version
 def write_file_tool(
     request: WriteFileRequest, ctx: RunContext[DeepAgentState]
 ) -> WriteFileResponse:
@@ -296,7 +182,10 @@ def write_file_tool(
         file_info = create_file_info(path=request.file_path, content=request.content)
 
         # Add to state
-        ctx.state.add_file(file_info)
+        if hasattr(ctx, "state") and hasattr(ctx.state, "add_file"):
+            add_file_method = getattr(ctx.state, "add_file", None)
+            if add_file_method is not None and callable(add_file_method):
+                add_file_method(file_info)
 
         return WriteFileResponse(
             success=True,
@@ -310,17 +199,20 @@ def write_file_tool(
             success=False,
             file_path=request.file_path,
             bytes_written=0,
-            message=f"Error writing file: {str(e)}",
+            message=f"Error writing file: {e!s}",
         )
 
 
-# @defer - not available in current pydantic-ai version
 def edit_file_tool(
     request: EditFileRequest, ctx: RunContext[DeepAgentState]
 ) -> EditFileResponse:
     """Tool for editing a file in the filesystem."""
     try:
-        file_info = ctx.state.get_file(request.file_path)
+        file_info = None
+        if hasattr(ctx, "state") and hasattr(ctx.state, "get_file"):
+            get_file_method = getattr(ctx.state, "get_file", None)
+            if get_file_method is not None and callable(get_file_method):
+                file_info = get_file_method(request.file_path)
         if not file_info:
             return EditFileResponse(
                 success=False,
@@ -348,7 +240,7 @@ def edit_file_tool(
                     replacements_made=0,
                     message=f"Error: String '{request.old_string}' appears {occurrences} times in file. Use replace_all=True to replace all instances, or provide a more specific string with surrounding context.",
                 )
-            elif occurrences == 0:
+            if occurrences == 0:
                 return EditFileResponse(
                     success=False,
                     file_path=request.file_path,
@@ -371,7 +263,10 @@ def edit_file_tool(
             result_msg = f"Successfully replaced string in '{request.file_path}'"
 
         # Update the file
-        ctx.state.update_file_content(request.file_path, new_content)
+        if hasattr(ctx, "state") and hasattr(ctx.state, "update_file_content"):
+            update_method = getattr(ctx.state, "update_file_content", None)
+            if update_method is not None and callable(update_method):
+                update_method(request.file_path, new_content)
 
         return EditFileResponse(
             success=True,
@@ -385,11 +280,10 @@ def edit_file_tool(
             success=False,
             file_path=request.file_path,
             replacements_made=0,
-            message=f"Error editing file: {str(e)}",
+            message=f"Error editing file: {e!s}",
         )
 
 
-# @defer - not available in current pydantic-ai version
 def task_tool(
     request: TaskRequestModel, ctx: RunContext[DeepAgentState]
 ) -> TaskResponse:
@@ -407,7 +301,12 @@ def task_tool(
         )
 
         # Add to active tasks
-        ctx.state.active_tasks.append(task_id)
+        if hasattr(ctx, "state") and hasattr(ctx.state, "active_tasks"):
+            active_tasks = getattr(ctx.state, "active_tasks", None)
+            if active_tasks is not None and hasattr(active_tasks, "append"):
+                append_method = getattr(active_tasks, "append", None)
+                if append_method is not None and callable(append_method):
+                    append_method(task_id)
 
         # TODO: Implement actual subagent execution
         # For now, return a placeholder response
@@ -420,9 +319,27 @@ def task_tool(
         }
 
         # Move from active to completed
-        if task_id in ctx.state.active_tasks:
-            ctx.state.active_tasks.remove(task_id)
-        ctx.state.completed_tasks.append(task_id)
+        if (
+            hasattr(ctx, "state")
+            and hasattr(ctx.state, "active_tasks")
+            and hasattr(ctx.state, "completed_tasks")
+        ):
+            active_tasks = getattr(ctx.state, "active_tasks", None)
+            completed_tasks = getattr(ctx.state, "completed_tasks", None)
+
+            if active_tasks is not None and hasattr(active_tasks, "remove"):
+                remove_method = getattr(active_tasks, "remove", None)
+                if (
+                    remove_method is not None
+                    and callable(remove_method)
+                    and task_id in active_tasks
+                ):
+                    remove_method(task_id)
+
+            if completed_tasks is not None and hasattr(completed_tasks, "append"):
+                append_method = getattr(completed_tasks, "append", None)
+                if append_method is not None and callable(append_method):
+                    append_method(task_id)
 
         return TaskResponse(
             success=True,
@@ -436,7 +353,7 @@ def task_tool(
             success=False,
             task_id="",
             result=None,
-            message=f"Error executing task: {str(e)}",
+            message=f"Error executing task: {e!s}",
         )
 
 
@@ -460,7 +377,7 @@ class WriteTodosToolRunner(ToolRunner):
             )
         )
 
-    def run(self, params: Dict[str, Any]) -> ExecutionResult:
+    def run(self, params: dict[str, Any]) -> ExecutionResult:
         try:
             todos_data = params.get("todos", [])
             WriteTodosRequest(todos=todos_data)
@@ -492,7 +409,7 @@ class ListFilesToolRunner(ToolRunner):
             )
         )
 
-    def run(self, params: Dict[str, Any]) -> ExecutionResult:
+    def run(self, params: dict[str, Any]) -> ExecutionResult:
         try:
             # This would normally be called through Pydantic AI
             # For now, return a mock result
@@ -519,7 +436,7 @@ class ReadFileToolRunner(ToolRunner):
             )
         )
 
-    def run(self, params: Dict[str, Any]) -> ExecutionResult:
+    def run(self, params: dict[str, Any]) -> ExecutionResult:
         try:
             request = ReadFileRequest(
                 file_path=params.get("file_path", ""),
@@ -560,7 +477,7 @@ class WriteFileToolRunner(ToolRunner):
             )
         )
 
-    def run(self, params: Dict[str, Any]) -> ExecutionResult:
+    def run(self, params: dict[str, Any]) -> ExecutionResult:
         try:
             request = WriteFileRequest(
                 file_path=params.get("file_path", ""), content=params.get("content", "")
@@ -604,7 +521,7 @@ class EditFileToolRunner(ToolRunner):
             )
         )
 
-    def run(self, params: Dict[str, Any]) -> ExecutionResult:
+    def run(self, params: dict[str, Any]) -> ExecutionResult:
         try:
             request = EditFileRequest(
                 file_path=params.get("file_path", ""),
@@ -650,7 +567,7 @@ class TaskToolRunner(ToolRunner):
             )
         )
 
-    def run(self, params: Dict[str, Any]) -> ExecutionResult:
+    def run(self, params: dict[str, Any]) -> ExecutionResult:
         try:
             request = TaskRequestModel(
                 description=params.get("description", ""),
@@ -681,30 +598,18 @@ class TaskToolRunner(ToolRunner):
 
 # Export all tools
 __all__ = [
-    # Pydantic AI tools
-    "write_todos_tool",
-    "list_files_tool",
-    "read_file_tool",
-    "write_file_tool",
-    "edit_file_tool",
-    "task_tool",
-    # Tool runners
-    "WriteTodosToolRunner",
+    "EditFileToolRunner",
     "ListFilesToolRunner",
     "ReadFileToolRunner",
-    "WriteFileToolRunner",
-    "EditFileToolRunner",
     "TaskToolRunner",
-    # Request/Response models
-    "WriteTodosRequest",
-    "WriteTodosResponse",
-    "ListFilesResponse",
-    "ReadFileRequest",
-    "ReadFileResponse",
-    "WriteFileRequest",
-    "WriteFileResponse",
-    "EditFileRequest",
-    "EditFileResponse",
-    "TaskRequestModel",
-    "TaskResponse",
+    "WriteFileToolRunner",
+    # Tool runners
+    "WriteTodosToolRunner",
+    "edit_file_tool",
+    "list_files_tool",
+    "read_file_tool",
+    "task_tool",
+    "write_file_tool",
+    # Pydantic AI tools
+    "write_todos_tool",
 ]

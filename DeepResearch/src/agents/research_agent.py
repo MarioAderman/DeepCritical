@@ -1,40 +1,27 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Tuple
+from typing import TYPE_CHECKING, Any
 
 try:
     from pydantic_ai import Agent  # type: ignore
 except Exception:  # pragma: no cover
     Agent = None  # type: ignore
 
-from omegaconf import DictConfig
 
-from ..prompts import PromptLoader
-from ..tools.pyd_ai_tools import (
-    _build_builtin_tools,
-    _build_toolsets,
-    _build_agent as _build_core_agent,
-)
+from DeepResearch.src.datatypes.research import ResearchOutcome
+from DeepResearch.src.prompts import PromptLoader
+from DeepResearch.src.tools.pyd_ai_tools import _build_agent as _build_core_agent
+from DeepResearch.src.tools.pyd_ai_tools import _build_builtin_tools, _build_toolsets
 
-
-@dataclass
-class StepResult:
-    action: str
-    payload: Dict[str, Any]
-
-
-@dataclass
-class ResearchOutcome:
-    answer: str
-    references: List[str]
-    context: Dict[str, Any]
+if TYPE_CHECKING:
+    from omegaconf import DictConfig
 
 
 def _compose_agent_system(
     cfg: DictConfig,
-    url_list: List[str] | None = None,
-    bad_requests: List[str] | None = None,
+    url_list: list[str] | None = None,
+    bad_requests: list[str] | None = None,
     beast: bool = False,
 ) -> str:
     loader = PromptLoader(cfg)
@@ -42,12 +29,12 @@ def _compose_agent_system(
     actions_wrapper = loader.get("agent", "actions_wrapper")
     footer = loader.get("agent", "footer")
 
-    sections: List[str] = [
+    sections: list[str] = [
         header.replace(
             "${current_date_utc}",
-            getattr(__import__("datetime").datetime.utcnow(), "strftime")(
-                "%a, %d %b %Y %H:%M:%S GMT"
-            ),
+            (
+                __import__("datetime").datetime.now(__import__("datetime").timezone.utc)
+            ).strftime("%a, %d %b %Y %H:%M:%S GMT"),
         )
     ]
 
@@ -91,34 +78,32 @@ def _compose_agent_system(
 
     # Wrapper + footer
     sections.append(
-        actions_wrapper.replace(
-            "${action_sections}", "\n\n".join([s for s in sections[1:]])
-        )
+        actions_wrapper.replace("${action_sections}", "\n\n".join(list(sections[1:])))
     )
     sections.append(footer)
     return "\n\n".join(sections)
 
 
 def _ensure_core_agent(cfg: DictConfig):
-    builtin = _build_builtin_tools(cfg)
-    toolsets = _build_toolsets(cfg)
-    agent, _ = _build_core_agent(cfg, builtin, toolsets)
+    builtin = _build_builtin_tools(dict(cfg) if cfg else {})
+    toolsets = _build_toolsets(dict(cfg) if cfg else {})
+    agent, _ = _build_core_agent(dict(cfg) if cfg else {}, builtin, toolsets)
     return agent
 
 
-def _run_object(agent: Any, system: str, user: str) -> Dict[str, Any]:
+def _run_object(agent: Any, system: str, user: str) -> dict[str, Any]:
     # Minimal wrapper to a structured object; fallback to text and simple routing
     try:
         result = agent.run_sync({"system": system, "user": user})
         if hasattr(result, "object"):
-            return getattr(result, "object")
+            return result.object
         return {"action": "answer", "answer": getattr(result, "output", str(result))}
     except Exception:
         return {"action": "answer", "answer": ""}
 
 
-def _build_user(question: str, knowledge: List[Tuple[str, str]] | None = None) -> str:
-    messages: List[str] = []
+def _build_user(question: str, knowledge: list[tuple[str, str]] | None = None) -> str:
+    messages: list[str] = []
     for q, a in knowledge or []:
         messages.append(q)
         messages.append(a)
@@ -138,12 +123,12 @@ class ResearchAgent:
                 answer="", references=[], context={"error": "pydantic_ai missing"}
             )
 
-        knowledge: List[Tuple[str, str]] = []
-        url_pool: List[str] = []
-        bad_queries: List[str] = []
-        visited: List[str] = []
+        knowledge: list[tuple[str, str]] = []
+        url_pool: list[str] = []
+        bad_queries: list[str] = []
+        visited: list[str] = []
         final_answer: str = ""
-        refs: List[str] = []
+        refs: list[str] = []
 
         for step in range(1, self.max_steps + 1):
             system = _compose_agent_system(self.cfg, url_pool, bad_queries, beast=False)

@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict
 
-from .base import ToolSpec, ToolRunner, ExecutionResult, registry
-
+from .base import ExecutionResult, ToolRunner, ToolSpec, registry
 
 # Lightweight workflow tools mirroring the JS example tools with placeholder logic
 
@@ -21,7 +19,7 @@ class RewriteTool(ToolRunner):
             )
         )
 
-    def run(self, params: Dict[str, str]) -> ExecutionResult:
+    def run(self, params: dict[str, str]) -> ExecutionResult:
         ok, err = self.validate(params)
         if not ok:
             return ExecutionResult(success=False, error=err)
@@ -44,7 +42,7 @@ class WebSearchTool(ToolRunner):
             )
         )
 
-    def run(self, params: Dict[str, str]) -> ExecutionResult:
+    def run(self, params: dict[str, str]) -> ExecutionResult:
         ok, err = self.validate(params)
         if not ok:
             return ExecutionResult(success=False, error=err)
@@ -72,7 +70,7 @@ class ReadTool(ToolRunner):
             )
         )
 
-    def run(self, params: Dict[str, str]) -> ExecutionResult:
+    def run(self, params: dict[str, str]) -> ExecutionResult:
         ok, err = self.validate(params)
         if not ok:
             return ExecutionResult(success=False, error=err)
@@ -94,7 +92,7 @@ class FinalizeTool(ToolRunner):
             )
         )
 
-    def run(self, params: Dict[str, str]) -> ExecutionResult:
+    def run(self, params: dict[str, str]) -> ExecutionResult:
         ok, err = self.validate(params)
         if not ok:
             return ExecutionResult(success=False, error=err)
@@ -117,7 +115,7 @@ class ReferencesTool(ToolRunner):
             )
         )
 
-    def run(self, params: Dict[str, str]) -> ExecutionResult:
+    def run(self, params: dict[str, str]) -> ExecutionResult:
         ok, err = self.validate(params)
         if not ok:
             return ExecutionResult(success=False, error=err)
@@ -141,7 +139,7 @@ class EvaluatorTool(ToolRunner):
             )
         )
 
-    def run(self, params: Dict[str, str]) -> ExecutionResult:
+    def run(self, params: dict[str, str]) -> ExecutionResult:
         ok, err = self.validate(params)
         if not ok:
             return ExecutionResult(success=False, error=err)
@@ -153,9 +151,9 @@ class EvaluatorTool(ToolRunner):
             success=True,
             data={
                 "pass": "true" if is_definitive else "false",
-                "feedback": "Looks clear."
-                if is_definitive
-                else "Avoid uncertainty language.",
+                "feedback": (
+                    "Looks clear." if is_definitive else "Avoid uncertainty language."
+                ),
             },
         )
 
@@ -172,7 +170,7 @@ class ErrorAnalyzerTool(ToolRunner):
             )
         )
 
-    def run(self, params: Dict[str, str]) -> ExecutionResult:
+    def run(self, params: dict[str, str]) -> ExecutionResult:
         ok, err = self.validate(params)
         if not ok:
             return ExecutionResult(success=False, error=err)
@@ -201,7 +199,7 @@ class ReducerTool(ToolRunner):
             )
         )
 
-    def run(self, params: Dict[str, str]) -> ExecutionResult:
+    def run(self, params: dict[str, str]) -> ExecutionResult:
         ok, err = self.validate(params)
         if not ok:
             return ExecutionResult(success=False, error=err)
@@ -233,7 +231,7 @@ class WorkflowTool(ToolRunner):
             )
         )
 
-    def run(self, params: Dict[str, str]) -> ExecutionResult:
+    def run(self, params: dict[str, str]) -> ExecutionResult:
         workflow = params.get("workflow", "")
         parameters = params.get("parameters", "")
         return ExecutionResult(
@@ -259,7 +257,7 @@ class WorkflowStepTool(ToolRunner):
             )
         )
 
-    def run(self, params: Dict[str, str]) -> ExecutionResult:
+    def run(self, params: dict[str, str]) -> ExecutionResult:
         step = params.get("step", "")
         context = params.get("context", "")
         return ExecutionResult(

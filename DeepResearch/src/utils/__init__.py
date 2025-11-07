@@ -1,66 +1,52 @@
-from .execution_history import (
-    ExecutionHistory,
-    ExecutionItem,
-    ExecutionStep,
-    ExecutionTracker,
+"""
+DeepCritical utilities module.
+
+This module provides various utilities including MCP server deployment,
+code execution environments, and Jupyter integration.
+"""
+
+from .coding import (
+    CodeBlock,
+    CodeExecutor,
+    CodeExtractor,
+    CodeResult,
+    CommandLineCodeResult,
+    DockerCommandLineCodeExecutor,
+    IPythonCodeResult,
+    LocalCommandLineCodeExecutor,
+    MarkdownCodeExtractor,
 )
-from .execution_status import ExecutionStatus
-from .tool_registry import (
-    ToolRegistry,
-    ToolRunner,
-    ToolMetadata,
-    ExecutionResult,
-    registry,
+from .docker_compose_deployer import DockerComposeDeployer
+from .environments import PythonEnvironment, SystemPythonEnvironment, WorkingDirectory
+from .jupyter import (
+    JupyterClient,
+    JupyterCodeExecutor,
+    JupyterConnectable,
+    JupyterConnectionInfo,
+    JupyterKernelClient,
 )
-from .tool_specs import ToolSpec, ToolCategory, ToolInput, ToolOutput
-from .analytics import AnalyticsEngine
-from .deepsearch_schemas import (
-    DeepSearchSchemas,
-    EvaluationType,
-    ActionType,
-    DeepSearchQuery,
-    DeepSearchResult,
-    DeepSearchConfig,
-    deepsearch_schemas,
-)
-from .deepsearch_utils import (
-    SearchContext,
-    KnowledgeManager,
-    SearchOrchestrator,
-    DeepSearchEvaluator,
-    create_search_context,
-    create_search_orchestrator,
-    create_deep_search_evaluator,
-)
+from .python_code_execution import PythonCodeExecutionTool
+from .testcontainers_deployer import TestcontainersDeployer
 
 __all__ = [
-    "ExecutionHistory",
-    "ExecutionItem",
-    "ExecutionStep",
-    "ExecutionTracker",
-    "ExecutionStatus",
-    "ToolRegistry",
-    "ToolRunner",
-    "ToolMetadata",
-    "ToolSpec",
-    "ToolCategory",
-    "ToolInput",
-    "ToolOutput",
-    "ExecutionResult",
-    "AnalyticsEngine",
-    "DeepSearchSchemas",
-    "EvaluationType",
-    "ActionType",
-    "DeepSearchQuery",
-    "DeepSearchResult",
-    "DeepSearchConfig",
-    "registry",
-    "deepsearch_schemas",
-    "SearchContext",
-    "KnowledgeManager",
-    "SearchOrchestrator",
-    "DeepSearchEvaluator",
-    "create_search_context",
-    "create_search_orchestrator",
-    "create_deep_search_evaluator",
+    "CodeBlock",
+    "CodeExecutor",
+    "CodeExtractor",
+    "CodeResult",
+    "CommandLineCodeResult",
+    "DockerCommandLineCodeExecutor",
+    "DockerComposeDeployer",
+    "IPythonCodeResult",
+    "JupyterClient",
+    "JupyterCodeExecutor",
+    "JupyterConnectable",
+    "JupyterConnectionInfo",
+    "JupyterKernelClient",
+    "LocalCommandLineCodeExecutor",
+    "MarkdownCodeExtractor",
+    "PythonCodeExecutionTool",
+    "PythonEnvironment",
+    "SystemPythonEnvironment",
+    "TestcontainersDeployer",
+    "WorkingDirectory",
 ]

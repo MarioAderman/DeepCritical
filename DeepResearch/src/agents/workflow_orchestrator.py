@@ -9,116 +9,37 @@ from __future__ import annotations
 
 import asyncio
 import time
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Callable, TYPE_CHECKING
 from dataclasses import dataclass, field
-from omegaconf import DictConfig
+from datetime import datetime
+from typing import TYPE_CHECKING, Any
 
 from pydantic_ai import Agent, RunContext
-from pydantic import BaseModel, Field
 
-from ..datatypes.workflow_orchestration import (
-    WorkflowOrchestrationConfig,
-    WorkflowExecution,
-    WorkflowResult,
-    WorkflowStatus,
-    WorkflowType,
-    WorkflowComposition,
-    OrchestrationState,
+from DeepResearch.src.datatypes.workflow_orchestration import (
     HypothesisDataset,
     HypothesisTestingEnvironment,
+    JudgeEvaluationRequest,
+    JudgeEvaluationResult,
+    MultiAgentCoordinationRequest,
+    MultiAgentCoordinationResult,
+    OrchestrationState,
+    OrchestratorDependencies,
+    WorkflowComposition,
     WorkflowConfig,
+    WorkflowExecution,
+    WorkflowOrchestrationConfig,
+    WorkflowResult,
+    WorkflowSpawnRequest,
+    WorkflowSpawnResult,
+    WorkflowStatus,
+    WorkflowType,
 )
+from DeepResearch.src.prompts.workflow_orchestrator import WorkflowOrchestratorPrompts
 
 if TYPE_CHECKING:
-    pass
+    from collections.abc import Callable
 
-
-class OrchestratorDependencies(BaseModel):
-    """Dependencies for the workflow orchestrator."""
-
-    config: Dict[str, Any] = Field(default_factory=dict)
-    user_input: str = Field(..., description="User input/query")
-    context: Dict[str, Any] = Field(default_factory=dict)
-    available_workflows: List[str] = Field(default_factory=list)
-    available_agents: List[str] = Field(default_factory=list)
-    available_judges: List[str] = Field(default_factory=list)
-
-
-class WorkflowSpawnRequest(BaseModel):
-    """Request to spawn a new workflow."""
-
-    workflow_type: WorkflowType = Field(..., description="Type of workflow to spawn")
-    workflow_name: str = Field(..., description="Name of the workflow")
-    input_data: Dict[str, Any] = Field(..., description="Input data for the workflow")
-    parameters: Dict[str, Any] = Field(
-        default_factory=dict, description="Workflow parameters"
-    )
-    priority: int = Field(0, description="Execution priority")
-    dependencies: List[str] = Field(
-        default_factory=list, description="Dependent workflow names"
-    )
-
-
-class WorkflowSpawnResult(BaseModel):
-    """Result of spawning a workflow."""
-
-    success: bool = Field(..., description="Whether spawning was successful")
-    execution_id: str = Field(..., description="Execution ID of the spawned workflow")
-    workflow_name: str = Field(..., description="Name of the spawned workflow")
-    status: WorkflowStatus = Field(..., description="Initial status")
-    error_message: Optional[str] = Field(None, description="Error message if failed")
-
-
-class MultiAgentCoordinationRequest(BaseModel):
-    """Request for multi-agent coordination."""
-
-    system_id: str = Field(..., description="Multi-agent system ID")
-    task_description: str = Field(..., description="Task description")
-    input_data: Dict[str, Any] = Field(..., description="Input data")
-    coordination_strategy: str = Field(
-        "collaborative", description="Coordination strategy"
-    )
-    max_rounds: int = Field(10, description="Maximum coordination rounds")
-
-
-class MultiAgentCoordinationResult(BaseModel):
-    """Result of multi-agent coordination."""
-
-    success: bool = Field(..., description="Whether coordination was successful")
-    system_id: str = Field(..., description="System ID")
-    final_result: Dict[str, Any] = Field(..., description="Final coordination result")
-    coordination_rounds: int = Field(..., description="Number of coordination rounds")
-    agent_results: Dict[str, Any] = Field(
-        default_factory=dict, description="Individual agent results"
-    )
-    consensus_score: float = Field(0.0, description="Consensus score")
-
-
-class JudgeEvaluationRequest(BaseModel):
-    """Request for judge evaluation."""
-
-    judge_id: str = Field(..., description="Judge ID")
-    content_to_evaluate: Dict[str, Any] = Field(..., description="Content to evaluate")
-    evaluation_criteria: List[str] = Field(..., description="Evaluation criteria")
-    context: Dict[str, Any] = Field(
-        default_factory=dict, description="Evaluation context"
-    )
-
-
-class JudgeEvaluationResult(BaseModel):
-    """Result of judge evaluation."""
-
-    success: bool = Field(..., description="Whether evaluation was successful")
-    judge_id: str = Field(..., description="Judge ID")
-    overall_score: float = Field(..., description="Overall evaluation score")
-    criterion_scores: Dict[str, float] = Field(
-        default_factory=dict, description="Scores by criterion"
-    )
-    feedback: str = Field(..., description="Detailed feedback")
-    recommendations: List[str] = Field(
-        default_factory=list, description="Improvement recommendations"
-    )
+    from omegaconf import DictConfig
 
 
 @dataclass
@@ -127,9 +48,9 @@ class PrimaryWorkflowOrchestrator:
 
     config: WorkflowOrchestrationConfig
     state: OrchestrationState = field(default_factory=OrchestrationState)
-    workflow_registry: Dict[str, Callable] = field(default_factory=dict)
-    agent_registry: Dict[str, Any] = field(default_factory=dict)
-    judge_registry: Dict[str, Any] = field(default_factory=dict)
+    workflow_registry: dict[str, Callable] = field(default_factory=dict)
+    agent_registry: dict[str, Any] = field(default_factory=dict)
+    judge_registry: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
         """Initialize the orchestrator with workflows, agents, and judges."""
@@ -180,42 +101,18 @@ class PrimaryWorkflowOrchestrator:
 
     def _create_primary_agent(self):
         """Create the primary REACT agent."""
-        self.primary_agent = Agent(
-            model_name=self.config.primary_workflow.parameters.get(
+        # Get prompts from the prompts module
+        prompts = WorkflowOrchestratorPrompts()
+
+        self.primary_agent = Agent[OrchestratorDependencies, str](
+            model=self.config.primary_workflow.parameters.get(
                 "model_name", "anthropic:claude-sonnet-4-0"
             ),
             deps_type=OrchestratorDependencies,
-            system_prompt=self._get_primary_system_prompt(),
-            instructions=self._get_primary_instructions(),
+            system_prompt=prompts.get_system_prompt(),
+            instructions=prompts.get_instructions(),
         )
         self._register_primary_tools()
-
-    def _get_primary_system_prompt(self) -> str:
-        """Get the system prompt for the primary agent."""
-        return """You are the primary orchestrator for a sophisticated workflow-of-workflows system. 
-        Your role is to:
-        1. Analyze user input and determine which workflows to spawn
-        2. Coordinate multiple specialized workflows (RAG, bioinformatics, search, multi-agent systems)
-        3. Manage data flow between workflows
-        4. Ensure quality through judge evaluation
-        5. Synthesize results from multiple workflows
-        6. Generate comprehensive outputs including hypotheses, testing environments, and reasoning results
-        
-        You have access to various tools for spawning workflows, coordinating agents, and evaluating outputs.
-        Always consider the user's intent and select the most appropriate combination of workflows."""
-
-    def _get_primary_instructions(self) -> List[str]:
-        """Get instructions for the primary agent."""
-        return [
-            "Analyze the user input to understand the research question or task",
-            "Determine which workflows are needed based on the input",
-            "Spawn appropriate workflows with correct parameters",
-            "Coordinate data flow between workflows",
-            "Use judges to evaluate intermediate and final results",
-            "Synthesize results from multiple workflows into comprehensive outputs",
-            "Generate datasets, testing environments, and reasoning results as needed",
-            "Ensure quality and consistency across all outputs",
-        ]
 
     def _register_primary_tools(self):
         """Register tools for the primary agent."""
@@ -225,8 +122,8 @@ class PrimaryWorkflowOrchestrator:
             ctx: RunContext[OrchestratorDependencies],
             workflow_type: str,
             workflow_name: str,
-            input_data: Dict[str, Any],
-            parameters: Dict[str, Any] = None,
+            input_data: dict[str, Any],
+            parameters: dict[str, Any] | None = None,
             priority: int = 0,
         ) -> WorkflowSpawnResult:
             """Spawn a new workflow execution."""
@@ -238,8 +135,7 @@ class PrimaryWorkflowOrchestrator:
                     parameters=parameters or {},
                     priority=priority,
                 )
-                result = self._spawn_workflow(request)
-                return result
+                return self._spawn_workflow(request)
             except Exception as e:
                 return WorkflowSpawnResult(
                     success=False,
@@ -254,7 +150,7 @@ class PrimaryWorkflowOrchestrator:
             ctx: RunContext[OrchestratorDependencies],
             system_id: str,
             task_description: str,
-            input_data: Dict[str, Any],
+            input_data: dict[str, Any],
             coordination_strategy: str = "collaborative",
             max_rounds: int = 10,
         ) -> MultiAgentCoordinationResult:
@@ -267,24 +163,25 @@ class PrimaryWorkflowOrchestrator:
                     coordination_strategy=coordination_strategy,
                     max_rounds=max_rounds,
                 )
-                result = self._coordinate_multi_agent_system(request)
-                return result
-            except Exception as e:
+                return self._coordinate_multi_agent_system(request)
+            except Exception:
                 return MultiAgentCoordinationResult(
                     success=False,
                     system_id=system_id,
                     final_result={},
                     coordination_rounds=0,
-                    error_message=str(e),
+                    agent_results={},
+                    consensus_score=0.0,
+                    # error_message is not a field in MultiAgentCoordinationResult
                 )
 
         @self.primary_agent.tool
         def evaluate_with_judge(
             ctx: RunContext[OrchestratorDependencies],
             judge_id: str,
-            content_to_evaluate: Dict[str, Any],
-            evaluation_criteria: List[str],
-            context: Dict[str, Any] = None,
+            content_to_evaluate: dict[str, Any],
+            evaluation_criteria: list[str],
+            context: dict[str, Any] | None = None,
         ) -> JudgeEvaluationResult:
             """Evaluate content using a judge."""
             try:
@@ -294,21 +191,22 @@ class PrimaryWorkflowOrchestrator:
                     evaluation_criteria=evaluation_criteria,
                     context=context or {},
                 )
-                result = self._evaluate_with_judge(request)
-                return result
+                return self._evaluate_with_judge(request)
             except Exception as e:
                 return JudgeEvaluationResult(
                     success=False,
                     judge_id=judge_id,
                     overall_score=0.0,
-                    feedback=f"Evaluation failed: {str(e)}",
+                    criterion_scores={},
+                    feedback=f"Evaluation failed: {e!s}",
+                    recommendations=[],
                 )
 
         @self.primary_agent.tool
         def compose_workflows(
             ctx: RunContext[OrchestratorDependencies],
             user_input: str,
-            selected_workflows: List[str],
+            selected_workflows: list[str],
             execution_strategy: str = "parallel",
         ) -> WorkflowComposition:
             """Compose workflows based on user input."""
@@ -321,8 +219,8 @@ class PrimaryWorkflowOrchestrator:
             ctx: RunContext[OrchestratorDependencies],
             name: str,
             description: str,
-            hypotheses: List[Dict[str, Any]],
-            source_workflows: List[str],
+            hypotheses: list[dict[str, Any]],
+            source_workflows: list[str],
         ) -> HypothesisDataset:
             """Generate a hypothesis dataset."""
             return HypothesisDataset(
@@ -336,9 +234,9 @@ class PrimaryWorkflowOrchestrator:
         def create_testing_environment(
             ctx: RunContext[OrchestratorDependencies],
             name: str,
-            hypothesis: Dict[str, Any],
-            test_configuration: Dict[str, Any],
-            expected_outcomes: List[str],
+            hypothesis: dict[str, Any],
+            test_configuration: dict[str, Any],
+            expected_outcomes: list[str],
         ) -> HypothesisTestingEnvironment:
             """Create a hypothesis testing environment."""
             return HypothesisTestingEnvironment(
@@ -350,11 +248,11 @@ class PrimaryWorkflowOrchestrator:
 
     async def execute_primary_workflow(
         self, user_input: str, config: DictConfig
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Execute the primary REACT workflow."""
         # Create dependencies
         deps = OrchestratorDependencies(
-            config=config,
+            config=dict(config) if config else {},
             user_input=user_input,
             context={"execution_start": datetime.now().isoformat()},
             available_workflows=list(self.workflow_registry.keys()),
@@ -426,9 +324,10 @@ class PrimaryWorkflowOrchestrator:
                 execution.workflow_config.workflow_type.value
             )
             if not workflow_func:
-                raise ValueError(
+                msg = (
                     f"Unknown workflow type: {execution.workflow_config.workflow_type}"
                 )
+                raise ValueError(msg)
 
             # Execute workflow
             result = await workflow_func(
@@ -515,7 +414,7 @@ class PrimaryWorkflowOrchestrator:
         )
 
     def _compose_workflows(
-        self, user_input: str, selected_workflows: List[str], execution_strategy: str
+        self, user_input: str, selected_workflows: list[str], execution_strategy: str
     ) -> WorkflowComposition:
         """Compose workflows based on user input."""
         return WorkflowComposition(
@@ -527,15 +426,15 @@ class PrimaryWorkflowOrchestrator:
 
     # Workflow execution methods (placeholders for now)
     async def _execute_rag_workflow(
-        self, input_data: Dict[str, Any], parameters: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, input_data: dict[str, Any], parameters: dict[str, Any]
+    ) -> dict[str, Any]:
         """Execute RAG workflow."""
         # This would implement actual RAG workflow execution
         return {"rag_result": "placeholder", "documents_retrieved": 5}
 
     async def _execute_bioinformatics_workflow(
-        self, input_data: Dict[str, Any], parameters: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, input_data: dict[str, Any], parameters: dict[str, Any]
+    ) -> dict[str, Any]:
         """Execute bioinformatics workflow."""
         # This would implement actual bioinformatics workflow execution
         return {
@@ -544,50 +443,50 @@ class PrimaryWorkflowOrchestrator:
         }
 
     async def _execute_search_workflow(
-        self, input_data: Dict[str, Any], parameters: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, input_data: dict[str, Any], parameters: dict[str, Any]
+    ) -> dict[str, Any]:
         """Execute search workflow."""
         # This would implement actual search workflow execution
         return {"search_result": "placeholder", "results_found": 10}
 
     async def _execute_multi_agent_workflow(
-        self, input_data: Dict[str, Any], parameters: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, input_data: dict[str, Any], parameters: dict[str, Any]
+    ) -> dict[str, Any]:
         """Execute multi-agent workflow."""
         # This would implement actual multi-agent workflow execution
         return {"multi_agent_result": "placeholder", "agents_used": 3}
 
     async def _execute_hypothesis_generation_workflow(
-        self, input_data: Dict[str, Any], parameters: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, input_data: dict[str, Any], parameters: dict[str, Any]
+    ) -> dict[str, Any]:
         """Execute hypothesis generation workflow."""
         # This would implement actual hypothesis generation
         return {"hypotheses": [{"hypothesis": "placeholder", "confidence": 0.8}]}
 
     async def _execute_hypothesis_testing_workflow(
-        self, input_data: Dict[str, Any], parameters: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, input_data: dict[str, Any], parameters: dict[str, Any]
+    ) -> dict[str, Any]:
         """Execute hypothesis testing workflow."""
         # This would implement actual hypothesis testing
         return {"test_results": "placeholder", "success": True}
 
     async def _execute_reasoning_workflow(
-        self, input_data: Dict[str, Any], parameters: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, input_data: dict[str, Any], parameters: dict[str, Any]
+    ) -> dict[str, Any]:
         """Execute reasoning workflow."""
         # This would implement actual reasoning
         return {"reasoning_result": "placeholder", "confidence": 0.9}
 
     async def _execute_code_execution_workflow(
-        self, input_data: Dict[str, Any], parameters: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, input_data: dict[str, Any], parameters: dict[str, Any]
+    ) -> dict[str, Any]:
         """Execute code execution workflow."""
         # This would implement actual code execution
         return {"code_result": "placeholder", "execution_success": True}
 
     async def _execute_evaluation_workflow(
-        self, input_data: Dict[str, Any], parameters: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, input_data: dict[str, Any], parameters: dict[str, Any]
+    ) -> dict[str, Any]:
         """Execute evaluation workflow."""
         # This would implement actual evaluation
         return {"evaluation_result": "placeholder", "score": 8.5}

@@ -7,72 +7,17 @@ integrating with the existing tool registry and datatypes.
 
 import json
 from dataclasses import dataclass
-from typing import Dict, Any, List, Optional
-from pydantic import BaseModel, Field
+from typing import Any
+
 from pydantic_ai import RunContext
 
-from .base import ToolSpec, ToolRunner, ExecutionResult, registry
-from ..utils.analytics import (
-    record_request,
-    last_n_days_df,
+from DeepResearch.src.utils.analytics import (
     last_n_days_avg_time_df,
+    last_n_days_df,
+    record_request,
 )
 
-
-class AnalyticsRequest(BaseModel):
-    """Request model for analytics operations."""
-
-    duration: Optional[float] = Field(None, description="Request duration in seconds")
-    num_results: Optional[int] = Field(None, description="Number of results processed")
-
-    class Config:
-        json_schema_extra = {"example": {"duration": 2.5, "num_results": 4}}
-
-
-class AnalyticsResponse(BaseModel):
-    """Response model for analytics operations."""
-
-    success: bool = Field(..., description="Whether the operation was successful")
-    message: str = Field(..., description="Operation result message")
-    error: Optional[str] = Field(None, description="Error message if operation failed")
-
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "success": True,
-                "message": "Request recorded successfully",
-                "error": None,
-            }
-        }
-
-
-class AnalyticsDataRequest(BaseModel):
-    """Request model for analytics data retrieval."""
-
-    days: int = Field(30, description="Number of days to retrieve data for")
-
-    class Config:
-        json_schema_extra = {"example": {"days": 30}}
-
-
-class AnalyticsDataResponse(BaseModel):
-    """Response model for analytics data retrieval."""
-
-    data: List[Dict[str, Any]] = Field(..., description="Analytics data")
-    success: bool = Field(..., description="Whether the operation was successful")
-    error: Optional[str] = Field(None, description="Error message if operation failed")
-
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "data": [
-                    {"date": "Jan 15", "count": 25, "full_date": "2024-01-15"},
-                    {"date": "Jan 16", "count": 30, "full_date": "2024-01-16"},
-                ],
-                "success": True,
-                "error": None,
-            }
-        }
+from .base import ExecutionResult, ToolRunner, ToolSpec, registry
 
 
 class RecordRequestTool(ToolRunner):
@@ -87,7 +32,7 @@ class RecordRequestTool(ToolRunner):
         )
         super().__init__(spec)
 
-    def run(self, params: Dict[str, Any]) -> ExecutionResult:
+    def run(self, params: dict[str, Any]) -> ExecutionResult:
         """Execute request recording operation."""
         try:
             import asyncio
@@ -114,7 +59,7 @@ class RecordRequestTool(ToolRunner):
 
         except Exception as e:
             return ExecutionResult(
-                success=False, error=f"Failed to record request: {str(e)}"
+                success=False, error=f"Failed to record request: {e!s}"
             )
 
 
@@ -130,7 +75,7 @@ class GetAnalyticsDataTool(ToolRunner):
         )
         super().__init__(spec)
 
-    def run(self, params: Dict[str, Any]) -> ExecutionResult:
+    def run(self, params: dict[str, Any]) -> ExecutionResult:
         """Execute analytics data retrieval operation."""
         try:
             days = params.get("days", 30)
@@ -145,7 +90,7 @@ class GetAnalyticsDataTool(ToolRunner):
 
         except Exception as e:
             return ExecutionResult(
-                success=False, error=f"Failed to get analytics data: {str(e)}"
+                success=False, error=f"Failed to get analytics data: {e!s}"
             )
 
 
@@ -161,7 +106,7 @@ class GetAnalyticsTimeDataTool(ToolRunner):
         )
         super().__init__(spec)
 
-    def run(self, params: Dict[str, Any]) -> ExecutionResult:
+    def run(self, params: dict[str, Any]) -> ExecutionResult:
         """Execute analytics time data retrieval operation."""
         try:
             days = params.get("days", 30)
@@ -176,7 +121,7 @@ class GetAnalyticsTimeDataTool(ToolRunner):
 
         except Exception as e:
             return ExecutionResult(
-                success=False, error=f"Failed to get analytics time data: {str(e)}"
+                success=False, error=f"Failed to get analytics time data: {e!s}"
             )
 
 
@@ -204,8 +149,7 @@ def record_request_tool(ctx: RunContext[Any]) -> str:
 
     if result.success:
         return result.data.get("message", "Request recorded successfully")
-    else:
-        return f"Failed to record request: {result.error}"
+    return f"Failed to record request: {result.error}"
 
 
 def get_analytics_data_tool(ctx: RunContext[Any]) -> str:
@@ -230,8 +174,7 @@ def get_analytics_data_tool(ctx: RunContext[Any]) -> str:
 
     if result.success:
         return json.dumps(result.data.get("data", []))
-    else:
-        return f"Failed to get analytics data: {result.error}"
+    return f"Failed to get analytics data: {result.error}"
 
 
 def get_analytics_time_data_tool(ctx: RunContext[Any]) -> str:
@@ -256,8 +199,7 @@ def get_analytics_time_data_tool(ctx: RunContext[Any]) -> str:
 
     if result.success:
         return json.dumps(result.data.get("data", []))
-    else:
-        return f"Failed to get analytics time data: {result.error}"
+    return f"Failed to get analytics time data: {result.error}"
 
 
 @dataclass
@@ -274,7 +216,7 @@ class AnalyticsTool(ToolRunner):
             )
         )
 
-    def run(self, params: Dict[str, str]) -> ExecutionResult:
+    def run(self, params: dict[str, str]) -> ExecutionResult:
         operation = params.get("operation", "")
         days = int(params.get("days", "7"))
 
@@ -290,7 +232,7 @@ class AnalyticsTool(ToolRunner):
                 },
                 metrics={"days": days, "rate": rate},
             )
-        elif operation == "response_time":
+        if operation == "response_time":
             # Calculate average response time
             df = last_n_days_avg_time_df(days)
             avg_time = df["avg_time"].mean() if not df.empty else 0.0
@@ -302,10 +244,9 @@ class AnalyticsTool(ToolRunner):
                 },
                 metrics={"days": days, "avg_time": avg_time},
             )
-        else:
-            return ExecutionResult(
-                success=False, error=f"Unknown analytics operation: {operation}"
-            )
+        return ExecutionResult(
+            success=False, error=f"Unknown analytics operation: {operation}"
+        )
 
 
 # Register tools with the global registry

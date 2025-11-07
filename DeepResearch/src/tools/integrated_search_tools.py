@@ -6,73 +6,16 @@ analytics tracking, and RAG datatypes for a complete search and retrieval system
 """
 
 import json
-from typing import Dict, Any, List, Optional
 from datetime import datetime
-from pydantic import BaseModel, Field
+from typing import Any
+
 from pydantic_ai import RunContext
 
-from .base import ToolSpec, ToolRunner, ExecutionResult
-from .websearch_tools import ChunkedSearchTool
+from DeepResearch.src.datatypes.rag import Chunk, Document, RAGQuery, SearchType
+
 from .analytics_tools import RecordRequestTool
-from ..datatypes.rag import Document, Chunk, RAGQuery
-
-
-class IntegratedSearchRequest(BaseModel):
-    """Request model for integrated search operations."""
-
-    query: str = Field(..., description="Search query")
-    search_type: str = Field("search", description="Type of search: 'search' or 'news'")
-    num_results: Optional[int] = Field(
-        4, description="Number of results to fetch (1-20)"
-    )
-    chunk_size: int = Field(1000, description="Chunk size for processing")
-    chunk_overlap: int = Field(0, description="Overlap between chunks")
-    enable_analytics: bool = Field(True, description="Whether to record analytics")
-    convert_to_rag: bool = Field(
-        True, description="Whether to convert results to RAG format"
-    )
-
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "query": "artificial intelligence developments 2024",
-                "search_type": "news",
-                "num_results": 5,
-                "chunk_size": 1000,
-                "chunk_overlap": 100,
-                "enable_analytics": True,
-                "convert_to_rag": True,
-            }
-        }
-
-
-class IntegratedSearchResponse(BaseModel):
-    """Response model for integrated search operations."""
-
-    query: str = Field(..., description="Original search query")
-    documents: List[Document] = Field(
-        ..., description="RAG documents created from search results"
-    )
-    chunks: List[Chunk] = Field(
-        ..., description="RAG chunks created from search results"
-    )
-    analytics_recorded: bool = Field(..., description="Whether analytics were recorded")
-    processing_time: float = Field(..., description="Total processing time in seconds")
-    success: bool = Field(..., description="Whether the search was successful")
-    error: Optional[str] = Field(None, description="Error message if search failed")
-
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "query": "artificial intelligence developments 2024",
-                "documents": [],
-                "chunks": [],
-                "analytics_recorded": True,
-                "processing_time": 2.5,
-                "success": True,
-                "error": None,
-            }
-        }
+from .base import ExecutionResult, ToolRunner, ToolSpec
+from .websearch_tools import ChunkedSearchTool
 
 
 class IntegratedSearchTool(ToolRunner):
@@ -102,7 +45,7 @@ class IntegratedSearchTool(ToolRunner):
         )
         super().__init__(spec)
 
-    def run(self, params: Dict[str, Any]) -> ExecutionResult:
+    def run(self, params: dict[str, Any]) -> ExecutionResult:
         """Execute integrated search operation."""
         start_time = datetime.now()
 
@@ -181,20 +124,12 @@ class IntegratedSearchTool(ToolRunner):
                     )
                     documents.append(document)
 
-                    # Create RAG Chunks
-                    for i, chunk_data in enumerate(chunk_list):
+                    # Create RAG Chunks (using Chunk dataclass fields)
+                    for _i, chunk_data in enumerate(chunk_list):
                         chunk = Chunk(
                             text=chunk_data.get("text", ""),
-                            metadata={
-                                "source_title": source_title,
-                                "url": chunk_data.get("url", ""),
-                                "source": chunk_data.get("source", ""),
-                                "date": chunk_data.get("date", ""),
-                                "domain": chunk_data.get("domain", ""),
-                                "chunk_index": i,
-                                "search_query": query,
-                                "search_type": search_type,
-                            },
+                            # Place URL in context since Chunk has no source field
+                            context=chunk_data.get("url", ""),
                         )
                         chunks.append(chunk)
 
@@ -213,8 +148,8 @@ class IntegratedSearchTool(ToolRunner):
             return ExecutionResult(
                 success=True,
                 data={
-                    "documents": [doc.dict() for doc in documents],
-                    "chunks": [chunk.dict() for chunk in chunks],
+                    "documents": [doc.model_dump() for doc in documents],
+                    "chunks": [chunk.to_dict() for chunk in chunks],
                     "analytics_recorded": analytics_recorded,
                     "processing_time": processing_time,
                     "success": True,
@@ -227,7 +162,7 @@ class IntegratedSearchTool(ToolRunner):
             processing_time = (datetime.now() - start_time).total_seconds()
             return ExecutionResult(
                 success=False,
-                error=f"Integrated search failed: {str(e)}",
+                error=f"Integrated search failed: {e!s}",
                 data={"processing_time": processing_time, "success": False},
             )
 
@@ -256,7 +191,7 @@ class RAGSearchTool(ToolRunner):
         )
         super().__init__(spec)
 
-    def run(self, params: Dict[str, Any]) -> ExecutionResult:
+    def run(self, params: dict[str, Any]) -> ExecutionResult:
         """Execute RAG search operation."""
         try:
             # Extract parameters
@@ -274,7 +209,7 @@ class RAGSearchTool(ToolRunner):
             # Create RAG query
             rag_query = RAGQuery(
                 text=query,
-                search_type="similarity",
+                search_type=SearchType.SIMILARITY,
                 top_k=num_results,
                 filters={"search_type": search_type, "chunk_size": chunk_size},
             )
@@ -301,7 +236,7 @@ class RAGSearchTool(ToolRunner):
             return ExecutionResult(
                 success=True,
                 data={
-                    "rag_query": rag_query.dict(),
+                    "rag_query": rag_query.model_dump(),
                     "documents": search_result.data.get("documents", []),
                     "chunks": search_result.data.get("chunks", []),
                     "success": True,
@@ -310,7 +245,7 @@ class RAGSearchTool(ToolRunner):
             )
 
         except Exception as e:
-            return ExecutionResult(success=False, error=f"RAG search failed: {str(e)}")
+            return ExecutionResult(success=False, error=f"RAG search failed: {e!s}")
 
 
 # Pydantic AI Tool Functions
@@ -350,8 +285,7 @@ def integrated_search_tool(ctx: RunContext[Any]) -> str:
                 "query": result.data.get("query", ""),
             }
         )
-    else:
-        return f"Integrated search failed: {result.error}"
+    return f"Integrated search failed: {result.error}"
 
 
 def rag_search_tool(ctx: RunContext[Any]) -> str:
@@ -386,8 +320,7 @@ def rag_search_tool(ctx: RunContext[Any]) -> str:
                 "chunks": result.data.get("chunks", []),
             }
         )
-    else:
-        return f"RAG search failed: {result.error}"
+    return f"RAG search failed: {result.error}"
 
 
 # Register tools with the global registry

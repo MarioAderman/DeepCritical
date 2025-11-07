@@ -8,47 +8,22 @@ with Pydantic AI's CLI and agent system.
 from __future__ import annotations
 
 import asyncio
-from typing import Any, Dict, List, Optional, Union
-from pydantic import BaseModel, Field
+from typing import Any
 
-from ..vllm_client import VLLMClient
-from ..datatypes.vllm_dataclass import (
+from DeepResearch.src.datatypes.vllm_agent import VLLMAgentConfig, VLLMAgentDependencies
+from DeepResearch.src.datatypes.vllm_dataclass import (
     ChatCompletionRequest,
     CompletionRequest,
     EmbeddingRequest,
-    VllmConfig,
     QuantizationMethod,
+    VllmConfig,
 )
-
-
-class VLLMAgentDependencies(BaseModel):
-    """Dependencies for VLLM agent."""
-
-    vllm_client: VLLMClient = Field(..., description="VLLM client instance")
-    default_model: str = Field(
-        "microsoft/DialoGPT-medium", description="Default model name"
-    )
-    embedding_model: Optional[str] = Field(None, description="Embedding model name")
-
-    class Config:
-        arbitrary_types_allowed = True
-
-
-class VLLMAgentConfig(BaseModel):
-    """Configuration for VLLM agent."""
-
-    client_config: Dict[str, Any] = Field(
-        default_factory=dict, description="VLLM client configuration"
-    )
-    default_model: str = Field("microsoft/DialoGPT-medium", description="Default model")
-    embedding_model: Optional[str] = Field(None, description="Embedding model")
-    system_prompt: str = Field(
-        "You are a helpful AI assistant powered by VLLM. You can perform various tasks including text generation, conversation, and analysis.",
-        description="System prompt for the agent",
-    )
-    max_tokens: int = Field(512, description="Maximum tokens for generation")
-    temperature: float = Field(0.7, description="Sampling temperature")
-    top_p: float = Field(0.9, description="Top-p sampling parameter")
+from DeepResearch.src.utils.vllm_client import (
+    VLLMAgent as VLLMClientWrapper,
+)
+from DeepResearch.src.utils.vllm_client import (
+    VLLMClient,
+)
 
 
 class VLLMAgent:
@@ -56,9 +31,10 @@ class VLLMAgent:
 
     def __init__(self, config: VLLMAgentConfig):
         self.config = config
-        self.client = VLLMClient(**config.client_config)
+        vllm_client_instance = VLLMClient(**config.client_config)
+        self.client = VLLMClientWrapper(vllm_client_instance)
         self.dependencies = VLLMAgentDependencies(
-            vllm_client=self.client,
+            vllm_client=vllm_client_instance,  # Pass base client, not wrapper
             default_model=config.default_model,
             embedding_model=config.embedding_model,
         )
@@ -66,15 +42,10 @@ class VLLMAgent:
     async def initialize(self):
         """Initialize the VLLM agent."""
         # Test connection
-        try:
-            await self.client.health()
-            print("✓ VLLM server connection established")
-        except Exception as e:
-            print(f"✗ Failed to connect to VLLM server: {e}")
-            raise
+        await self.client.health()
 
     async def chat(
-        self, messages: List[Dict[str, str]], model: Optional[str] = None, **kwargs
+        self, messages: list[dict[str, str]], model: str | None = None, **kwargs
     ) -> str:
         """Chat with the VLLM model."""
         model = model or self.config.default_model
@@ -91,7 +62,7 @@ class VLLMAgent:
         response = await self.client.chat_completions(request)
         return response.choices[0].message.content
 
-    async def complete(self, prompt: str, model: Optional[str] = None, **kwargs) -> str:
+    async def complete(self, prompt: str, model: str | None = None, **kwargs) -> str:
         """Complete text with the VLLM model."""
         model = model or self.config.default_model
 
@@ -108,8 +79,8 @@ class VLLMAgent:
         return response.choices[0].text
 
     async def embed(
-        self, texts: Union[str, List[str]], model: Optional[str] = None, **kwargs
-    ) -> List[List[float]]:
+        self, texts: str | list[str], model: str | None = None, **kwargs
+    ) -> list[list[float]]:
         """Generate embeddings for texts."""
         if isinstance(texts, str):
             texts = [texts]
@@ -124,7 +95,7 @@ class VLLMAgent:
         return [item.embedding for item in response.data]
 
     async def chat_stream(
-        self, messages: List[Dict[str, str]], model: Optional[str] = None, **kwargs
+        self, messages: list[dict[str, str]], model: str | None = None, **kwargs
     ) -> str:
         """Stream chat completion."""
         model = model or self.config.default_model
@@ -141,25 +112,28 @@ class VLLMAgent:
 
         full_response = ""
         async for chunk in self.client.chat_completions_stream(request):
-            full_response += chunk
-            print(chunk, end="", flush=True)
-        print()  # New line after streaming
+            # Extract content from chunk dict
+            if isinstance(chunk, dict) and "choices" in chunk:
+                delta_content = chunk["choices"][0].get("delta", {}).get("content", "")
+                full_response += delta_content
         return full_response
 
     def to_pydantic_ai_agent(self):
         """Convert to Pydantic AI agent."""
         from pydantic_ai import Agent
 
+        from DeepResearch.src.prompts.vllm_agent import VLLMAgentPrompts
+
         agent = Agent(
             "vllm-agent",
             deps_type=VLLMAgentDependencies,
-            system_prompt=self.config.system_prompt,
+            system_prompt=VLLMAgentPrompts.get_system_prompt(),
         )
 
         # Chat completion tool
         @agent.tool
         async def chat_completion(
-            ctx, messages: List[Dict[str, str]], model: Optional[str] = None, **kwargs
+            ctx, messages: list[dict[str, str]], model: str | None = None, **kwargs
         ) -> str:
             """Chat with the VLLM model."""
             return (
@@ -177,7 +151,7 @@ class VLLMAgent:
         # Text completion tool
         @agent.tool
         async def text_completion(
-            ctx, prompt: str, model: Optional[str] = None, **kwargs
+            ctx, prompt: str, model: str | None = None, **kwargs
         ) -> str:
             """Complete text with the VLLM model."""
             return (
@@ -193,8 +167,8 @@ class VLLMAgent:
         # Embedding generation tool
         @agent.tool
         async def generate_embeddings(
-            ctx, texts: Union[str, List[str]], model: Optional[str] = None, **kwargs
-        ) -> List[List[float]]:
+            ctx, texts: str | list[str], model: str | None = None, **kwargs
+        ) -> list[list[float]]:
             """Generate embeddings using VLLM."""
             if isinstance(texts, str):
                 texts = [texts]
@@ -220,22 +194,20 @@ class VLLMAgent:
 
         # Model information tool
         @agent.tool
-        async def get_model_info(ctx, model_name: str) -> Dict[str, Any]:
+        async def get_model_info(ctx, model_name: str) -> dict[str, Any]:
             """Get information about a specific model."""
             return await ctx.deps.vllm_client.get_model_info(model_name)
 
         # List models tool
         @agent.tool
-        async def list_models(ctx) -> List[str]:
+        async def list_models(ctx) -> list[str]:
             """List available models."""
             response = await ctx.deps.vllm_client.models()
             return [model.id for model in response.data]
 
         # Tokenization tools
         @agent.tool
-        async def tokenize(
-            ctx, text: str, model: Optional[str] = None
-        ) -> Dict[str, Any]:
+        async def tokenize(ctx, text: str, model: str | None = None) -> dict[str, Any]:
             """Tokenize text."""
             return await ctx.deps.vllm_client.tokenize(
                 text, model or ctx.deps.default_model
@@ -243,8 +215,8 @@ class VLLMAgent:
 
         @agent.tool
         async def detokenize(
-            ctx, token_ids: List[int], model: Optional[str] = None
-        ) -> Dict[str, Any]:
+            ctx, token_ids: list[int], model: str | None = None
+        ) -> dict[str, Any]:
             """Detokenize token IDs."""
             return await ctx.deps.vllm_client.detokenize(
                 token_ids, model or ctx.deps.default_model
@@ -252,7 +224,7 @@ class VLLMAgent:
 
         # Health check tool
         @agent.tool
-        async def health_check(ctx) -> Dict[str, Any]:
+        async def health_check(ctx) -> dict[str, Any]:
             """Check server health."""
             return await ctx.deps.vllm_client.health()
 
@@ -260,10 +232,10 @@ class VLLMAgent:
 
 
 def create_vllm_agent(
-    model_name: str = "microsoft/DialoGPT-medium",
+    model_name: str = "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
     base_url: str = "http://localhost:8000",
-    api_key: Optional[str] = None,
-    embedding_model: Optional[str] = None,
+    api_key: str | None = None,
+    embedding_model: str | None = None,
     **kwargs,
 ) -> VLLMAgent:
     """Create a VLLM agent with default configuration."""
@@ -278,9 +250,9 @@ def create_vllm_agent(
 
 
 def create_advanced_vllm_agent(
-    model_name: str = "microsoft/DialoGPT-medium",
+    model_name: str = "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
     base_url: str = "http://localhost:8000",
-    quantization: Optional[QuantizationMethod] = None,
+    quantization: QuantizationMethod | None = None,
     tensor_parallel_size: int = 1,
     gpu_memory_utilization: float = 0.9,
     **kwargs,
@@ -288,11 +260,35 @@ def create_advanced_vllm_agent(
     """Create a VLLM agent with advanced configuration."""
 
     # Create VLLM configuration
-    vllm_config = VllmConfig.from_config(
+    from DeepResearch.src.datatypes.vllm_dataclass import (
+        CacheConfig,
+        DeviceConfig,
+        LoadConfig,
+        ModelConfig,
+        ParallelConfig,
+        SchedulerConfig,
+    )
+
+    model_config = ModelConfig(
         model=model_name,
         quantization=quantization,
+    )
+
+    parallel_config = ParallelConfig(
         tensor_parallel_size=tensor_parallel_size,
+    )
+
+    cache_config = CacheConfig(
         gpu_memory_utilization=gpu_memory_utilization,
+    )
+
+    vllm_config = VllmConfig(
+        model=model_config,
+        cache=cache_config,
+        load=LoadConfig(),
+        parallel=parallel_config,
+        scheduler=SchedulerConfig(),
+        device=DeviceConfig(),
     )
 
     config = VLLMAgentConfig(
@@ -310,11 +306,10 @@ def create_advanced_vllm_agent(
 
 async def example_vllm_agent():
     """Example usage of VLLM agent."""
-    print("Creating VLLM agent...")
 
     # Create agent
     agent = create_vllm_agent(
-        model_name="microsoft/DialoGPT-medium",
+        model_name="TinyLlama/TinyLlama-1.1B-Chat-v1.0",
         base_url="http://localhost:8000",
         temperature=0.8,
         max_tokens=100,
@@ -323,35 +318,26 @@ async def example_vllm_agent():
     await agent.initialize()
 
     # Test chat
-    print("\n--- Testing Chat ---")
     messages = [{"role": "user", "content": "Hello! How are you today?"}]
-    response = await agent.chat(messages)
-    print(f"Chat response: {response}")
+    await agent.chat(messages)
 
     # Test completion
-    print("\n--- Testing Completion ---")
     prompt = "The future of AI is"
-    completion = await agent.complete(prompt)
-    print(f"Completion: {completion}")
+    await agent.complete(prompt)
 
     # Test embeddings (if embedding model is available)
     if agent.config.embedding_model:
-        print("\n--- Testing Embeddings ---")
         texts = ["Hello world", "AI is amazing"]
-        embeddings = await agent.embed(texts)
-        print(f"Generated {len(embeddings)} embeddings")
-        print(f"First embedding dimension: {len(embeddings[0])}")
-
-    print("\n✓ VLLM agent test completed!")
+        await agent.embed(texts)
 
 
 async def example_pydantic_ai_integration():
     """Example of using VLLM agent with Pydantic AI."""
-    print("Creating VLLM agent for Pydantic AI...")
 
     # Create agent
     agent = create_vllm_agent(
-        model_name="microsoft/DialoGPT-medium", base_url="http://localhost:8000"
+        model_name="TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+        base_url="http://localhost:8000",
     )
 
     await agent.initialize()
@@ -359,23 +345,15 @@ async def example_pydantic_ai_integration():
     # Convert to Pydantic AI agent
     pydantic_agent = agent.to_pydantic_ai_agent()
 
-    print("\n--- Testing Pydantic AI Integration ---")
-
     # Test with dependencies
-    result = await pydantic_agent.run(
+    await pydantic_agent.run(
         "Tell me about artificial intelligence", deps=agent.dependencies
     )
 
-    print(f"Pydantic AI result: {result.data}")
-
 
 if __name__ == "__main__":
-    print("Running VLLM agent examples...")
-
     # Run basic example
     asyncio.run(example_vllm_agent())
 
     # Run Pydantic AI integration example
     asyncio.run(example_pydantic_ai_integration())
-
-    print("All examples completed!")

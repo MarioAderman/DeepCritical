@@ -10,15 +10,26 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union, AsyncGenerator, TYPE_CHECKING
-from pydantic import BaseModel, Field, HttpUrl, model_validator
+from typing import TYPE_CHECKING, Any, TypedDict
+
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl, model_validator
 
 # Import existing dataclasses for alignment
 from .chunk_dataclass import Chunk, generate_id
 from .document_dataclass import Document as ChonkieDocument
 
 if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
+
     import numpy as np
+
+# Import numpy for runtime use (optional)
+try:
+    import numpy as np
+
+    HAS_NUMPY = True
+except ImportError:
+    HAS_NUMPY = False
 
 
 class SearchType(str, Enum):
@@ -73,29 +84,27 @@ class Document(BaseModel):
         description="Unique document identifier",
     )
     content: str = Field(..., description="Document content/text")
-    chunks: List[Chunk] = Field(default_factory=list, description="Document chunks")
-    metadata: Dict[str, Any] = Field(
+    chunks: list[Chunk] = Field(default_factory=list, description="Document chunks")
+    metadata: dict[str, Any] = Field(
         default_factory=dict, description="Document metadata"
     )
-    embedding: Optional[Union[List[float], "np.ndarray"]] = Field(
-        None, description="Document embedding vector"
+    embedding: list[float] | Any | None = Field(
+        None, description="Document embedding vector (list[float] or numpy array)"
     )
     created_at: datetime = Field(
         default_factory=datetime.now, description="Creation timestamp"
     )
-    updated_at: Optional[datetime] = Field(None, description="Last update timestamp")
+    updated_at: datetime | None = Field(None, description="Last update timestamp")
 
     # Bioinformatics-specific metadata fields
-    bioinformatics_type: Optional[str] = Field(
+    bioinformatics_type: str | None = Field(
         None, description="Type of bioinformatics data (GO, PubMed, GEO, etc.)"
     )
-    source_database: Optional[str] = Field(
-        None, description="Source database identifier"
-    )
-    cross_references: Dict[str, List[str]] = Field(
+    source_database: str | None = Field(None, description="Source database identifier")
+    cross_references: dict[str, list[str]] = Field(
         default_factory=dict, description="Cross-references to other entities"
     )
-    quality_score: Optional[float] = Field(
+    quality_score: float | None = Field(
         None, ge=0.0, le=1.0, description="Quality score for the document"
     )
 
@@ -111,7 +120,7 @@ class Document(BaseModel):
         """Add a chunk to the document."""
         self.chunks.append(chunk)
 
-    def get_chunk_by_id(self, chunk_id: str) -> Optional[Chunk]:
+    def get_chunk_by_id(self, chunk_id: str) -> Chunk | None:
         """Get a chunk by its ID."""
         for chunk in self.chunks:
             if chunk.id == chunk_id:
@@ -125,7 +134,7 @@ class Document(BaseModel):
         )
 
     @classmethod
-    def from_chonkie_document(cls, doc: ChonkieDocument, **kwargs) -> "Document":
+    def from_chonkie_document(cls, doc: ChonkieDocument, **kwargs) -> Document:
         """Create Document from ChonkieDocument."""
         return cls(
             id=doc.id,
@@ -136,9 +145,9 @@ class Document(BaseModel):
         )
 
     @classmethod
-    def from_bioinformatics_data(cls, data: Any, **kwargs) -> "Document":
+    def from_bioinformatics_data(cls, data: Any, **kwargs) -> Document:
         """Create Document from bioinformatics data types."""
-        from .bioinformatics import GOAnnotation, PubMedPaper, GEOSeries
+        from .bioinformatics import GEOSeries, GOAnnotation, PubMedPaper
 
         if isinstance(data, GOAnnotation):
             content = f"GO Annotation: {data.go_term.name}\nGene: {data.gene_symbol} ({data.gene_id})\nEvidence: {data.evidence_code.value}\nPaper: {data.title}\nAbstract: {data.abstract}"
@@ -161,9 +170,9 @@ class Document(BaseModel):
                 "doi": data.doi,
                 "pmc_id": data.pmc_id,
                 "journal": data.journal,
-                "publication_date": data.publication_date.isoformat()
-                if data.publication_date
-                else None,
+                "publication_date": (
+                    data.publication_date.isoformat() if data.publication_date else None
+                ),
                 "is_open_access": data.is_open_access,
                 "mesh_terms": data.mesh_terms,
                 "keywords": data.keywords,
@@ -178,9 +187,9 @@ class Document(BaseModel):
                 "platform_ids": data.platform_ids,
                 "sample_ids": data.sample_ids,
                 "pubmed_ids": data.pubmed_ids,
-                "submission_date": data.submission_date.isoformat()
-                if data.submission_date
-                else None,
+                "submission_date": (
+                    data.submission_date.isoformat() if data.submission_date else None
+                ),
             }
         else:
             # Generic bioinformatics data
@@ -198,9 +207,9 @@ class Document(BaseModel):
             **kwargs,
         )
 
-    class Config:
-        arbitrary_types_allowed = True
-        json_schema_extra = {
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+        json_schema_extra={
             "example": {
                 "id": "doc_001",
                 "content": "This is a sample document about machine learning.",
@@ -215,7 +224,8 @@ class Document(BaseModel):
                 "bioinformatics_type": "pubmed_paper",
                 "source_database": "PubMed",
             }
-        }
+        },
+    )
 
 
 class SearchResult(BaseModel):
@@ -225,8 +235,8 @@ class SearchResult(BaseModel):
     score: float = Field(..., description="Similarity score")
     rank: int = Field(..., description="Rank in search results")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "document": {
                     "id": "doc_001",
@@ -237,6 +247,7 @@ class SearchResult(BaseModel):
                 "rank": 1,
             }
         }
+    )
 
 
 class EmbeddingsConfig(BaseModel):
@@ -244,8 +255,8 @@ class EmbeddingsConfig(BaseModel):
 
     model_type: EmbeddingModelType = Field(..., description="Type of embedding model")
     model_name: str = Field(..., description="Model name or identifier")
-    api_key: Optional[str] = Field(None, description="API key for external services")
-    base_url: Optional[HttpUrl] = Field(None, description="Base URL for API endpoints")
+    api_key: str | None = Field(None, description="API key for external services")
+    base_url: HttpUrl | None = Field(None, description="Base URL for API endpoints")
     num_dimensions: int = Field(
         1536, description="Number of dimensions in embedding vectors"
     )
@@ -253,8 +264,8 @@ class EmbeddingsConfig(BaseModel):
     max_retries: int = Field(3, description="Maximum retry attempts")
     timeout: float = Field(30.0, description="Request timeout in seconds")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "model_type": "openai",
                 "model_name": "text-embedding-3-small",
@@ -262,6 +273,7 @@ class EmbeddingsConfig(BaseModel):
                 "batch_size": 32,
             }
         }
+    )
 
 
 class VLLMConfig(BaseModel):
@@ -271,46 +283,47 @@ class VLLMConfig(BaseModel):
     model_name: str = Field(..., description="Model name or path")
     host: str = Field("localhost", description="VLLM server host")
     port: int = Field(8000, description="VLLM server port")
-    api_key: Optional[str] = Field(None, description="API key if required")
+    api_key: str | None = Field(None, description="API key if required")
     max_tokens: int = Field(2048, description="Maximum tokens to generate")
     temperature: float = Field(0.7, description="Sampling temperature")
     top_p: float = Field(0.9, description="Top-p sampling parameter")
     frequency_penalty: float = Field(0.0, description="Frequency penalty")
     presence_penalty: float = Field(0.0, description="Presence penalty")
-    stop: Optional[List[str]] = Field(None, description="Stop sequences")
+    stop: list[str] | None = Field(None, description="Stop sequences")
     stream: bool = Field(False, description="Enable streaming responses")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "model_type": "huggingface",
-                "model_name": "microsoft/DialoGPT-medium",
+                "model_name": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
                 "host": "localhost",
                 "port": 8000,
                 "max_tokens": 2048,
                 "temperature": 0.7,
             }
         }
+    )
 
 
 class VectorStoreConfig(BaseModel):
     """Configuration for vector store connections."""
 
     store_type: VectorStoreType = Field(..., description="Type of vector store")
-    connection_string: Optional[str] = Field(
+    connection_string: str | None = Field(
         None, description="Database connection string"
     )
-    host: Optional[str] = Field(None, description="Vector store host")
-    port: Optional[int] = Field(None, description="Vector store port")
-    database: Optional[str] = Field(None, description="Database name")
-    collection_name: Optional[str] = Field(None, description="Collection/index name")
-    api_key: Optional[str] = Field(None, description="API key for cloud services")
+    host: str | None = Field(None, description="Vector store host")
+    port: int | None = Field(None, description="Vector store port")
+    database: str | None = Field(None, description="Database name")
+    collection_name: str | None = Field(None, description="Collection/index name")
+    api_key: str | None = Field(None, description="API key for cloud services")
     embedding_dimension: int = Field(1536, description="Embedding vector dimension")
     distance_metric: str = Field("cosine", description="Distance metric for similarity")
-    index_type: Optional[str] = Field(None, description="Index type (e.g., HNSW, IVF)")
+    index_type: str | None = Field(None, description="Index type (e.g., HNSW, IVF)")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "store_type": "chroma",
                 "host": "localhost",
@@ -319,6 +332,7 @@ class VectorStoreConfig(BaseModel):
                 "embedding_dimension": 1536,
             }
         }
+    )
 
 
 class RAGQuery(BaseModel):
@@ -329,16 +343,14 @@ class RAGQuery(BaseModel):
         SearchType.SIMILARITY, description="Type of search to perform"
     )
     top_k: int = Field(5, description="Number of documents to retrieve")
-    score_threshold: Optional[float] = Field(
-        None, description="Minimum similarity score"
-    )
-    retrieval_query: Optional[str] = Field(
+    score_threshold: float | None = Field(None, description="Minimum similarity score")
+    retrieval_query: str | None = Field(
         None, description="Custom retrieval query for advanced stores"
     )
-    filters: Optional[Dict[str, Any]] = Field(None, description="Metadata filters")
+    filters: dict[str, Any] | None = Field(None, description="Metadata filters")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "text": "What is machine learning?",
                 "search_type": "similarity",
@@ -346,26 +358,25 @@ class RAGQuery(BaseModel):
                 "filters": {"source": "research_paper"},
             }
         }
+    )
 
 
 class RAGResponse(BaseModel):
     """Response from RAG operations."""
 
     query: str = Field(..., description="Original query")
-    retrieved_documents: List[SearchResult] = Field(
+    retrieved_documents: list[SearchResult] = Field(
         ..., description="Retrieved documents"
     )
-    generated_answer: Optional[str] = Field(
-        None, description="Generated answer from LLM"
-    )
+    generated_answer: str | None = Field(None, description="Generated answer from LLM")
     context: str = Field(..., description="Context used for generation")
-    metadata: Dict[str, Any] = Field(
+    metadata: dict[str, Any] = Field(
         default_factory=dict, description="Response metadata"
     )
     processing_time: float = Field(..., description="Total processing time in seconds")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "query": "What is machine learning?",
                 "retrieved_documents": [],
@@ -374,6 +385,65 @@ class RAGResponse(BaseModel):
                 "processing_time": 1.5,
             }
         }
+    )
+
+
+class IntegratedSearchRequest(BaseModel):
+    """Request model for integrated search operations."""
+
+    query: str = Field(..., description="Search query")
+    search_type: str = Field("search", description="Type of search: 'search' or 'news'")
+    num_results: int | None = Field(4, description="Number of results to fetch (1-20)")
+    chunk_size: int = Field(1000, description="Chunk size for processing")
+    chunk_overlap: int = Field(0, description="Overlap between chunks")
+    enable_analytics: bool = Field(True, description="Whether to record analytics")
+    convert_to_rag: bool = Field(
+        True, description="Whether to convert results to RAG format"
+    )
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "query": "artificial intelligence developments 2024",
+                "search_type": "news",
+                "num_results": 5,
+                "chunk_size": 1000,
+                "chunk_overlap": 100,
+                "enable_analytics": True,
+                "convert_to_rag": True,
+            }
+        }
+    )
+
+
+class IntegratedSearchResponse(BaseModel):
+    """Response model for integrated search operations."""
+
+    query: str = Field(..., description="Original search query")
+    documents: list[Document] = Field(
+        ..., description="RAG documents created from search results"
+    )
+    chunks: list[Chunk] = Field(
+        ..., description="RAG chunks created from search results"
+    )
+    analytics_recorded: bool = Field(..., description="Whether analytics were recorded")
+    processing_time: float = Field(..., description="Total processing time in seconds")
+    success: bool = Field(..., description="Whether the search was successful")
+    error: str | None = Field(None, description="Error message if search failed")
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "query": "artificial intelligence developments 2024",
+                "documents": [],
+                "chunks": [],
+                "analytics_recorded": True,
+                "processing_time": 2.5,
+                "success": True,
+                "error": None,
+            }
+        }
+    )
 
 
 class RAGConfig(BaseModel):
@@ -390,7 +460,7 @@ class RAGConfig(BaseModel):
     chunk_overlap: int = Field(200, description="Overlap between chunks")
     max_context_length: int = Field(4000, description="Maximum context length for LLM")
     enable_reranking: bool = Field(False, description="Enable document reranking")
-    reranker_model: Optional[str] = Field(None, description="Reranker model name")
+    reranker_model: str | None = Field(None, description="Reranker model name")
 
     @model_validator(mode="before")
     @classmethod
@@ -401,16 +471,17 @@ class RAGConfig(BaseModel):
 
         if embeddings and vector_store:
             if embeddings.num_dimensions != vector_store.embedding_dimension:
-                raise ValueError(
+                msg = (
                     f"Embedding dimensions mismatch: "
                     f"embeddings.num_dimensions={embeddings.num_dimensions} "
                     f"!= vector_store.embedding_dimension={vector_store.embedding_dimension}"
                 )
+                raise ValueError(msg)
 
         return values
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "embeddings": {
                     "model_type": "openai",
@@ -419,7 +490,7 @@ class RAGConfig(BaseModel):
                 },
                 "llm": {
                     "model_type": "huggingface",
-                    "model_name": "microsoft/DialoGPT-medium",
+                    "model_name": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
                     "host": "localhost",
                     "port": 8000,
                 },
@@ -428,6 +499,7 @@ class RAGConfig(BaseModel):
                 "chunk_overlap": 200,
             }
         }
+    )
 
 
 # Abstract base classes for implementations
@@ -446,25 +518,21 @@ class Embeddings(ABC):
 
     @abstractmethod
     async def vectorize_documents(
-        self, document_chunks: List[str]
-    ) -> List[List[float]]:
+        self, document_chunks: list[str]
+    ) -> list[list[float]]:
         """Generate document embeddings for a list of chunks."""
-        pass
 
     @abstractmethod
-    async def vectorize_query(self, text: str) -> List[float]:
+    async def vectorize_query(self, text: str) -> list[float]:
         """Generate embeddings for the query string."""
-        pass
 
     @abstractmethod
-    def vectorize_documents_sync(self, document_chunks: List[str]) -> List[List[float]]:
+    def vectorize_documents_sync(self, document_chunks: list[str]) -> list[list[float]]:
         """Synchronous version of vectorize_documents()."""
-        pass
 
     @abstractmethod
-    def vectorize_query_sync(self, text: str) -> List[float]:
+    def vectorize_query_sync(self, text: str) -> list[float]:
         """Synchronous version of vectorize_query()."""
-        pass
 
 
 class VectorStore(ABC):
@@ -476,61 +544,53 @@ class VectorStore(ABC):
 
     @abstractmethod
     async def add_documents(
-        self, documents: List[Document], **kwargs: Any
-    ) -> List[str]:
+        self, documents: list[Document], **kwargs: Any
+    ) -> list[str]:
         """Add a list of documents to the vector store and return their unique identifiers."""
-        pass
 
     @abstractmethod
     async def add_document_chunks(
-        self, chunks: List[Chunk], **kwargs: Any
-    ) -> List[str]:
+        self, chunks: list[Chunk], **kwargs: Any
+    ) -> list[str]:
         """Add document chunks to the vector store."""
-        pass
 
     @abstractmethod
     async def add_document_text_chunks(
-        self, document_texts: List[str], **kwargs: Any
-    ) -> List[str]:
+        self, document_texts: list[str], **kwargs: Any
+    ) -> list[str]:
         """Add document text chunks to the vector store (legacy method)."""
-        pass
 
     @abstractmethod
-    async def delete_documents(self, document_ids: List[str]) -> bool:
+    async def delete_documents(self, document_ids: list[str]) -> bool:
         """Delete the specified list of documents by their record identifiers."""
-        pass
 
     @abstractmethod
     async def search(
         self,
         query: str,
         search_type: SearchType,
-        retrieval_query: Optional[str] = None,
+        retrieval_query: str | None = None,
         **kwargs: Any,
-    ) -> List[SearchResult]:
+    ) -> list[SearchResult]:
         """Search for documents using text query."""
-        pass
 
     @abstractmethod
     async def search_with_embeddings(
         self,
-        query_embedding: List[float],
+        query_embedding: list[float],
         search_type: SearchType,
-        retrieval_query: Optional[str] = None,
+        retrieval_query: str | None = None,
         **kwargs: Any,
-    ) -> List[SearchResult]:
+    ) -> list[SearchResult]:
         """Search for documents using embedding vector."""
-        pass
 
     @abstractmethod
-    async def get_document(self, document_id: str) -> Optional[Document]:
+    async def get_document(self, document_id: str) -> Document | None:
         """Retrieve a document by its ID."""
-        pass
 
     @abstractmethod
     async def update_document(self, document: Document) -> bool:
         """Update an existing document."""
-        pass
 
 
 class LLMProvider(ABC):
@@ -541,36 +601,34 @@ class LLMProvider(ABC):
 
     @abstractmethod
     async def generate(
-        self, prompt: str, context: Optional[str] = None, **kwargs: Any
+        self, prompt: str, context: str | None = None, **kwargs: Any
     ) -> str:
         """Generate text using the LLM."""
-        pass
 
     @abstractmethod
     async def generate_stream(
-        self, prompt: str, context: Optional[str] = None, **kwargs: Any
+        self, prompt: str, context: str | None = None, **kwargs: Any
     ) -> AsyncGenerator[str, None]:
         """Generate streaming text using the LLM."""
-        pass
 
 
 class RAGSystem(BaseModel):
     """Complete RAG system implementation."""
 
     config: RAGConfig = Field(..., description="RAG system configuration")
-    embeddings: Optional[Embeddings] = Field(None, description="Embeddings provider")
-    vector_store: Optional[VectorStore] = Field(None, description="Vector store")
-    llm: Optional[LLMProvider] = Field(None, description="LLM provider")
+    embeddings: Embeddings | None = Field(None, description="Embeddings provider")
+    vector_store: VectorStore | None = Field(None, description="Vector store")
+    llm: LLMProvider | None = Field(None, description="LLM provider")
 
     async def initialize(self) -> None:
         """Initialize the RAG system components."""
         # This would be implemented by concrete classes
-        pass
 
-    async def add_documents(self, documents: List[Document]) -> List[str]:
+    async def add_documents(self, documents: list[Document]) -> list[str]:
         """Add documents to the vector store."""
         if not self.vector_store:
-            raise RuntimeError("Vector store not initialized")
+            msg = "Vector store not initialized"
+            raise RuntimeError(msg)
         return await self.vector_store.add_documents(documents)
 
     async def query(self, rag_query: RAGQuery) -> RAGResponse:
@@ -580,7 +638,8 @@ class RAGSystem(BaseModel):
         start_time = time.time()
 
         if not self.vector_store or not self.llm:
-            raise RuntimeError("RAG system not fully initialized")
+            msg = "RAG system not fully initialized"
+            raise RuntimeError(msg)
 
         # Retrieve relevant documents
         search_results = await self.vector_store.search(
@@ -600,13 +659,9 @@ class RAGSystem(BaseModel):
         context = "\n\n".join(context_parts)
 
         # Generate answer using LLM
-        prompt = f"""Based on the following context, please answer the question: {rag_query.text}
+        from DeepResearch.src.prompts.rag import RAGPrompts
 
-Context:
-{context}
-
-Answer:"""
-
+        prompt = RAGPrompts.get_rag_query_prompt(rag_query.text, context)
         generated_answer = await self.llm.generate(prompt, context=context)
 
         processing_time = time.time() - start_time
@@ -619,8 +674,7 @@ Answer:"""
             processing_time=processing_time,
         )
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class BioinformaticsRAGSystem(RAGSystem):
@@ -628,9 +682,9 @@ class BioinformaticsRAGSystem(RAGSystem):
 
     def __init__(self, config: RAGConfig, **kwargs):
         super().__init__(config=config, **kwargs)
-        self.bioinformatics_data_cache: Dict[str, Any] = {}
+        self.bioinformatics_data_cache: dict[str, Any] = {}
 
-    async def add_bioinformatics_data(self, data: List[Any]) -> List[str]:
+    async def add_bioinformatics_data(self, data: list[Any]) -> list[str]:
         """Add bioinformatics data to the vector store."""
         documents = []
         for item in data:
@@ -648,7 +702,8 @@ class BioinformaticsRAGSystem(RAGSystem):
         start_time = time.time()
 
         if not self.vector_store or not self.llm:
-            raise RuntimeError("RAG system not fully initialized")
+            msg = "RAG system not fully initialized"
+            raise RuntimeError(msg)
 
         # Build enhanced filters for bioinformatics data
         enhanced_filters = query.filters or {}
@@ -679,7 +734,7 @@ class BioinformaticsRAGSystem(RAGSystem):
 
         # Build context from retrieved documents
         context_parts = []
-        bioinformatics_summary = {
+        bioinformatics_summary: BioinformaticsSummary = {
             "total_documents": len(search_results),
             "bioinformatics_types": set(),
             "source_databases": set(),
@@ -719,41 +774,34 @@ class BioinformaticsRAGSystem(RAGSystem):
                     cross_references[ref_type].update(refs)
 
         # Convert sets to lists for JSON serialization
-        for key in bioinformatics_summary:
-            if isinstance(bioinformatics_summary[key], set):
-                bioinformatics_summary[key] = list(bioinformatics_summary[key])
+        summary_dict = dict(bioinformatics_summary)
+        for key, value in summary_dict.items():
+            if isinstance(value, set):
+                summary_dict[key] = list(value)
 
-        for key in cross_references:
-            cross_references[key] = list(cross_references[key])
+        for key, value in cross_references.items():
+            cross_references[key] = list(value)
 
         context = "\n\n".join(context_parts)
 
         # Generate specialized prompt for bioinformatics
-        prompt = f"""Based on the following bioinformatics data, please provide a comprehensive answer to: {query.text}
+        from DeepResearch.src.prompts.rag import RAGPrompts
 
-Context from bioinformatics databases:
-{context}
-
-Please provide:
-1. A direct answer to the question
-2. Key findings from the data
-3. Relevant gene symbols, GO terms, or other identifiers mentioned
-4. Confidence level based on the evidence quality
-
-Answer:"""
-
+        prompt = RAGPrompts.get_bioinformatics_rag_query_prompt(query.text, context)
         generated_answer = await self.llm.generate(prompt, context=context)
 
         processing_time = time.time() - start_time
 
         # Calculate quality metrics
         quality_metrics = {
-            "average_score": sum(r.score for r in search_results) / len(search_results)
-            if search_results
-            else 0.0,
+            "average_score": (
+                sum(r.score for r in search_results) / len(search_results)
+                if search_results
+                else 0.0
+            ),
             "high_quality_docs": sum(1 for r in search_results if r.score > 0.8),
-            "evidence_diversity": len(bioinformatics_summary["evidence_codes"]),
-            "source_diversity": len(bioinformatics_summary["source_databases"]),
+            "evidence_diversity": len(bioinformatics_summary["evidence_codes"]),  # type: ignore
+            "source_diversity": len(bioinformatics_summary["source_databases"]),  # type: ignore
         }
 
         return BioinformaticsRAGResponse(
@@ -768,8 +816,8 @@ Answer:"""
         )
 
     async def fuse_bioinformatics_data(
-        self, data_sources: Dict[str, List[Any]]
-    ) -> List[Document]:
+        self, data_sources: dict[str, list[Any]]
+    ) -> list[Document]:
         """Fuse multiple bioinformatics data sources into unified documents."""
         fused_documents = []
 
@@ -784,7 +832,7 @@ Answer:"""
 
         return fused_documents
 
-    def _add_cross_references(self, documents: List[Document]) -> None:
+    def _add_cross_references(self, documents: list[Document]) -> None:
         """Add cross-references between related documents."""
         # Group documents by common identifiers
         gene_groups = {}
@@ -840,34 +888,30 @@ class BioinformaticsRAGQuery(BaseModel):
         SearchType.SIMILARITY, description="Type of search to perform"
     )
     top_k: int = Field(5, description="Number of documents to retrieve")
-    score_threshold: Optional[float] = Field(
-        None, description="Minimum similarity score"
-    )
-    retrieval_query: Optional[str] = Field(
+    score_threshold: float | None = Field(None, description="Minimum similarity score")
+    retrieval_query: str | None = Field(
         None, description="Custom retrieval query for advanced stores"
     )
-    filters: Optional[Dict[str, Any]] = Field(None, description="Metadata filters")
+    filters: dict[str, Any] | None = Field(None, description="Metadata filters")
 
     # Bioinformatics-specific filters
-    bioinformatics_types: Optional[List[str]] = Field(
+    bioinformatics_types: list[str] | None = Field(
         None, description="Filter by bioinformatics data types"
     )
-    source_databases: Optional[List[str]] = Field(
+    source_databases: list[str] | None = Field(
         None, description="Filter by source databases"
     )
-    evidence_codes: Optional[List[str]] = Field(
+    evidence_codes: list[str] | None = Field(
         None, description="Filter by GO evidence codes"
     )
-    organisms: Optional[List[str]] = Field(None, description="Filter by organisms")
-    gene_symbols: Optional[List[str]] = Field(
-        None, description="Filter by gene symbols"
-    )
-    quality_threshold: Optional[float] = Field(
+    organisms: list[str] | None = Field(None, description="Filter by organisms")
+    gene_symbols: list[str] | None = Field(None, description="Filter by gene symbols")
+    quality_threshold: float | None = Field(
         None, ge=0.0, le=1.0, description="Minimum quality score"
     )
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "text": "What genes are involved in DNA damage response?",
                 "search_type": "similarity",
@@ -878,37 +922,60 @@ class BioinformaticsRAGQuery(BaseModel):
                 "quality_threshold": 0.8,
             }
         }
+    )
+
+
+class BioinformaticsSummary(TypedDict):
+    """Type definition for bioinformatics summary data."""
+
+    total_documents: int
+    bioinformatics_types: set[str]
+    source_databases: set[str]
+    evidence_codes: set[str]
+    organisms: set[str]
+    gene_symbols: set[str]
+
+
+def _default_bioinformatics_summary() -> BioinformaticsSummary:
+    """Default factory for bioinformatics summary."""
+    return {
+        "total_documents": 0,
+        "bioinformatics_types": set(),
+        "source_databases": set(),
+        "evidence_codes": set(),
+        "organisms": set(),
+        "gene_symbols": set(),
+    }
 
 
 class BioinformaticsRAGResponse(BaseModel):
     """Enhanced RAG response for bioinformatics data."""
 
     query: str = Field(..., description="Original query")
-    retrieved_documents: List[SearchResult] = Field(
+    retrieved_documents: list[SearchResult] = Field(
         ..., description="Retrieved documents"
     )
-    generated_answer: Optional[str] = Field(
-        None, description="Generated answer from LLM"
-    )
+    generated_answer: str | None = Field(None, description="Generated answer from LLM")
     context: str = Field(..., description="Context used for generation")
-    metadata: Dict[str, Any] = Field(
+    metadata: dict[str, Any] = Field(
         default_factory=dict, description="Response metadata"
     )
     processing_time: float = Field(..., description="Total processing time in seconds")
 
     # Bioinformatics-specific response data
-    bioinformatics_summary: Dict[str, Any] = Field(
-        default_factory=dict, description="Summary of bioinformatics data"
+    bioinformatics_summary: BioinformaticsSummary = Field(
+        default_factory=_default_bioinformatics_summary,
+        description="Summary of bioinformatics data",
     )
-    cross_references: Dict[str, List[str]] = Field(
+    cross_references: dict[str, list[str]] = Field(
         default_factory=dict, description="Cross-references found"
     )
-    quality_metrics: Dict[str, float] = Field(
+    quality_metrics: dict[str, float] = Field(
         default_factory=dict, description="Quality metrics for retrieved data"
     )
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "query": "What genes are involved in DNA damage response?",
                 "retrieved_documents": [],
@@ -922,6 +989,7 @@ class BioinformaticsRAGResponse(BaseModel):
                 },
             }
         }
+    )
 
 
 class RAGWorkflowState(BaseModel):
@@ -929,31 +997,31 @@ class RAGWorkflowState(BaseModel):
 
     query: str = Field(..., description="Original query")
     rag_config: RAGConfig = Field(..., description="RAG system configuration")
-    documents: List[Document] = Field(
+    documents: list[Document] = Field(
         default_factory=list, description="Documents to process"
     )
-    chunks: List[Chunk] = Field(default_factory=list, description="Document chunks")
-    rag_response: Optional[RAGResponse] = Field(None, description="RAG response")
-    bioinformatics_response: Optional[BioinformaticsRAGResponse] = Field(
+    chunks: list[Chunk] = Field(default_factory=list, description="Document chunks")
+    rag_response: RAGResponse | None = Field(None, description="RAG response")
+    bioinformatics_response: BioinformaticsRAGResponse | None = Field(
         None, description="Bioinformatics RAG response"
     )
-    processing_steps: List[str] = Field(
+    processing_steps: list[str] = Field(
         default_factory=list, description="Processing steps completed"
     )
-    errors: List[str] = Field(
+    errors: list[str] = Field(
         default_factory=list, description="Any errors encountered"
     )
 
     # Bioinformatics-specific state
-    bioinformatics_data: Dict[str, Any] = Field(
+    bioinformatics_data: dict[str, Any] = Field(
         default_factory=dict, description="Bioinformatics data being processed"
     )
-    fusion_metadata: Dict[str, Any] = Field(
+    fusion_metadata: dict[str, Any] = Field(
         default_factory=dict, description="Data fusion metadata"
     )
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "query": "What is machine learning?",
                 "rag_config": {},
@@ -963,3 +1031,8 @@ class RAGWorkflowState(BaseModel):
                 "bioinformatics_data": {"go_annotations": [], "pubmed_papers": []},
             }
         }
+    )
+
+
+# Rebuild models to resolve forward references
+Document.model_rebuild()

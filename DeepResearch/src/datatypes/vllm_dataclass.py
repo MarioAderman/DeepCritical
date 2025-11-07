@@ -10,10 +10,14 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union, AsyncGenerator, Callable
-from pydantic import BaseModel, Field
-import numpy as np
+from typing import TYPE_CHECKING, Any
 
+from pydantic import BaseModel, ConfigDict, Field
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator, Callable
+
+    import numpy as np
 
 # ============================================================================
 # Core Enums and Types
@@ -127,19 +131,19 @@ class ModelConfig(BaseModel):
     """Model-specific configuration."""
 
     model: str = Field(..., description="Model name or path")
-    tokenizer: Optional[str] = Field(None, description="Tokenizer name or path")
+    tokenizer: str | None = Field(None, description="Tokenizer name or path")
     tokenizer_mode: TokenizerMode = Field(
         TokenizerMode.AUTO, description="Tokenizer mode"
     )
     trust_remote_code: bool = Field(False, description="Trust remote code")
-    download_dir: Optional[str] = Field(None, description="Download directory")
+    download_dir: str | None = Field(None, description="Download directory")
     load_format: LoadFormat = Field(LoadFormat.AUTO, description="Model loading format")
     dtype: str = Field("auto", description="Data type")
     seed: int = Field(0, description="Random seed")
-    revision: Optional[str] = Field(None, description="Model revision")
-    code_revision: Optional[str] = Field(None, description="Code revision")
-    max_model_len: Optional[int] = Field(None, description="Maximum model length")
-    quantization: Optional[QuantizationMethod] = Field(
+    revision: str | None = Field(None, description="Model revision")
+    code_revision: str | None = Field(None, description="Code revision")
+    max_model_len: int | None = Field(None, description="Maximum model length")
+    quantization: QuantizationMethod | None = Field(
         None, description="Quantization method"
     )
     enforce_eager: bool = Field(False, description="Enforce eager execution")
@@ -153,16 +157,17 @@ class ModelConfig(BaseModel):
         False, description="Skip tokenizer initialization"
     )
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
-                "model": "microsoft/DialoGPT-medium",
+                "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
                 "tokenizer_mode": "auto",
                 "trust_remote_code": False,
                 "load_format": "auto",
                 "dtype": "auto",
             }
         }
+    )
 
 
 class CacheConfig(BaseModel):
@@ -172,10 +177,10 @@ class CacheConfig(BaseModel):
     gpu_memory_utilization: float = Field(0.9, description="GPU memory utilization")
     swap_space: int = Field(4, description="Swap space in GB")
     cache_dtype: str = Field("auto", description="Cache data type")
-    num_gpu_blocks_override: Optional[int] = Field(
+    num_gpu_blocks_override: int | None = Field(
         None, description="Override number of GPU blocks"
     )
-    num_cpu_blocks_override: Optional[int] = Field(
+    num_cpu_blocks_override: int | None = Field(
         None, description="Override number of CPU blocks"
     )
     block_space_policy: BlockSpacePolicy = Field(
@@ -191,13 +196,11 @@ class CacheConfig(BaseModel):
     num_lookahead_slots: int = Field(0, description="Number of lookahead slots")
     delay_factor: float = Field(0.0, description="Delay factor")
     enable_sliding_window: bool = Field(False, description="Enable sliding window")
-    sliding_window_size: Optional[int] = Field(None, description="Sliding window size")
-    sliding_window_blocks: Optional[int] = Field(
-        None, description="Sliding window blocks"
-    )
+    sliding_window_size: int | None = Field(None, description="Sliding window size")
+    sliding_window_blocks: int | None = Field(None, description="Sliding window blocks")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "block_size": 16,
                 "gpu_memory_utilization": 0.9,
@@ -205,25 +208,25 @@ class CacheConfig(BaseModel):
                 "cache_dtype": "auto",
             }
         }
+    )
 
 
 class LoadConfig(BaseModel):
     """Model loading configuration."""
 
-    max_model_len: Optional[int] = Field(None, description="Maximum model length")
-    max_num_batched_tokens: Optional[int] = Field(
+    max_model_len: int | None = Field(None, description="Maximum model length")
+    max_num_batched_tokens: int | None = Field(
         None, description="Maximum batched tokens"
     )
-    max_num_seqs: Optional[int] = Field(None, description="Maximum number of sequences")
-    max_paddings: Optional[int] = Field(None, description="Maximum paddings")
+    max_num_seqs: int | None = Field(None, description="Maximum number of sequences")
+    max_paddings: int | None = Field(None, description="Maximum paddings")
     max_lora_rank: int = Field(16, description="Maximum LoRA rank")
     max_loras: int = Field(1, description="Maximum number of LoRAs")
     max_cpu_loras: int = Field(2, description="Maximum CPU LoRAs")
     lora_extra_vocab_size: int = Field(256, description="LoRA extra vocabulary size")
     lora_dtype: str = Field("auto", description="LoRA data type")
-    max_loras: int = Field(1, description="Maximum LoRAs")
-    device_map: Optional[str] = Field(None, description="Device map")
-    load_in_low_bit: Optional[str] = Field(None, description="Load in low bit")
+    device_map: str | None = Field(None, description="Device map")
+    load_in_low_bit: str | None = Field(None, description="Load in low bit")
     load_in_4bit: bool = Field(False, description="Load in 4-bit")
     load_in_8bit: bool = Field(False, description="Load in 8-bit")
     load_in_symmetric: bool = Field(True, description="Load in symmetric")
@@ -278,14 +281,15 @@ class LoadConfig(BaseModel):
     load_in_half_bfloat8: bool = Field(False, description="Load in half bfloat8")
     load_in_half_float8: bool = Field(False, description="Load in half float8")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "max_model_len": 4096,
                 "max_num_batched_tokens": 8192,
                 "max_num_seqs": 256,
             }
         }
+    )
 
 
 class ParallelConfig(BaseModel):
@@ -298,25 +302,26 @@ class ParallelConfig(BaseModel):
     disable_custom_all_reduce: bool = Field(
         False, description="Disable custom all-reduce"
     )
-    max_parallel_loading_workers: Optional[int] = Field(
+    max_parallel_loading_workers: int | None = Field(
         None, description="Max parallel loading workers"
     )
-    ray_address: Optional[str] = Field(None, description="Ray cluster address")
-    placement_group: Optional[Dict[str, Any]] = Field(
+    ray_address: str | None = Field(None, description="Ray cluster address")
+    placement_group: dict[str, Any] | None = Field(
         None, description="Ray placement group"
     )
-    ray_runtime_env: Optional[Dict[str, Any]] = Field(
+    ray_runtime_env: dict[str, Any] | None = Field(
         None, description="Ray runtime environment"
     )
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "pipeline_parallel_size": 1,
                 "tensor_parallel_size": 1,
                 "worker_use_ray": False,
             }
         }
+    )
 
 
 class SchedulerConfig(BaseModel):
@@ -331,19 +336,18 @@ class SchedulerConfig(BaseModel):
     num_lookahead_slots: int = Field(0, description="Number of lookahead slots")
     delay_factor: float = Field(0.0, description="Delay factor")
     enable_sliding_window: bool = Field(False, description="Enable sliding window")
-    sliding_window_size: Optional[int] = Field(None, description="Sliding window size")
-    sliding_window_blocks: Optional[int] = Field(
-        None, description="Sliding window blocks"
-    )
+    sliding_window_size: int | None = Field(None, description="Sliding window size")
+    sliding_window_blocks: int | None = Field(None, description="Sliding window blocks")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "max_num_batched_tokens": 8192,
                 "max_num_seqs": 256,
                 "max_paddings": 256,
             }
         }
+    )
 
 
 class DeviceConfig(BaseModel):
@@ -353,10 +357,11 @@ class DeviceConfig(BaseModel):
     device_id: int = Field(0, description="Device ID")
     memory_fraction: float = Field(1.0, description="Memory fraction")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {"device": "cuda", "device_id": 0, "memory_fraction": 1.0}
         }
+    )
 
 
 class SpeculativeConfig(BaseModel):
@@ -366,15 +371,15 @@ class SpeculativeConfig(BaseModel):
         SpeculativeMode.SMALL_MODEL, description="Speculative mode"
     )
     num_speculative_tokens: int = Field(5, description="Number of speculative tokens")
-    speculative_model: Optional[str] = Field(None, description="Speculative model")
-    speculative_draft_model: Optional[str] = Field(None, description="Draft model")
-    speculative_max_model_len: Optional[int] = Field(
+    speculative_model: str | None = Field(None, description="Speculative model")
+    speculative_draft_model: str | None = Field(None, description="Draft model")
+    speculative_max_model_len: int | None = Field(
         None, description="Max model length for speculative"
     )
     speculative_disable_by_batch_size: int = Field(
         512, description="Disable speculative by batch size"
     )
-    speculative_ngram_draft_model: Optional[str] = Field(
+    speculative_ngram_draft_model: str | None = Field(
         None, description="N-gram draft model"
     )
     speculative_ngram_prompt_lookup_max: int = Field(
@@ -492,10 +497,11 @@ class SpeculativeConfig(BaseModel):
         0.0, description="N-gram prompt lookup encoder encoder epsilon cutoff"
     )
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {"speculative_mode": "small_model", "num_speculative_tokens": 5}
         }
+    )
 
 
 class LoRAConfig(BaseModel):
@@ -506,27 +512,27 @@ class LoRAConfig(BaseModel):
     max_cpu_loras: int = Field(2, description="Maximum CPU LoRAs")
     lora_extra_vocab_size: int = Field(256, description="LoRA extra vocabulary size")
     lora_dtype: str = Field("auto", description="LoRA data type")
-    lora_extra_vocab_size: int = Field(256, description="LoRA extra vocabulary size")
-    lora_dtype: str = Field("auto", description="LoRA data type")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {"max_lora_rank": 16, "max_loras": 1, "max_cpu_loras": 2}
         }
+    )
 
 
 class PromptAdapterConfig(BaseModel):
     """Prompt adapter configuration."""
 
     prompt_adapter_type: str = Field("lora", description="Prompt adapter type")
-    prompt_adapter_config: Optional[Dict[str, Any]] = Field(
+    prompt_adapter_config: dict[str, Any] | None = Field(
         None, description="Prompt adapter configuration"
     )
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {"prompt_adapter_type": "lora", "prompt_adapter_config": {}}
         }
+    )
 
 
 class MultiModalConfig(BaseModel):
@@ -534,45 +540,48 @@ class MultiModalConfig(BaseModel):
 
     image_input_type: str = Field("pixel_values", description="Image input type")
     image_input_shape: str = Field("dynamic", description="Image input shape")
-    image_tokenizer: Optional[str] = Field(None, description="Image tokenizer")
-    image_processor: Optional[str] = Field(None, description="Image processor")
-    image_processor_config: Optional[Dict[str, Any]] = Field(
+    image_tokenizer: str | None = Field(None, description="Image tokenizer")
+    image_processor: str | None = Field(None, description="Image processor")
+    image_processor_config: dict[str, Any] | None = Field(
         None, description="Image processor configuration"
     )
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "image_input_type": "pixel_values",
                 "image_input_shape": "dynamic",
             }
         }
+    )
 
 
 class PoolerConfig(BaseModel):
     """Pooler configuration."""
 
     pooling_type: PoolingType = Field(PoolingType.MEAN, description="Pooling type")
-    pooling_params: Optional[Dict[str, Any]] = Field(
+    pooling_params: dict[str, Any] | None = Field(
         None, description="Pooling parameters"
     )
 
-    class Config:
-        json_schema_extra = {"example": {"pooling_type": "mean", "pooling_params": {}}}
+    model_config = ConfigDict(
+        json_schema_extra={"example": {"pooling_type": "mean", "pooling_params": {}}}
+    )
 
 
 class DecodingConfig(BaseModel):
     """Decoding configuration."""
 
     decoding_strategy: str = Field("greedy", description="Decoding strategy")
-    decoding_params: Optional[Dict[str, Any]] = Field(
+    decoding_params: dict[str, Any] | None = Field(
         None, description="Decoding parameters"
     )
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {"decoding_strategy": "greedy", "decoding_params": {}}
         }
+    )
 
 
 class ObservabilityConfig(BaseModel):
@@ -583,19 +592,20 @@ class ObservabilityConfig(BaseModel):
     log_requests: bool = Field(False, description="Log requests")
     log_stats: bool = Field(False, description="Log statistics")
     log_level: str = Field("INFO", description="Log level")
-    log_file: Optional[str] = Field(None, description="Log file")
+    log_file: str | None = Field(None, description="Log file")
     log_format: str = Field(
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s", description="Log format"
     )
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "disable_log_stats": False,
                 "disable_log_requests": False,
                 "log_level": "INFO",
             }
         }
+    )
 
 
 class KVTransferConfig(BaseModel):
@@ -605,14 +615,15 @@ class KVTransferConfig(BaseModel):
     kv_transfer_interval: int = Field(100, description="KV transfer interval")
     kv_transfer_batch_size: int = Field(32, description="KV transfer batch size")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "enable_kv_transfer": False,
                 "kv_transfer_interval": 100,
                 "kv_transfer_batch_size": 32,
             }
         }
+    )
 
 
 class CompilationConfig(BaseModel):
@@ -621,18 +632,19 @@ class CompilationConfig(BaseModel):
     enable_compilation: bool = Field(False, description="Enable compilation")
     compilation_mode: str = Field("default", description="Compilation mode")
     compilation_backend: str = Field("torch", description="Compilation backend")
-    compilation_cache_dir: Optional[str] = Field(
+    compilation_cache_dir: str | None = Field(
         None, description="Compilation cache directory"
     )
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "enable_compilation": False,
                 "compilation_mode": "default",
                 "compilation_backend": "torch",
             }
         }
+    )
 
 
 class VllmConfig(BaseModel):
@@ -644,35 +656,33 @@ class VllmConfig(BaseModel):
     parallel: ParallelConfig = Field(..., description="Parallel configuration")
     scheduler: SchedulerConfig = Field(..., description="Scheduler configuration")
     device: DeviceConfig = Field(..., description="Device configuration")
-    speculative: Optional[SpeculativeConfig] = Field(
+    speculative: SpeculativeConfig | None = Field(
         None, description="Speculative configuration"
     )
-    lora: Optional[LoRAConfig] = Field(None, description="LoRA configuration")
-    prompt_adapter: Optional[PromptAdapterConfig] = Field(
+    lora: LoRAConfig | None = Field(None, description="LoRA configuration")
+    prompt_adapter: PromptAdapterConfig | None = Field(
         None, description="Prompt adapter configuration"
     )
-    multimodal: Optional[MultiModalConfig] = Field(
+    multimodal: MultiModalConfig | None = Field(
         None, description="Multi-modal configuration"
     )
-    pooler: Optional[PoolerConfig] = Field(None, description="Pooler configuration")
-    decoding: Optional[DecodingConfig] = Field(
-        None, description="Decoding configuration"
-    )
+    pooler: PoolerConfig | None = Field(None, description="Pooler configuration")
+    decoding: DecodingConfig | None = Field(None, description="Decoding configuration")
     observability: ObservabilityConfig = Field(
         ..., description="Observability configuration"
     )
-    kv_transfer: Optional[KVTransferConfig] = Field(
+    kv_transfer: KVTransferConfig | None = Field(
         None, description="KV transfer configuration"
     )
-    compilation: Optional[CompilationConfig] = Field(
+    compilation: CompilationConfig | None = Field(
         None, description="Compilation configuration"
     )
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "model": {
-                    "model": "microsoft/DialoGPT-medium",
+                    "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
                     "tokenizer_mode": "auto",
                 },
                 "cache": {"block_size": 16, "gpu_memory_utilization": 0.9},
@@ -683,6 +693,7 @@ class VllmConfig(BaseModel):
                 "observability": {"disable_log_stats": False, "log_level": "INFO"},
             }
         }
+    )
 
 
 # ============================================================================
@@ -702,31 +713,29 @@ class TextPrompt(BaseModel):
     """Text-based prompt for VLLM inference."""
 
     text: str = Field(..., description="The text prompt")
-    prompt_id: Optional[str] = Field(
-        None, description="Unique identifier for the prompt"
-    )
-    multi_modal_data: Optional[Dict[str, Any]] = Field(
+    prompt_id: str | None = Field(None, description="Unique identifier for the prompt")
+    multi_modal_data: dict[str, Any] | None = Field(
         None, description="Multi-modal data"
     )
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {"text": "Once upon a time", "prompt_id": "prompt_001"}
         }
+    )
 
 
 class TokensPrompt(BaseModel):
     """Token-based prompt for VLLM inference."""
 
-    token_ids: List[int] = Field(..., description="List of token IDs")
-    prompt_id: Optional[str] = Field(
-        None, description="Unique identifier for the prompt"
-    )
+    token_ids: list[int] = Field(..., description="List of token IDs")
+    prompt_id: str | None = Field(None, description="Unique identifier for the prompt")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {"token_ids": [1, 2, 3, 4, 5], "prompt_id": "tokens_001"}
         }
+    )
 
 
 class MultiModalDataDict(BaseModel):
@@ -734,16 +743,10 @@ class MultiModalDataDict(BaseModel):
 
     model_config = {"arbitrary_types_allowed": True}
 
-    image: Optional[Union[str, bytes, np.ndarray]] = Field(
-        None, description="Image data"
-    )
-    audio: Optional[Union[str, bytes, np.ndarray]] = Field(
-        None, description="Audio data"
-    )
-    video: Optional[Union[str, bytes, np.ndarray]] = Field(
-        None, description="Video data"
-    )
-    metadata: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
+    image: str | bytes | np.ndarray | None = Field(None, description="Image data")
+    audio: str | bytes | np.ndarray | None = Field(None, description="Audio data")
+    video: str | bytes | np.ndarray | None = Field(None, description="Video data")
+    metadata: dict[str, Any] | None = Field(None, description="Additional metadata")
 
 
 # ============================================================================
@@ -755,7 +758,7 @@ class SamplingParams(BaseModel):
     """Sampling parameters for text generation."""
 
     n: int = Field(1, description="Number of output sequences to generate")
-    best_of: Optional[int] = Field(
+    best_of: int | None = Field(
         None, description="Number of sequences to generate and return the best"
     )
     presence_penalty: float = Field(0.0, description="Presence penalty")
@@ -767,11 +770,11 @@ class SamplingParams(BaseModel):
     min_p: float = Field(0.0, description="Minimum probability threshold")
     use_beam_search: bool = Field(False, description="Use beam search")
     length_penalty: float = Field(1.0, description="Length penalty for beam search")
-    early_stopping: Union[bool, str] = Field(
+    early_stopping: bool | str = Field(
         False, description="Early stopping for beam search"
     )
-    stop: Optional[Union[str, List[str]]] = Field(None, description="Stop sequences")
-    stop_token_ids: Optional[List[int]] = Field(None, description="Stop token IDs")
+    stop: str | list[str] | None = Field(None, description="Stop sequences")
+    stop_token_ids: list[int] | None = Field(None, description="Stop token IDs")
     include_stop_str_in_output: bool = Field(
         False, description="Include stop string in output"
     )
@@ -780,22 +783,18 @@ class SamplingParams(BaseModel):
     spaces_between_special_tokens: bool = Field(
         True, description="Add spaces between special tokens"
     )
-    logits_processor: Optional[List[Callable]] = Field(
+    logits_processor: list[Callable] | None = Field(
         None, description="Logits processors"
     )
-    prompt_logprobs: Optional[int] = Field(
+    prompt_logprobs: int | None = Field(
         None, description="Number of logprobs for prompt tokens"
     )
     detokenize: bool = Field(True, description="Detokenize output")
-    seed: Optional[int] = Field(None, description="Random seed")
-    logprobs: Optional[int] = Field(None, description="Number of logprobs to return")
-    prompt_logprobs: Optional[int] = Field(
-        None, description="Number of logprobs for prompt"
-    )
-    detokenize: bool = Field(True, description="Detokenize output")
+    seed: int | None = Field(None, description="Random seed")
+    logprobs: int | None = Field(None, description="Number of logprobs to return")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "temperature": 0.7,
                 "top_p": 0.9,
@@ -803,18 +802,18 @@ class SamplingParams(BaseModel):
                 "stop": ["\n", "Human:"],
             }
         }
+    )
 
 
 class PoolingParams(BaseModel):
     """Parameters for pooling operations."""
 
     pooling_type: PoolingType = Field(PoolingType.MEAN, description="Type of pooling")
-    pooling_params: Optional[Dict[str, Any]] = Field(
+    pooling_params: dict[str, Any] | None = Field(
         None, description="Additional pooling parameters"
     )
 
-    class Config:
-        json_schema_extra = {"example": {"pooling_type": "mean"}}
+    model_config = ConfigDict(json_schema_extra={"example": {"pooling_type": "mean"}})
 
 
 # ============================================================================
@@ -827,15 +826,15 @@ class RequestOutput(BaseModel):
 
     request_id: str = Field(..., description="Unique request identifier")
     prompt: str = Field(..., description="The input prompt")
-    prompt_token_ids: List[int] = Field(..., description="Token IDs of the prompt")
-    prompt_logprobs: Optional[List[Dict[str, float]]] = Field(
+    prompt_token_ids: list[int] = Field(..., description="Token IDs of the prompt")
+    prompt_logprobs: list[dict[str, float]] | None = Field(
         None, description="Log probabilities for prompt tokens"
     )
-    outputs: List["CompletionOutput"] = Field(..., description="Generated outputs")
+    outputs: list[CompletionOutput] = Field(..., description="Generated outputs")
     finished: bool = Field(..., description="Whether the request is finished")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "request_id": "req_001",
                 "prompt": "Hello world",
@@ -844,6 +843,7 @@ class RequestOutput(BaseModel):
                 "finished": False,
             }
         }
+    )
 
 
 class CompletionOutput(BaseModel):
@@ -851,15 +851,15 @@ class CompletionOutput(BaseModel):
 
     index: int = Field(..., description="Index of the completion")
     text: str = Field(..., description="Generated text")
-    token_ids: List[int] = Field(..., description="Token IDs of the generated text")
+    token_ids: list[int] = Field(..., description="Token IDs of the generated text")
     cumulative_logprob: float = Field(..., description="Cumulative log probability")
-    logprobs: Optional[List[Dict[str, float]]] = Field(
+    logprobs: list[dict[str, float]] | None = Field(
         None, description="Log probabilities for each token"
     )
-    finish_reason: Optional[str] = Field(None, description="Reason for completion")
+    finish_reason: str | None = Field(None, description="Reason for completion")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "index": 0,
                 "text": "Hello there!",
@@ -868,36 +868,38 @@ class CompletionOutput(BaseModel):
                 "finish_reason": "stop",
             }
         }
+    )
 
 
 class EmbeddingRequest(BaseModel):
     """Request for embedding generation."""
 
     model: str = Field(..., description="Model name")
-    input: Union[str, List[str]] = Field(..., description="Input text(s)")
+    input: str | list[str] = Field(..., description="Input text(s)")
     encoding_format: str = Field("float", description="Encoding format")
-    user: Optional[str] = Field(None, description="User identifier")
+    user: str | None = Field(None, description="User identifier")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "model": "text-embedding-ada-002",
                 "input": "The quick brown fox",
                 "encoding_format": "float",
             }
         }
+    )
 
 
 class EmbeddingResponse(BaseModel):
     """Response from embedding generation."""
 
     object: str = Field("list", description="Object type")
-    data: List["EmbeddingData"] = Field(..., description="Embedding data")
+    data: list[EmbeddingData] = Field(..., description="Embedding data")
     model: str = Field(..., description="Model name")
-    usage: "UsageStats" = Field(..., description="Usage statistics")
+    usage: UsageStats = Field(..., description="Usage statistics")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "object": "list",
                 "data": [],
@@ -905,19 +907,21 @@ class EmbeddingResponse(BaseModel):
                 "usage": {"prompt_tokens": 4, "total_tokens": 4},
             }
         }
+    )
 
 
 class EmbeddingData(BaseModel):
     """Individual embedding data."""
 
     object: str = Field("embedding", description="Object type")
-    embedding: List[float] = Field(..., description="Embedding vector")
+    embedding: list[float] = Field(..., description="Embedding vector")
     index: int = Field(..., description="Index of the embedding")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {"object": "embedding", "embedding": [0.1, 0.2, 0.3], "index": 0}
         }
+    )
 
 
 class UsageStats(BaseModel):
@@ -927,10 +931,11 @@ class UsageStats(BaseModel):
     completion_tokens: int = Field(0, description="Number of completion tokens")
     total_tokens: int = Field(..., description="Total number of tokens")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15}
         }
+    )
 
 
 # ============================================================================
@@ -953,8 +958,8 @@ class EngineMetrics(BaseModel):
     gpu_cache_usage: float = Field(..., description="GPU cache usage percentage")
     cpu_cache_usage: float = Field(..., description="CPU cache usage percentage")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "num_requests_running": 5,
                 "num_requests_waiting": 10,
@@ -962,6 +967,7 @@ class EngineMetrics(BaseModel):
                 "gpu_cache_usage": 0.75,
             }
         }
+    )
 
 
 class ServerMetrics(BaseModel):
@@ -977,8 +983,8 @@ class ServerMetrics(BaseModel):
     p95_latency: float = Field(..., description="95th percentile latency")
     p99_latency: float = Field(..., description="99th percentile latency")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "engine_metrics": {},
                 "server_start_time": "2024-01-01T00:00:00Z",
@@ -988,6 +994,7 @@ class ServerMetrics(BaseModel):
                 "failed_requests": 50,
             }
         }
+    )
 
 
 # ============================================================================
@@ -1000,16 +1007,16 @@ class AsyncRequestOutput(BaseModel):
 
     request_id: str = Field(..., description="Unique request identifier")
     prompt: str = Field(..., description="The input prompt")
-    prompt_token_ids: List[int] = Field(..., description="Token IDs of the prompt")
-    prompt_logprobs: Optional[List[Dict[str, float]]] = Field(
+    prompt_token_ids: list[int] = Field(..., description="Token IDs of the prompt")
+    prompt_logprobs: list[dict[str, float]] | None = Field(
         None, description="Log probabilities for prompt tokens"
     )
-    outputs: List[CompletionOutput] = Field(..., description="Generated outputs")
+    outputs: list[CompletionOutput] = Field(..., description="Generated outputs")
     finished: bool = Field(..., description="Whether the request is finished")
-    error: Optional[str] = Field(None, description="Error message if any")
+    error: str | None = Field(None, description="Error message if any")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "request_id": "async_req_001",
                 "prompt": "Hello world",
@@ -1019,6 +1026,7 @@ class AsyncRequestOutput(BaseModel):
                 "error": None,
             }
         }
+    )
 
 
 class StreamingRequestOutput(BaseModel):
@@ -1026,18 +1034,18 @@ class StreamingRequestOutput(BaseModel):
 
     request_id: str = Field(..., description="Unique request identifier")
     prompt: str = Field(..., description="The input prompt")
-    prompt_token_ids: List[int] = Field(..., description="Token IDs of the prompt")
-    prompt_logprobs: Optional[List[Dict[str, float]]] = Field(
+    prompt_token_ids: list[int] = Field(..., description="Token IDs of the prompt")
+    prompt_logprobs: list[dict[str, float]] | None = Field(
         None, description="Log probabilities for prompt tokens"
     )
-    outputs: List[CompletionOutput] = Field(..., description="Generated outputs")
+    outputs: list[CompletionOutput] = Field(..., description="Generated outputs")
     finished: bool = Field(..., description="Whether the request is finished")
-    delta: Optional[CompletionOutput] = Field(
+    delta: CompletionOutput | None = Field(
         None, description="Delta output for streaming"
     )
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "request_id": "stream_req_001",
                 "prompt": "Hello world",
@@ -1047,6 +1055,7 @@ class StreamingRequestOutput(BaseModel):
                 "delta": None,
             }
         }
+    )
 
 
 # ============================================================================
@@ -1058,16 +1067,14 @@ class ModelInterface(ABC):
     """Abstract interface for VLLM models."""
 
     @abstractmethod
-    def forward(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+    def forward(self, inputs: dict[str, Any]) -> dict[str, Any]:
         """Forward pass through the model."""
-        pass
 
     @abstractmethod
     def generate(
-        self, inputs: Dict[str, Any], sampling_params: SamplingParams
-    ) -> List[CompletionOutput]:
+        self, inputs: dict[str, Any], sampling_params: SamplingParams
+    ) -> list[CompletionOutput]:
         """Generate text from inputs."""
-        pass
 
 
 class ModelAdapter(ABC):
@@ -1076,7 +1083,6 @@ class ModelAdapter(ABC):
     @abstractmethod
     def adapt(self, model: ModelInterface) -> ModelInterface:
         """Adapt a model for specific use cases."""
-        pass
 
 
 class LoRAAdapter(ModelAdapter):
@@ -1113,19 +1119,19 @@ class PromptAdapter(ModelAdapter):
 class MultiModalRegistry(BaseModel):
     """Registry for multi-modal models."""
 
-    models: Dict[str, Dict[str, Any]] = Field(
+    models: dict[str, dict[str, Any]] = Field(
         default_factory=dict, description="Registered models"
     )
 
-    def register(self, name: str, config: Dict[str, Any]) -> None:
+    def register(self, name: str, config: dict[str, Any]) -> None:
         """Register a multi-modal model."""
         self.models[name] = config
 
-    def get(self, name: str) -> Optional[Dict[str, Any]]:
+    def get(self, name: str) -> dict[str, Any] | None:
         """Get a multi-modal model configuration."""
         return self.models.get(name)
 
-    def list_models(self) -> List[str]:
+    def list_models(self) -> list[str]:
         """List all registered models."""
         return list(self.models.keys())
 
@@ -1139,7 +1145,7 @@ class LLM(BaseModel):
     """Main VLLM class for offline inference."""
 
     config: VllmConfig = Field(..., description="VLLM configuration")
-    engine: Optional["LLMEngine"] = Field(None, description="LLM engine")
+    engine: LLMEngine | None = Field(None, description="LLM engine")
 
     def __init__(self, config: VllmConfig, **kwargs):
         super().__init__(config=config, **kwargs)
@@ -1147,10 +1153,10 @@ class LLM(BaseModel):
 
     def generate(
         self,
-        prompts: Union[str, List[str], TextPrompt, List[TextPrompt]],
+        prompts: str | list[str] | TextPrompt | list[TextPrompt],
         sampling_params: SamplingParams,
         **kwargs,
-    ) -> List[RequestOutput]:
+    ) -> list[RequestOutput]:
         """Generate text from prompts."""
         if self.engine is None:
             self.engine = LLMEngine(self.config)
@@ -1175,8 +1181,8 @@ class LLMEngine(BaseModel):
     model_config = {"arbitrary_types_allowed": True}
 
     config: VllmConfig = Field(..., description="VLLM configuration")
-    model: Optional[ModelInterface] = Field(None, description="Loaded model")
-    tokenizer: Optional[Any] = Field(None, description="Tokenizer")
+    model: ModelInterface | None = Field(None, description="Loaded model")
+    tokenizer: Any | None = Field(None, description="Tokenizer")
     metrics: EngineMetrics = Field(
         default_factory=EngineMetrics, description="Engine metrics"
     )
@@ -1188,14 +1194,13 @@ class LLMEngine(BaseModel):
     def _initialize_engine(self):
         """Initialize the engine components."""
         # Implementation would go here
-        pass
 
     def generate(
         self,
-        prompts: Union[str, List[str], TextPrompt, List[TextPrompt]],
-        sampling_params: SamplingParams,
-        **kwargs,
-    ) -> List[RequestOutput]:
+        _prompts: str | list[str] | TextPrompt | list[TextPrompt],
+        _sampling_params: SamplingParams,
+        **_kwargs,
+    ) -> list[RequestOutput]:
         """Generate text from prompts."""
         # Implementation would go here
         return []
@@ -1217,7 +1222,7 @@ class AsyncLLMEngine(BaseModel):
     """Asynchronous VLLM engine."""
 
     config: VllmConfig = Field(..., description="VLLM configuration")
-    engine: Optional[LLMEngine] = Field(None, description="Underlying LLM engine")
+    engine: LLMEngine | None = Field(None, description="Underlying LLM engine")
 
     def __init__(self, config: VllmConfig, **kwargs):
         super().__init__(config=config, **kwargs)
@@ -1225,19 +1230,19 @@ class AsyncLLMEngine(BaseModel):
 
     async def generate(
         self,
-        prompts: Union[str, List[str], TextPrompt, List[TextPrompt]],
-        sampling_params: SamplingParams,
-        **kwargs,
-    ) -> List[AsyncRequestOutput]:
+        _prompts: str | list[str] | TextPrompt | list[TextPrompt],
+        _sampling_params: SamplingParams,
+        **_kwargs,
+    ) -> list[AsyncRequestOutput]:
         """Asynchronously generate text from prompts."""
         # Implementation would go here
         return []
 
     async def generate_stream(
         self,
-        prompts: Union[str, List[str], TextPrompt, List[TextPrompt]],
-        sampling_params: SamplingParams,
-        **kwargs,
+        _prompts: str | list[str] | TextPrompt | list[TextPrompt],
+        _sampling_params: SamplingParams,
+        **_kwargs,
     ) -> AsyncGenerator[StreamingRequestOutput, None]:
         """Stream generated text from prompts."""
         # Implementation would go here
@@ -1247,6 +1252,8 @@ class AsyncLLMEngine(BaseModel):
 
     def get_engine(self) -> LLMEngine:
         """Get the underlying engine."""
+        if self.engine is None:
+            self.engine = LLMEngine(self.config)
         return self.engine
 
 
@@ -1259,7 +1266,7 @@ class VLLMServer(BaseModel):
     """VLLM server for serving models."""
 
     config: VllmConfig = Field(..., description="VLLM configuration")
-    engine: Optional[AsyncLLMEngine] = Field(None, description="Async LLM engine")
+    engine: AsyncLLMEngine | None = Field(None, description="Async LLM engine")
     host: str = Field("0.0.0.0", description="Server host")
     port: int = Field(8000, description="Server port")
     metrics: ServerMetrics = Field(
@@ -1275,12 +1282,10 @@ class VLLMServer(BaseModel):
     async def start(self):
         """Start the server."""
         # Implementation would go here
-        pass
 
     async def stop(self):
         """Stop the server."""
         # Implementation would go here
-        pass
 
     def get_metrics(self) -> ServerMetrics:
         """Get server metrics."""
@@ -1295,7 +1300,7 @@ class VLLMServer(BaseModel):
 def create_vllm_config(
     model: str,
     gpu_memory_utilization: float = 0.9,
-    max_model_len: Optional[int] = None,
+    max_model_len: int | None = None,
     dtype: str = "auto",
     trust_remote_code: bool = False,
     **kwargs,
@@ -1333,8 +1338,7 @@ def create_sampling_params(
     temperature: float = 1.0,
     top_p: float = 1.0,
     top_k: int = -1,
-    max_tokens: int = 16,
-    stop: Optional[Union[str, List[str]]] = None,
+    stop: str | list[str] | None = None,
     **kwargs,
 ) -> SamplingParams:
     """Create sampling parameters with common defaults."""
@@ -1342,7 +1346,6 @@ def create_sampling_params(
         temperature=temperature,
         top_p=top_p,
         top_k=top_k,
-        max_tokens=max_tokens,
         stop=stop,
         **kwargs,
     )
@@ -1357,20 +1360,20 @@ class ChatCompletionRequest(BaseModel):
     """OpenAI-compatible chat completion request."""
 
     model: str = Field(..., description="Model name")
-    messages: List[Dict[str, str]] = Field(..., description="Chat messages")
-    temperature: Optional[float] = Field(1.0, description="Sampling temperature")
-    top_p: Optional[float] = Field(1.0, description="Top-p sampling parameter")
-    n: Optional[int] = Field(1, description="Number of completions")
-    stream: Optional[bool] = Field(False, description="Stream responses")
-    stop: Optional[Union[str, List[str]]] = Field(None, description="Stop sequences")
-    max_tokens: Optional[int] = Field(None, description="Maximum tokens to generate")
-    presence_penalty: Optional[float] = Field(0.0, description="Presence penalty")
-    frequency_penalty: Optional[float] = Field(0.0, description="Frequency penalty")
-    logit_bias: Optional[Dict[str, float]] = Field(None, description="Logit bias")
-    user: Optional[str] = Field(None, description="User identifier")
+    messages: list[dict[str, str]] = Field(..., description="Chat messages")
+    temperature: float | None = Field(1.0, description="Sampling temperature")
+    top_p: float | None = Field(1.0, description="Top-p sampling parameter")
+    n: int | None = Field(1, description="Number of completions")
+    stream: bool | None = Field(False, description="Stream responses")
+    stop: str | list[str] | None = Field(None, description="Stop sequences")
+    max_tokens: int | None = Field(None, description="Maximum tokens to generate")
+    presence_penalty: float | None = Field(0.0, description="Presence penalty")
+    frequency_penalty: float | None = Field(0.0, description="Frequency penalty")
+    logit_bias: dict[str, float] | None = Field(None, description="Logit bias")
+    user: str | None = Field(None, description="User identifier")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "model": "gpt-3.5-turbo",
                 "messages": [{"role": "user", "content": "Hello, how are you?"}],
@@ -1378,6 +1381,7 @@ class ChatCompletionRequest(BaseModel):
                 "max_tokens": 50,
             }
         }
+    )
 
 
 class ChatCompletionResponse(BaseModel):
@@ -1387,11 +1391,11 @@ class ChatCompletionResponse(BaseModel):
     object: str = Field("chat.completion", description="Object type")
     created: int = Field(..., description="Creation timestamp")
     model: str = Field(..., description="Model name")
-    choices: List["ChatCompletionChoice"] = Field(..., description="Completion choices")
+    choices: list[ChatCompletionChoice] = Field(..., description="Completion choices")
     usage: UsageStats = Field(..., description="Usage statistics")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "id": "chatcmpl-123",
                 "object": "chat.completion",
@@ -1405,17 +1409,18 @@ class ChatCompletionResponse(BaseModel):
                 },
             }
         }
+    )
 
 
 class ChatCompletionChoice(BaseModel):
     """Individual chat completion choice."""
 
     index: int = Field(..., description="Choice index")
-    message: "ChatMessage" = Field(..., description="Chat message")
-    finish_reason: Optional[str] = Field(None, description="Finish reason")
+    message: ChatMessage = Field(..., description="Chat message")
+    finish_reason: str | None = Field(None, description="Finish reason")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "index": 0,
                 "message": {
@@ -1425,6 +1430,7 @@ class ChatCompletionChoice(BaseModel):
                 "finish_reason": "stop",
             }
         }
+    )
 
 
 class ChatMessage(BaseModel):
@@ -1432,36 +1438,37 @@ class ChatMessage(BaseModel):
 
     role: str = Field(..., description="Message role (user, assistant, system)")
     content: str = Field(..., description="Message content")
-    name: Optional[str] = Field(None, description="Message author name")
+    name: str | None = Field(None, description="Message author name")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {"role": "user", "content": "Hello, how are you?"}
         }
+    )
 
 
 class CompletionRequest(BaseModel):
     """OpenAI-compatible completion request."""
 
     model: str = Field(..., description="Model name")
-    prompt: Union[str, List[str]] = Field(..., description="Input prompt(s)")
-    suffix: Optional[str] = Field(None, description="Suffix to append")
-    max_tokens: Optional[int] = Field(16, description="Maximum tokens to generate")
-    temperature: Optional[float] = Field(1.0, description="Sampling temperature")
-    top_p: Optional[float] = Field(1.0, description="Top-p sampling parameter")
-    n: Optional[int] = Field(1, description="Number of completions")
-    stream: Optional[bool] = Field(False, description="Stream responses")
-    logprobs: Optional[int] = Field(None, description="Number of logprobs")
-    echo: Optional[bool] = Field(False, description="Echo the prompt")
-    stop: Optional[Union[str, List[str]]] = Field(None, description="Stop sequences")
-    presence_penalty: Optional[float] = Field(0.0, description="Presence penalty")
-    frequency_penalty: Optional[float] = Field(0.0, description="Frequency penalty")
-    best_of: Optional[int] = Field(None, description="Number of sequences to generate")
-    logit_bias: Optional[Dict[str, float]] = Field(None, description="Logit bias")
-    user: Optional[str] = Field(None, description="User identifier")
+    prompt: str | list[str] = Field(..., description="Input prompt(s)")
+    suffix: str | None = Field(None, description="Suffix to append")
+    max_tokens: int | None = Field(16, description="Maximum tokens to generate")
+    temperature: float | None = Field(1.0, description="Sampling temperature")
+    top_p: float | None = Field(1.0, description="Top-p sampling parameter")
+    n: int | None = Field(1, description="Number of completions")
+    stream: bool | None = Field(False, description="Stream responses")
+    logprobs: int | None = Field(None, description="Number of logprobs")
+    echo: bool | None = Field(False, description="Echo the prompt")
+    stop: str | list[str] | None = Field(None, description="Stop sequences")
+    presence_penalty: float | None = Field(0.0, description="Presence penalty")
+    frequency_penalty: float | None = Field(0.0, description="Frequency penalty")
+    best_of: int | None = Field(None, description="Number of sequences to generate")
+    logit_bias: dict[str, float] | None = Field(None, description="Logit bias")
+    user: str | None = Field(None, description="User identifier")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "model": "text-davinci-003",
                 "prompt": "The quick brown fox",
@@ -1469,6 +1476,7 @@ class CompletionRequest(BaseModel):
                 "temperature": 0.7,
             }
         }
+    )
 
 
 class CompletionResponse(BaseModel):
@@ -1478,11 +1486,11 @@ class CompletionResponse(BaseModel):
     object: str = Field("text_completion", description="Object type")
     created: int = Field(..., description="Creation timestamp")
     model: str = Field(..., description="Model name")
-    choices: List["CompletionChoice"] = Field(..., description="Completion choices")
+    choices: list[CompletionChoice] = Field(..., description="Completion choices")
     usage: UsageStats = Field(..., description="Usage statistics")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "id": "cmpl-123",
                 "object": "text_completion",
@@ -1496,6 +1504,7 @@ class CompletionResponse(BaseModel):
                 },
             }
         }
+    )
 
 
 class CompletionChoice(BaseModel):
@@ -1503,17 +1512,18 @@ class CompletionChoice(BaseModel):
 
     text: str = Field(..., description="Generated text")
     index: int = Field(..., description="Choice index")
-    logprobs: Optional[Dict[str, Any]] = Field(None, description="Log probabilities")
-    finish_reason: Optional[str] = Field(None, description="Finish reason")
+    logprobs: dict[str, Any] | None = Field(None, description="Log probabilities")
+    finish_reason: str | None = Field(None, description="Finish reason")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "text": " jumps over the lazy dog",
                 "index": 0,
                 "finish_reason": "stop",
             }
         }
+    )
 
 
 # ============================================================================
@@ -1524,15 +1534,15 @@ class CompletionChoice(BaseModel):
 class BatchRequest(BaseModel):
     """Batch processing request."""
 
-    requests: List[
-        Union[ChatCompletionRequest, CompletionRequest, EmbeddingRequest]
-    ] = Field(..., description="List of requests")
-    batch_id: Optional[str] = Field(None, description="Batch identifier")
+    requests: list[ChatCompletionRequest | CompletionRequest | EmbeddingRequest] = (
+        Field(..., description="List of requests")
+    )
+    batch_id: str | None = Field(None, description="Batch identifier")
     max_retries: int = Field(3, description="Maximum retries for failed requests")
-    timeout: Optional[float] = Field(None, description="Request timeout in seconds")
+    timeout: float | None = Field(None, description="Request timeout in seconds")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "requests": [],
                 "batch_id": "batch_001",
@@ -1540,16 +1550,17 @@ class BatchRequest(BaseModel):
                 "timeout": 30.0,
             }
         }
+    )
 
 
 class BatchResponse(BaseModel):
     """Batch processing response."""
 
     batch_id: str = Field(..., description="Batch identifier")
-    responses: List[
-        Union[ChatCompletionResponse, CompletionResponse, EmbeddingResponse]
-    ] = Field(..., description="List of responses")
-    errors: List[Dict[str, Any]] = Field(
+    responses: list[ChatCompletionResponse | CompletionResponse | EmbeddingResponse] = (
+        Field(..., description="List of responses")
+    )
+    errors: list[dict[str, Any]] = Field(
         default_factory=list, description="List of errors"
     )
     total_requests: int = Field(..., description="Total number of requests")
@@ -1557,8 +1568,8 @@ class BatchResponse(BaseModel):
     failed_requests: int = Field(..., description="Number of failed requests")
     processing_time: float = Field(..., description="Total processing time in seconds")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "batch_id": "batch_001",
                 "responses": [],
@@ -1569,6 +1580,7 @@ class BatchResponse(BaseModel):
                 "processing_time": 5.2,
             }
         }
+    )
 
 
 # ============================================================================
@@ -1583,14 +1595,14 @@ class ModelInfo(BaseModel):
     object: str = Field("model", description="Object type")
     created: int = Field(..., description="Creation timestamp")
     owned_by: str = Field(..., description="Model owner")
-    permission: List[Dict[str, Any]] = Field(
+    permission: list[dict[str, Any]] = Field(
         default_factory=list, description="Model permissions"
     )
     root: str = Field(..., description="Model root")
-    parent: Optional[str] = Field(None, description="Parent model")
+    parent: str | None = Field(None, description="Parent model")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "id": "gpt-3.5-turbo",
                 "object": "model",
@@ -1600,16 +1612,18 @@ class ModelInfo(BaseModel):
                 "root": "gpt-3.5-turbo",
             }
         }
+    )
 
 
 class ModelListResponse(BaseModel):
     """Response containing list of available models."""
 
     object: str = Field("list", description="Object type")
-    data: List[ModelInfo] = Field(..., description="List of models")
+    data: list[ModelInfo] = Field(..., description="List of models")
 
-    class Config:
-        json_schema_extra = {"example": {"object": "list", "data": []}}
+    model_config = ConfigDict(
+        json_schema_extra={"example": {"object": "list", "data": []}}
+    )
 
 
 class HealthCheck(BaseModel):
@@ -1619,11 +1633,11 @@ class HealthCheck(BaseModel):
     timestamp: datetime = Field(..., description="Check timestamp")
     version: str = Field(..., description="Service version")
     uptime: float = Field(..., description="Service uptime in seconds")
-    memory_usage: Dict[str, Any] = Field(..., description="Memory usage statistics")
-    gpu_usage: Dict[str, Any] = Field(..., description="GPU usage statistics")
+    memory_usage: dict[str, Any] = Field(..., description="Memory usage statistics")
+    gpu_usage: dict[str, Any] = Field(..., description="GPU usage statistics")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "status": "healthy",
                 "timestamp": "2024-01-01T00:00:00Z",
@@ -1633,6 +1647,7 @@ class HealthCheck(BaseModel):
                 "gpu_usage": {"utilization": 75.5, "memory": "6.2GB"},
             }
         }
+    )
 
 
 class TokenizerInfo(BaseModel):
@@ -1644,8 +1659,8 @@ class TokenizerInfo(BaseModel):
     is_fast: bool = Field(..., description="Whether it's a fast tokenizer")
     tokenizer_type: str = Field(..., description="Tokenizer type")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "name": "gpt2",
                 "vocab_size": 50257,
@@ -1654,6 +1669,7 @@ class TokenizerInfo(BaseModel):
                 "tokenizer_type": "GPT2TokenizerFast",
             }
         }
+    )
 
 
 # ============================================================================
@@ -1664,10 +1680,10 @@ class TokenizerInfo(BaseModel):
 class VLLMError(BaseModel):
     """Base VLLM error."""
 
-    error: Dict[str, Any] = Field(..., description="Error details")
+    error: dict[str, Any] = Field(..., description="Error details")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "error": {
                     "message": "Invalid request",
@@ -1676,30 +1692,23 @@ class VLLMError(BaseModel):
                 }
             }
         }
+    )
 
 
 class ValidationError(VLLMError):
     """Validation error."""
 
-    pass
-
 
 class AuthenticationError(VLLMError):
     """Authentication error."""
-
-    pass
 
 
 class RateLimitError(VLLMError):
     """Rate limit error."""
 
-    pass
-
 
 class InternalServerError(VLLMError):
     """Internal server error."""
-
-    pass
 
 
 # ============================================================================
@@ -1713,43 +1722,61 @@ class VLLMClient(BaseModel):
     base_url: str = Field(
         "http://localhost:8000", description="Base URL for VLLM server"
     )
-    api_key: Optional[str] = Field(None, description="API key for authentication")
+    api_key: str | None = Field(None, description="API key for authentication")
     timeout: float = Field(30.0, description="Request timeout in seconds")
 
     def __init__(
         self,
         base_url: str = "http://localhost:8000",
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         **kwargs,
     ):
         super().__init__(base_url=base_url, api_key=api_key, **kwargs)
 
     async def chat_completions(
-        self, request: ChatCompletionRequest
+        self, _request: ChatCompletionRequest
     ) -> ChatCompletionResponse:
         """Send chat completion request."""
         # Implementation would go here
-        pass
+        return ChatCompletionResponse(
+            id="",
+            object="chat.completion",
+            created=0,
+            model="",
+            choices=[],
+            usage=UsageStats(prompt_tokens=0, completion_tokens=0, total_tokens=0),
+        )
 
-    async def completions(self, request: CompletionRequest) -> CompletionResponse:
+    async def completions(self, _request: CompletionRequest) -> CompletionResponse:
         """Send completion request."""
         # Implementation would go here
-        pass
+        return CompletionResponse(
+            id="",
+            object="text_completion",
+            created=0,
+            model="",
+            choices=[],
+            usage=UsageStats(prompt_tokens=0, completion_tokens=0, total_tokens=0),
+        )
 
-    async def embeddings(self, request: EmbeddingRequest) -> EmbeddingResponse:
+    async def embeddings(self, _request: EmbeddingRequest) -> EmbeddingResponse:
         """Send embedding request."""
         # Implementation would go here
-        pass
+        return EmbeddingResponse(
+            data=[],
+            model="",
+            usage=UsageStats(prompt_tokens=0, completion_tokens=0, total_tokens=0),
+        )
 
     async def models(self) -> ModelListResponse:
         """Get list of available models."""
         # Implementation would go here
-        pass
+        return ModelListResponse(data=[], object="list")
 
     async def health(self) -> HealthCheck:
         """Get health check."""
         # Implementation would go here
-        pass
+        return HealthCheck(status="healthy")
 
 
 class VLLMBuilder(BaseModel):
@@ -1758,36 +1785,36 @@ class VLLMBuilder(BaseModel):
     config: VllmConfig = Field(..., description="VLLM configuration")
 
     @classmethod
-    def from_model(cls, model: str) -> "VLLMBuilder":
+    def from_model(cls, model: str) -> VLLMBuilder:
         """Create builder from model name."""
         config = create_vllm_config(model)
         return cls(config=config)
 
-    def with_gpu_memory_utilization(self, utilization: float) -> "VLLMBuilder":
+    def with_gpu_memory_utilization(self, utilization: float) -> VLLMBuilder:
         """Set GPU memory utilization."""
         self.config.cache.gpu_memory_utilization = utilization
         return self
 
-    def with_max_model_len(self, max_len: int) -> "VLLMBuilder":
+    def with_max_model_len(self, max_len: int) -> VLLMBuilder:
         """Set maximum model length."""
         self.config.model.max_model_len = max_len
         self.config.load.max_model_len = max_len
         return self
 
-    def with_quantization(self, method: QuantizationMethod) -> "VLLMBuilder":
+    def with_quantization(self, method: QuantizationMethod) -> VLLMBuilder:
         """Set quantization method."""
         self.config.model.quantization = method
         return self
 
     def with_parallel_config(
         self, pipeline_size: int = 1, tensor_size: int = 1
-    ) -> "VLLMBuilder":
+    ) -> VLLMBuilder:
         """Set parallel configuration."""
         self.config.parallel.pipeline_parallel_size = pipeline_size
         self.config.parallel.tensor_parallel_size = tensor_size
         return self
 
-    def with_lora(self, lora_config: LoRAConfig) -> "VLLMBuilder":
+    def with_lora(self, lora_config: LoRAConfig) -> VLLMBuilder:
         """Set LoRA configuration."""
         self.config.lora = lora_config
         return self
@@ -1805,7 +1832,7 @@ class VLLMBuilder(BaseModel):
 def create_example_llm() -> LLM:
     """Create an example LLM instance."""
     config = create_vllm_config(
-        model="microsoft/DialoGPT-medium",
+        model="TinyLlama/TinyLlama-1.1B-Chat-v1.0",
         gpu_memory_utilization=0.8,
         max_model_len=1024,
     )
@@ -1842,7 +1869,7 @@ class SupportedModels(str, Enum):
     GPT2 = "gpt2"
     GPT_NEO = "EleutherAI/gpt-neo-2.7B"
     GPT_J = "EleutherAI/gpt-j-6B"
-    DIALOGPT = "microsoft/DialoGPT-medium"
+    DIALOGPT = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
     BLOOM = "bigscience/bloom-560m"
     LLAMA = "meta-llama/Llama-2-7b-hf"
     MISTRAL = "mistralai/Mistral-7B-v0.1"
@@ -1866,7 +1893,7 @@ from vllm_comprehensive import LLM, SamplingParams, create_vllm_config
 
 # Create configuration
 config = create_vllm_config(
-    model="microsoft/DialoGPT-medium",
+    model="TinyLlama/TinyLlama-1.1B-Chat-v1.0",
     gpu_memory_utilization=0.8,
     max_model_len=1024
 )
@@ -1894,7 +1921,7 @@ from vllm_comprehensive import AsyncLLMEngine, SamplingParams, create_vllm_confi
 async def main():
     config = create_vllm_config(model="gpt2")
     engine = AsyncLLMEngine(config)
-    
+
     sampling_params = SamplingParams(temperature=0.7)
     outputs = await engine.generate("Once upon a time", sampling_params)
     print(outputs[0].outputs[0].text)
@@ -1908,7 +1935,7 @@ from vllm_comprehensive import VLLMClient, ChatCompletionRequest
 
 async def chat_example():
     client = VLLMClient(base_url="http://localhost:8000")
-    
+
     request = ChatCompletionRequest(
         model="gpt-3.5-turbo",
         messages=[
@@ -1917,7 +1944,7 @@ async def chat_example():
         temperature=0.7,
         max_tokens=50
     )
-    
+
     response = await client.chat_completions(request)
     print(response.choices[0].message.content)
 
@@ -1978,7 +2005,7 @@ from vllm_comprehensive import BatchRequest, ChatCompletionRequest, VLLMClient
 
 async def batch_example():
     client = VLLMClient()
-    
+
     # Create batch of requests
     requests = [
         ChatCompletionRequest(
@@ -1987,13 +2014,13 @@ async def batch_example():
         )
         for i in range(10)
     ]
-    
+
     batch_request = BatchRequest(
         requests=requests,
         batch_id="batch_001",
         max_retries=3
     )
-    
+
     # Process batch (implementation would handle this)
     # batch_response = await client.process_batch(batch_request)
 ```
@@ -2005,7 +2032,7 @@ from vllm_comprehensive import AsyncLLMEngine, SamplingParams
 async def streaming_example():
     engine = AsyncLLMEngine(create_vllm_config(model="gpt2"))
     sampling_params = SamplingParams(temperature=0.7)
-    
+
     async for output in engine.generate_stream("Tell me a story", sampling_params):
         if output.delta:
             print(output.delta.text, end="", flush=True)
@@ -2053,20 +2080,15 @@ class VLLMDocument(BaseModel):
 
     id: str = Field(..., description="Unique document identifier")
     content: str = Field(..., description="Document content")
-    metadata: Dict[str, Any] = Field(
+    metadata: dict[str, Any] = Field(
         default_factory=dict, description="Document metadata"
     )
-    embedding: Optional[List[float]] = Field(
-        None, description="Document embedding vector"
-    )
-    created_at: Optional[str] = Field(None, description="Creation timestamp")
-    updated_at: Optional[str] = Field(None, description="Last update timestamp")
-    model_name: Optional[str] = Field(None, description="Model used for processing")
-    chunk_size: Optional[int] = Field(
-        None, description="Chunk size if document was split"
-    )
+    embedding: list[float] | None = Field(None, description="Document embedding vector")
+    created_at: str | None = Field(None, description="Creation timestamp")
+    updated_at: str | None = Field(None, description="Last update timestamp")
+    model_name: str | None = Field(None, description="Model used for processing")
+    chunk_size: int | None = Field(None, description="Chunk size if document was split")
 
-    class Config:
-        """Pydantic configuration."""
-
-        json_encoders = {datetime: lambda v: v.isoformat() if v else None}
+    model_config = ConfigDict(
+        json_encoders={datetime: lambda v: v.isoformat() if v else None}
+    )

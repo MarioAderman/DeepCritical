@@ -8,30 +8,52 @@ integration with Pydantic AI, and agent-to-agent communication.
 from __future__ import annotations
 
 import asyncio
+import base64
+import io
+import zipfile
+from contextlib import closing
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Any
-from pydantic import BaseModel, Field
-# Note: defer decorator is not available in current pydantic-ai version
+from datetime import datetime, timezone
+from typing import Any
 
-from .base import ToolSpec, ToolRunner, ExecutionResult, registry
-from ..src.datatypes.bioinformatics import (
-    GOAnnotation,
-    PubMedPaper,
-    GEOSeries,
-    DrugTarget,
-    ProteinStructure,
-    FusedDataset,
-    ReasoningTask,
-    DataFusionRequest,
+import requests
+from limits import parse
+from limits.storage import MemoryStorage
+from limits.strategies import MovingWindowRateLimiter
+from pydantic import BaseModel, Field
+from requests.exceptions import RequestException
+
+from DeepResearch.src.agents.bioinformatics_agents import (
+    DataFusionResult,
+    ReasoningResult,
 )
-from ..src.agents.bioinformatics_agents import DataFusionResult, ReasoningResult
-from ..src.statemachines.bioinformatics_workflow import run_bioinformatics_workflow
+from DeepResearch.src.datatypes.bioinformatics import (
+    DataFusionRequest,
+    DrugTarget,
+    FusedDataset,
+    GEOSeries,
+    GOAnnotation,
+    ProteinStructure,
+    PubMedPaper,
+    ReasoningTask,
+)
+from DeepResearch.src.statemachines.bioinformatics_workflow import (
+    run_bioinformatics_workflow,
+)
+
+# Note: defer decorator is not available in current pydantic-ai version
+from .base import ExecutionResult, ToolRunner, ToolSpec, registry
+
+# Rate limiting
+storage = MemoryStorage()
+limiter = MovingWindowRateLimiter(storage)
+rate_limit = parse("3/second")
 
 
 class BioinformaticsToolDeps(BaseModel):
     """Dependencies for bioinformatics tools."""
 
-    config: Dict[str, Any] = Field(default_factory=dict)
+    config: dict[str, Any] = Field(default_factory=dict)
     model_name: str = Field(
         "anthropic:claude-sonnet-4-0", description="Model to use for AI agents"
     )
@@ -40,7 +62,7 @@ class BioinformaticsToolDeps(BaseModel):
     )
 
     @classmethod
-    def from_config(cls, config: Dict[str, Any], **kwargs) -> "BioinformaticsToolDeps":
+    def from_config(cls, config: dict[str, Any], **kwargs) -> BioinformaticsToolDeps:
         """Create tool dependencies from configuration."""
         bioinformatics_config = config.get("bioinformatics", {})
         model_config = bioinformatics_config.get("model", {})
@@ -54,62 +76,189 @@ class BioinformaticsToolDeps(BaseModel):
         )
 
 
-# Deferred tool definitions for bioinformatics data processing
-# @defer - not available in current pydantic-ai version
+# Tool definitions for bioinformatics data processing
 def go_annotation_processor(
-    annotations: List[Dict[str, Any]],
-    papers: List[Dict[str, Any]],
-    evidence_codes: List[str] = None,
-) -> List[GOAnnotation]:
+    _annotations: list[dict[str, Any]],
+    _papers: list[dict[str, Any]],
+    _evidence_codes: list[str] | None = None,
+) -> list[GOAnnotation]:
     """Process GO annotations with PubMed paper context."""
     # This would be implemented with actual data processing logic
     # For now, return mock data structure
     return []
 
 
+def _get_metadata(pmid: int) -> dict[str, Any] | None:
+    """
+    Call the esummary API to get article metadata.
+    Ratelimit is to abide by NIH API rules
+    """
+    ESUMMARY_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi"
+    params = {"db": "pubmed", "id": pmid, "retmode": "json"}
+    try:
+        if not limiter.hit(rate_limit, "pubmed_fetch_rate_limit"):
+            return None
+        response = requests.get(ESUMMARY_URL, params=params)
+        response.raise_for_status()
+        return response.json()
+    except RequestException:
+        return None
+
+
+def _get_fulltext(pmid: int) -> dict[str, Any] | None:
+    """
+    Get the full text of a paper in BioC format
+    """
+    pmid_url = f"https://www.ncbi.nlm.nih.gov/research/bionlp/RESTful/pmcoa.cgi/BioC_json/{pmid}/unicode"
+    try:
+        if not limiter.hit(rate_limit, "pubmed_fetch_rate_limit"):
+            return None
+        paper_response = requests.get(pmid_url)
+        paper_response.raise_for_status()
+        return paper_response.json()
+    except RequestException:
+        return None
+
+
+def _get_figures(pmcid: str) -> dict[str, str]:
+    """
+    This will download a zipfile containing all the figures and supplementary files for an article.
+    NB: Needs to use PMCNNNNNNN for the ID, i.e. pubmed central ID, not pubmed ID.
+    """
+    suppl_url = f"https://www.ebi.ac.uk/europepmc/webservices/rest/{pmcid}/supplementaryFiles?includeInlineImage=true"
+    try:
+        if not limiter.hit(rate_limit, "pubmed_fetch_rate_limit"):
+            return {}
+        suppl_response = requests.get(suppl_url)
+        suppl_response.raise_for_status()
+        IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "tiff"}
+        figures = {}
+        with (
+            closing(suppl_response),
+            zipfile.ZipFile(io.BytesIO(suppl_response.content)) as zip_data,
+        ):
+            for zipped_file in zip_data.infolist():
+                ## Check file extensions in image type set
+                if zipped_file.filename.split(".") in IMAGE_EXTENSIONS:
+                    ## Reads raw bytes of the file and encode as base64 encoded string
+                    figures[zipped_file.filename] = base64.b64encode(
+                        zip_data.read(zipped_file)
+                    ).decode("utf-8")
+        return figures
+    except RequestException:
+        return {}
+
+
+def _extract_text_from_bioc(bioc_data: dict[str, Any]) -> str:
+    """
+    Extracts and concatenates text from a BioC JSON structure.
+    """
+    full_text = []
+    if not bioc_data or "documents" not in bioc_data:
+        return ""
+
+    for doc in bioc_data["documents"]:
+        for passage in doc.get("passages", []):
+            full_text.append(passage.get("text", ""))
+    return "\n".join(full_text)
+
+
+def _build_paper(pmid: int) -> PubMedPaper | None:
+    """
+    Build the paper from a series of API calls
+    """
+    metadata = _get_metadata(pmid)
+    if not isinstance(metadata, dict):
+        return None
+
+    # Assuming the structure of the metadata response
+    result = metadata.get("result", {}).get(str(pmid), {})
+
+    bioc_data = _get_fulltext(pmid)
+    full_text = _extract_text_from_bioc(bioc_data) if bioc_data else ""
+
+    pubdate_str = result.get("pubdate", "")
+    try:
+        # Attempt to parse the year, and create a datetime object
+        year = int(pubdate_str.split()[0])
+        publication_date = datetime(year, 1, 1, tzinfo=timezone.utc)
+    except (ValueError, IndexError):
+        publication_date = None
+
+    return PubMedPaper(
+        pmid=str(pmid),
+        title=result.get("title", ""),
+        abstract=full_text,  # Or parse abstract specifically if available
+        journal=result.get("fulljournalname", ""),
+        publication_date=publication_date,
+        authors=[author["name"] for author in result.get("authors", [])],
+        is_open_access="pmcid" in result,
+        pmc_id=result.get("pmcid"),
+    )
+
+
 # @defer - not available in current pydantic-ai version
 def pubmed_paper_retriever(
-    query: str, max_results: int = 100, year_min: Optional[int] = None
-) -> List[PubMedPaper]:
+    query: str, max_results: int = 100, year_min: int | None = None
+) -> list[PubMedPaper]:
     """Retrieve PubMed papers based on query."""
-    # This would be implemented with actual PubMed API calls
-    # For now, return mock data structure
-    return []
+    PUBMED_SEARCH_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
+    params = {
+        "db": "pubmed",
+        "term": query,
+        "retmode": "json",
+        "retmax": max_results,
+        "tool": "DeepCritical",
+    }
+    if year_min is not None:
+        params["mindate"] = year_min
+
+    try:
+        response = requests.get(PUBMED_SEARCH_URL, params=params)
+        response.raise_for_status()
+        data = response.json()
+    except RequestException:
+        return []
+
+    papers = []
+    if data and "esearchresult" in data and "idlist" in data["esearchresult"]:
+        pmid_list = data["esearchresult"]["idlist"]
+        for pmid in pmid_list:
+            paper = _build_paper(int(pmid))
+            if paper:
+                papers.append(paper)
+    return papers
 
 
-# @defer - not available in current pydantic-ai version
 def geo_data_retriever(
-    series_ids: List[str], include_expression: bool = True
-) -> List[GEOSeries]:
+    _series_ids: list[str], _include_expression: bool = True
+) -> list[GEOSeries]:
     """Retrieve GEO data for specified series."""
     # This would be implemented with actual GEO API calls
     # For now, return mock data structure
     return []
 
 
-# @defer - not available in current pydantic-ai version
 def drug_target_mapper(
-    drug_ids: List[str], target_types: List[str] = None
-) -> List[DrugTarget]:
+    _drug_ids: list[str], _target_types: list[str] | None = None
+) -> list[DrugTarget]:
     """Map drugs to their targets from DrugBank and TTD."""
     # This would be implemented with actual database queries
     # For now, return mock data structure
     return []
 
 
-# @defer - not available in current pydantic-ai version
 def protein_structure_retriever(
-    pdb_ids: List[str], include_interactions: bool = True
-) -> List[ProteinStructure]:
+    _pdb_ids: list[str], _include_interactions: bool = True
+) -> list[ProteinStructure]:
     """Retrieve protein structures from PDB."""
     # This would be implemented with actual PDB API calls
     # For now, return mock data structure
     return []
 
 
-# @defer - not available in current pydantic-ai version
 def data_fusion_engine(
-    fusion_request: DataFusionRequest, deps: BioinformaticsToolDeps
+    _fusion_request: DataFusionRequest, _deps: BioinformaticsToolDeps
 ) -> DataFusionResult:
     """Fuse data from multiple bioinformatics sources."""
     # This would orchestrate the actual data fusion process
@@ -120,15 +269,14 @@ def data_fusion_engine(
             dataset_id="mock_fusion",
             name="Mock Fused Dataset",
             description="Mock dataset for testing",
-            source_databases=fusion_request.source_databases,
+            source_databases=_fusion_request.source_databases,
         ),
         quality_metrics={"overall_quality": 0.85},
     )
 
 
-# @defer - not available in current pydantic-ai version
 def reasoning_engine(
-    task: ReasoningTask, dataset: FusedDataset, deps: BioinformaticsToolDeps
+    _task: ReasoningTask, _dataset: FusedDataset, _deps: BioinformaticsToolDeps
 ) -> ReasoningResult:
     """Perform reasoning on fused bioinformatics data."""
     # This would perform the actual reasoning
@@ -170,7 +318,7 @@ class BioinformaticsFusionTool(ToolRunner):
             )
         )
 
-    def run(self, params: Dict[str, Any]) -> ExecutionResult:
+    def run(self, params: dict[str, Any]) -> ExecutionResult:
         """Execute bioinformatics data fusion."""
         try:
             # Extract parameters
@@ -199,20 +347,22 @@ class BioinformaticsFusionTool(ToolRunner):
             return ExecutionResult(
                 success=fusion_result.success,
                 data={
-                    "fused_dataset": fusion_result.fused_dataset.dict()
-                    if fusion_result.fused_dataset
-                    else None,
+                    "fused_dataset": (
+                        fusion_result.fused_dataset.model_dump()
+                        if fusion_result.fused_dataset
+                        else None
+                    ),
                     "quality_metrics": fusion_result.quality_metrics,
                     "success": fusion_result.success,
                 },
-                error=None
-                if fusion_result.success
-                else "; ".join(fusion_result.errors),
+                error=(
+                    None if fusion_result.success else "; ".join(fusion_result.errors)
+                ),
             )
 
         except Exception as e:
             return ExecutionResult(
-                success=False, data={}, error=f"Bioinformatics fusion failed: {str(e)}"
+                success=False, data={}, error=f"Bioinformatics fusion failed: {e!s}"
             )
 
 
@@ -240,7 +390,7 @@ class BioinformaticsReasoningTool(ToolRunner):
             )
         )
 
-    def run(self, params: Dict[str, Any]) -> ExecutionResult:
+    def run(self, params: dict[str, Any]) -> ExecutionResult:
         """Execute bioinformatics reasoning."""
         try:
             # Extract parameters
@@ -286,7 +436,7 @@ class BioinformaticsReasoningTool(ToolRunner):
             return ExecutionResult(
                 success=False,
                 data={},
-                error=f"Bioinformatics reasoning failed: {str(e)}",
+                error=f"Bioinformatics reasoning failed: {e!s}",
             )
 
 
@@ -309,7 +459,7 @@ class BioinformaticsWorkflowTool(ToolRunner):
             )
         )
 
-    def run(self, params: Dict[str, Any]) -> ExecutionResult:
+    def run(self, params: dict[str, Any]) -> ExecutionResult:
         """Execute complete bioinformatics workflow."""
         try:
             # Extract parameters
@@ -348,7 +498,7 @@ class BioinformaticsWorkflowTool(ToolRunner):
             return ExecutionResult(
                 success=False,
                 data={},
-                error=f"Bioinformatics workflow failed: {str(e)}",
+                error=f"Bioinformatics workflow failed: {e!s}",
             )
 
 
@@ -374,7 +524,7 @@ class GOAnnotationTool(ToolRunner):
             )
         )
 
-    def run(self, params: Dict[str, Any]) -> ExecutionResult:
+    def run(self, params: dict[str, Any]) -> ExecutionResult:
         """Process GO annotations with PubMed context."""
         try:
             # Extract parameters
@@ -394,7 +544,7 @@ class GOAnnotationTool(ToolRunner):
                 success=True,
                 data={
                     "processed_annotations": [
-                        ann.dict() for ann in processed_annotations
+                        ann.model_dump() for ann in processed_annotations
                     ],
                     "quality_score": quality_score,
                     "annotation_count": len(processed_annotations),
@@ -406,7 +556,7 @@ class GOAnnotationTool(ToolRunner):
             return ExecutionResult(
                 success=False,
                 data={},
-                error=f"GO annotation processing failed: {str(e)}",
+                error=f"GO annotation processing failed: {e!s}",
             )
 
 
@@ -432,7 +582,7 @@ class PubMedRetrievalTool(ToolRunner):
             )
         )
 
-    def run(self, params: Dict[str, Any]) -> ExecutionResult:
+    def run(self, params: dict[str, Any]) -> ExecutionResult:
         """Retrieve PubMed papers."""
         try:
             # Extract parameters
@@ -456,7 +606,7 @@ class PubMedRetrievalTool(ToolRunner):
             return ExecutionResult(
                 success=True,
                 data={
-                    "papers": [paper.dict() for paper in papers],
+                    "papers": [paper.model_dump() for paper in papers],
                     "total_found": len(papers),
                     "open_access_count": open_access_count,
                 },
@@ -465,7 +615,7 @@ class PubMedRetrievalTool(ToolRunner):
 
         except Exception as e:
             return ExecutionResult(
-                success=False, data={}, error=f"PubMed retrieval failed: {str(e)}"
+                success=False, data={}, error=f"PubMed retrieval failed: {e!s}"
             )
 
 
